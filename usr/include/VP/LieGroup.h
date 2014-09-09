@@ -101,7 +101,7 @@ typedef double		 scalar;
 #define M_RADIAN	 0.0174532925199432957692	// = pi / 180
 #define M_DEGREE	 57.2957795130823208768		// = pi / 180
 #define SCALAR_MAX	 DBL_MAX
-#else if
+#else
 typedef float		 scalar;
 #define LIE_EPS		 0.000001f
 #define SCALAR_0	 0.0f

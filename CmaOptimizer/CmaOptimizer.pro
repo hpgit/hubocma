@@ -21,3 +21,8 @@ unix {
     INSTALLS += target
 }
 
+macx {
+INCLUDEPATH += /usr/include/c++/4.2.1
+QMAKE_MAC_SDK = macosx10.9
+}
+

@@ -1,7 +1,11 @@
 #include "motionglwidget.h"
 #include <QtGui>
-#include <GL/glu.h>
 #include <iostream>
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
+#include <GL/glu.h>
+#endif
 
 MotionGlWidget::MotionGlWidget(QWidget *parent)
     : QGLWidget(parent)
@@ -171,10 +175,11 @@ void MotionGlWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void MotionGlWidget::wheelEvent(QWheelEvent *event)
 {
-                //double dist = camera.distance;
-                //camera.setDistance((8.0+Fl::event_dy())*dist/8.0);
+    printf("hehe");
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
-        glTranslatef(-event->delta()/1000.0, 0, 0);
+        double dist = camera.distance;
+        camera.setDistance((8.0+event->delta())*dist/8.0);
+        //glTranslatef(-event->delta()/1000.0, 0, 0);
     }
 }

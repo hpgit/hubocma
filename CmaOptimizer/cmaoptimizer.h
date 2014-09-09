@@ -45,4 +45,4 @@ public:
 	std::vector<double>solution;
 };
 
-#endif _CMAOPTIMIZER_H_
+#endif

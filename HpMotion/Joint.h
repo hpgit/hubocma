@@ -5,13 +5,17 @@
 #include <UniformBspline.h>
 #include <vector>
 #include <string>
+#include <cstdio>
+#include <cstdlib>
 
 //#define NOOBJ
 #ifndef NOOBJ
 //#include <Windows.h>
-#include <cstdio>
-#include <cstdlib>
-#include <GL/glut.h>
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
+#include <GL/glu.h>
+#endif
 #endif
 
 enum DOF {Xt, Yt, Zt, Xr, Yr, Zr};

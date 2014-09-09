@@ -38,8 +38,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
 
-#pragma warning(disable : 4996)
-
 #ifndef VP_DATA_TYPE
 #define VP_DATA_TYPE
 
@@ -193,7 +191,7 @@ typedef set<vpBody *>					 vpBodyPtrSet;
 
 #ifdef VP_PROTECT_SRC
 	#define VP_INLINE
-#else if
+#else
 	#define VP_INLINE inline
 #endif
 

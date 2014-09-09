@@ -18,7 +18,7 @@ Release_Preprocessor_Definitions=-D GCC_BUILD -D NDEBUG -D _LIB -fopenmp
 Release_Implicitly_Linked_Objects=
 
 # Compiler flags...
-Release_Compiler_Flags=-O2 
+Release_Compiler_Flags=-arch=x86_64 -O2 
 
 # Builds all configurations for this project...
 .PHONY: build_all_configurations

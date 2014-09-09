@@ -22,3 +22,8 @@ unix {
 }
 
 INCLUDEPATH += ../usr/include
+macx{
+INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/include/c++/4.2.1
+QMAKE_MAC_SDK = macosx10.9
+}

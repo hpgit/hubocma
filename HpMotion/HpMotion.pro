@@ -10,6 +10,7 @@ TARGET = HpMotion
 TEMPLATE = lib
 CONFIG += staticlib
 
+
 SOURCES += \
     BVHMotionData.cpp \
     HpMotionMath.cpp \
@@ -33,8 +34,14 @@ HEADERS += \
     MotionData.h
 
 INCLUDEPATH += ../usr/include
-
 unix {
     target.path = ../usr/lib
     INSTALLS += target
 }
+
+macx{
+INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/include/c++/4.2.1
+QMAKE_MAC_SDK = macosx10.9
+}
+
