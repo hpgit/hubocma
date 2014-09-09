@@ -15,11 +15,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         hubomaincontroller.cpp \
     huboglviewer.cpp \
-    huboglwidget.cpp
+    huboglwidget.cpp \
+    hubotrackingviewer.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
-    huboglwidget.h
+    huboglwidget.h \
+    hubotrackingviewer.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui

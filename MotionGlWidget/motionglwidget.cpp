@@ -175,7 +175,6 @@ void MotionGlWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void MotionGlWidget::wheelEvent(QWheelEvent *event)
 {
-    printf("hehe");
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
         double dist = camera.distance;
