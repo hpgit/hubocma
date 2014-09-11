@@ -1,0 +1,10 @@
+
+ -- Tue Mar 11 13:17:33 2014
+ cmaes_ReadFromFile(): could not open 'cmaes_initials.par'
+
+ -- Tue Mar 11 13:17:33 2014
+ readpara_readpara_t(): problem dimension N undefined.
+  (no default value available).
+
+ -- Tue Mar 11 13:17:33 2014
+ *** Exiting cmaes_t ***

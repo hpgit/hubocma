@@ -1,0 +1,23 @@
+﻿빌드 시작: 2014-03-11 오후 1:09:34
+     1>2 노드의 "f:\hwangpil\documents\visual studio 2012\Projects\cma\example_short\example_short.vcxproj" 프로젝트(Build 대상)입니다.
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TC /analyze- /errorReport:prompt example_short.c
+         example_short.c
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"f:\hwangpil\documents\visual studio 2012\Projects\cma\Debug\example_short.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"f:\hwangpil\documents\visual studio 2012\Projects\cma\Debug\example_short.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"f:\hwangpil\documents\visual studio 2012\Projects\cma\Debug\example_short.lib" /MACHINE:X86 Debug\example_short.obj
+     1>example_short.obj : error LNK2019: _cmaes_init 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_exit 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_SamplePopulation 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_UpdateDistribution 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_TestForTermination 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_Get 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_GetNew 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_ReadSignals 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_WriteToFile 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>example_short.obj : error LNK2019: _cmaes_SayHello 외부 기호(참조 위치: _main 함수)에서 확인하지 못했습니다.
+     1>f:\hwangpil\documents\visual studio 2012\Projects\cma\Debug\example_short.exe : fatal error LNK1120: 10개의 확인할 수 없는 외부 참조입니다.
+     1>"f:\hwangpil\documents\visual studio 2012\Projects\cma\example_short\example_short.vcxproj" 프로젝트를 빌드했습니다(Build 대상). - 실패
+
+빌드하지 못했습니다.
+
+경과 시간: 00:00:00.60
