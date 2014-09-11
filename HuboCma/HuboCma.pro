@@ -31,7 +31,7 @@ INCLUDEPATH += ../usr/include \
         ../CmaOptimizer \
         ../MotionGlWidget
 
-LIBS += -L"../../usr/lib" \
+LIBS += -L"../usr/lib" \
         -fopenmp \
         -lGL \
         -lHpMotion \
@@ -41,6 +41,14 @@ LIBS += -L"../../usr/lib" \
         -lcma \
         -lGLU \
         -lvpLib
+win32{
+LIBS -= -lGL
+LIBS -= -lGLU
+LIBS -= -fopenmp
+LIBS += -lopengl32
+LIBS += -lglu32
+
+}
 
 macx {
 INCLUDEPATH += /usr/local/include

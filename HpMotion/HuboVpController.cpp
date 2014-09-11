@@ -62,7 +62,8 @@ void HuboVpController::initController(void)
 		Vec3(huboMotion->jointMap["Hip"]->getGlobalBoundingBoxPosition(frame).data())
 		);
 
-	world->SetNumThreads(2);
+	
+	world->SetNumThreads(omp_get_num_threads()-1);
 	world->SetIntegrator(VP::IMPLICIT_EULER_FAST);
 	world->SetTimeStep(timestep);
 

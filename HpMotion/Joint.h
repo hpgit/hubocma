@@ -10,7 +10,9 @@
 
 //#define NOOBJ
 #ifndef NOOBJ
-//#include <Windows.h>
+#ifdef WIN32
+#include <Windows.h>
+#endif
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
 #else
