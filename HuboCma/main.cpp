@@ -4,6 +4,9 @@
 #include <HuboVpController.h>
 #include <CmaOptimizer.h>
 #include <UniformBspline.h>
+#ifdef WIN32
+#include <ctime>
+#endif
 
 HuboVpController *hubo, *huboRefer;
 //HuboGlWindow *huboGl, *huboReferGl;
