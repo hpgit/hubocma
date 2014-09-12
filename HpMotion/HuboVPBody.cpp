@@ -1,6 +1,16 @@
 #include "HuboVPBody.h"
 #include "HpMotionMath.h"
 
+HuboVPBody::HuboVPBody()
+{
+	grfKs = 2000.;
+	grfDs = 700.;
+	//grfDs = 2 * sqrt(grfKs);
+	//grfKs = 800.;
+	//grfDs = 50.;
+	mu = 1.;
+}
+
 HuboVPBody::~HuboVPBody()
 {
 	for(int i=0; i<bodies.size(); i++)
@@ -27,12 +37,6 @@ void HuboVPBody::ignoreVpGroundBodyCollision(vpWorld *pWorld, vpBody *pGround)
 
 void HuboVPBody::initBody()
 {
-	grfKs = 2000.;
-	grfDs = 700.;
-	//grfDs = 2 * sqrt(grfKs);
-	//grfKs = 800.;
-	//grfDs = 50.;
-	mu = 1.;
 	for(int i=0; i<bodies.size(); i++)
 		delete bodies.at(i);
 	bodies.clear();

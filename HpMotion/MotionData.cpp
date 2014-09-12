@@ -11,6 +11,7 @@ MotionData::~MotionData()
 
 void MotionData::init()
 {
+	frame = 0;
 	setMotionSize(0);
 }
 

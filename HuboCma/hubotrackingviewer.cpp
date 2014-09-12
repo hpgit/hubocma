@@ -69,12 +69,12 @@ static double fitfunc(const double *x, int dim)
         angleOffset(HuboVPBody::eLAP) = x[6*i+4];
         angleOffset(HuboVPBody::eLAR) = x[6*i+5];
 
-        angleOffset(HuboVPBody::eRHY) = -x[6*i];
-        angleOffset(HuboVPBody::eRHR) = -x[6*i+1];
+        angleOffset(HuboVPBody::eRHY) =-x[6*i];
+        angleOffset(HuboVPBody::eRHR) =-x[6*i+1];
         angleOffset(HuboVPBody::eRHP) = x[6*i+2];
         angleOffset(HuboVPBody::eRKN) = x[6*i+3];
         angleOffset(HuboVPBody::eRAP) = x[6*i+4];
-        angleOffset(HuboVPBody::eRAR) = -x[6*i+5];
+        angleOffset(HuboVPBody::eRAR) =-x[6*i+5];
 
         angleOffsetSpline.setControlPoint(i, angleOffset);
         if (i == 0)
@@ -342,7 +342,7 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
     double Kd = hubo->kd;
 
     hubo->initController();
-
+	hubo->huboVpBody->pHuboMotion->init();
     hubo->huboVpBody->pHuboMotion->setMotionSize(referMotion->getMotionSize());
     hubo->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
 
@@ -387,19 +387,19 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
     {
         angleOffset.setZero();
 
-        angleOffset(HuboVPBody::eLHY) = x[6*i];
-        angleOffset(HuboVPBody::eLHR) = x[6*i+1];
-        angleOffset(HuboVPBody::eLHP) = x[6*i+2];
-        angleOffset(HuboVPBody::eLKN) = x[6*i+3];
-        angleOffset(HuboVPBody::eLAP) = x[6*i+4];
-        angleOffset(HuboVPBody::eLAR) = x[6*i+5];
+        angleOffset(HuboVPBody::eLHY) = x[12*i];
+        angleOffset(HuboVPBody::eLHR) = x[12*i+1];
+        angleOffset(HuboVPBody::eLHP) = x[12*i+2];
+        angleOffset(HuboVPBody::eLKN) = x[12*i+3];
+        angleOffset(HuboVPBody::eLAP) = x[12*i+4];
+        angleOffset(HuboVPBody::eLAR) = x[12*i+5];
 
-        angleOffset(HuboVPBody::eRHY) = -x[6*i];
-        angleOffset(HuboVPBody::eRHR) = -x[6*i+1];
-        angleOffset(HuboVPBody::eRHP) = x[6*i+2];
-        angleOffset(HuboVPBody::eRKN) = x[6*i+3];
-        angleOffset(HuboVPBody::eRAP) = x[6*i+4];
-        angleOffset(HuboVPBody::eRAR) = -x[6*i+5];
+        angleOffset(HuboVPBody::eRHY) = x[12*i+6];
+        angleOffset(HuboVPBody::eRHR) = x[12*i+7];
+        angleOffset(HuboVPBody::eRHP) = x[12*i+8];
+        angleOffset(HuboVPBody::eRKN) = x[12*i+9];
+        angleOffset(HuboVPBody::eRAP) = x[12*i+10];
+        angleOffset(HuboVPBody::eRAR) = x[12*i+11];
 
         angleOffsetSpline.setControlPoint(i, angleOffset);
         if (i == 0)
@@ -411,16 +411,16 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
     {
         angleOffsetWhenNonPeriodic(HuboVPBody::eLHY) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLHR) = 0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eLHP) = 0+rhpOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eLHP) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLKN) = 0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eLAP) = 0+rapOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eLAP) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLAR) = 0;
 
         angleOffsetWhenNonPeriodic(HuboVPBody::eRHY) = -0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eRHR) = -0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) =  0+rhpOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) =  0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eRKN) =  0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) =  0+rapOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) =  0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eRAR) = -0;
 
     }
@@ -499,6 +499,7 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
 void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
 {
     referMotion = refer;
-    HuboTrackingManage huboTrMan;
-    huboTrMan.exec();
+    HuboTrackingManage *huboTrMan = new HuboTrackingManage;
+	huboTrMan->init(this);
+    huboTrMan->show();
 }

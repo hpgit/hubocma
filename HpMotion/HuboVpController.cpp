@@ -50,6 +50,8 @@ void HuboVpController::initController(void)
 	huboMotion->jointMap["Hip"]->setTranslation(frame, y1);
 	huboMotion->makeGroundContact();
 	huboVpBody->create(world, huboMotion);
+	huboVpBody->grfDs = grfDs;
+	huboVpBody->grfKs = grfKs;
 	//TODO:
 	//is it right?
 	huboVpBody->ignoreVpHuboBodyCollision(world);

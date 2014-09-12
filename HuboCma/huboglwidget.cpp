@@ -34,10 +34,10 @@ void HuboGlWidget::paintGL()
         glPointSize(5.0);
         glBegin(GL_POINTS);
                 glColor3f(1,0,0);
-                //Vector3d com = pHuboMotion->getHuboComGlobalPosition();
-                //glVertex3dv(com.data());
-                //com.y() = 0;
-                //glVertex3dv(com.data());
+                Vector3d com = pHuboMotion->getHuboComGlobalPosition();
+                glVertex3dv(com.data());
+                com.y() = 0;
+                glVertex3dv(com.data());
                 //glVertex3dv(cont->huboOdeBody->getHuboCom().data());
         glEnd();
         //if (cont != NULL)

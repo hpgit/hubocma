@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
     hubo->initController();
 
 ////huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk.txt");
-    huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk_repeated.txt", 30, 120);
-    huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/walk_repeated_contactPeriod.txt", 30, 120);
+    huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk_repeated.txt", 35, 120);
+    huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/walk_repeated_contactPeriod.txt", 35, 120);
     HuboGlViewer win;
     win.setWindowTitle(QString("Hubo Reference Motion"));
     win.init(huboRefer);

@@ -15,7 +15,8 @@ public:
 		ground(NULL), groundGeom(NULL), timestep(0.001),
 		//ks(5000), kd(141.42)
 		//ks(4000), kd(126.49)
-		ks(2000), kd(89.44)
+		ks(2000), kd(89.44),
+		grfKs(2000), grfDs(700)
 	{
 		init();
 	}
@@ -33,6 +34,10 @@ public:
 	//PD contol parameters
 	double ks;
 	double kd;
+
+	//Ground parameters
+	double grfKs;
+	double grfDs;
 
 	//Center of Pressure
 	Vector3d cp;

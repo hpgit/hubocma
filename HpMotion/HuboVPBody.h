@@ -9,6 +9,7 @@ class HuboVPBody
 {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	HuboVPBody();
 	~HuboVPBody();
 	enum {RIGHT=0, LEFT};
 	enum JOINTNUM{

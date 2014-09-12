@@ -2,6 +2,8 @@
 #define HUBOTRACKINGMANAGE_H
 
 #include <QDialog>
+#include "hubotrackingviewer.h"
+#include <QtWidgets>
 
 namespace Ui {
 class HuboTrackingManage;
@@ -15,7 +17,19 @@ public:
     explicit HuboTrackingManage(QWidget *parent = 0);
     ~HuboTrackingManage();
 
+	void init(HuboTrackingViewer *_viewer);
+
+	HuboTrackingViewer *viewer;
+	std::vector<QTextEdit*>values;
+	std::vector<QSlider*> sliders;
+
 private slots:
+	void slider_valueChanged();
+
+	void on_groundSetBtn_clicked();
+
+	void on_servoSetBtn_clicked();
+
     void on_simulBtn_clicked();
 
     void on_runCmaWithThis_clicked();
