@@ -42,10 +42,5 @@ int main(int argc, char *argv[])
     contWin.show();
     printf("cacluation time : %u", time(NULL) - start);
 
-
-    HuboMainController w;
-
-    w.show();
-
     return a.exec();
 }

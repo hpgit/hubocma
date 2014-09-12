@@ -31,6 +31,7 @@ public:
 
 	
 	//methods
+	void init();
 	int importSkeleton(string filename);
 	int import(string filename, int firstFrame, int lastFrame);
 	void draw(int _frame);

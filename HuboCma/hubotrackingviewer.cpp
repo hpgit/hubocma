@@ -273,7 +273,7 @@ void HuboTrackingViewer::cmaRun(int maxIter)
     {
         useLatestCmaResult("../CmaData/trackingCmaSolution.txt", xstart);
         for (int i = 0; i < dim; i++)
-            xdev.push_back(0.05);
+            xdev.push_back(0.01);
     }
     else
     {
@@ -324,7 +324,7 @@ void HuboTrackingViewer::cmaRun(int maxIter)
 
 }
 
-void HuboTrackingViewer::setCmaMotion(int frameRate)
+void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
 {
     double rhpOffset = -M_PI / 12;
     double rapOffset = -M_PI / 20;
@@ -334,6 +334,9 @@ void HuboTrackingViewer::setCmaMotion(int frameRate)
         return;
     }
     std::vector<double> &x = cma.solution;
+	if (useManualSolution)
+		x = manualSol;
+	
     double Ks = hubo->ks;
     double Kd = hubo->kd;
 

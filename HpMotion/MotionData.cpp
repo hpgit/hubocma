@@ -9,6 +9,11 @@ MotionData::~MotionData()
 		delete joints.at(i);
 }
 
+void MotionData::init()
+{
+	setMotionSize(0);
+}
+
 void MotionData::draw(int _frame)
 {
 	assert(_frame < frameTotal);
