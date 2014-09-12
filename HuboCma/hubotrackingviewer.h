@@ -11,7 +11,7 @@ public:
 
     CmaOptimizer cma;
     void useLatestCmaResult(char* filename, std::vector<double> &solution);
-    void cmaRun();
+    void cmaRun(int maxIter = 1000);
     void setCmaMotion(int frameRate = 0);
     void setReferMotion(HuboMotionData *refer);
     void setInitMotion();

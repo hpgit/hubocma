@@ -14,7 +14,6 @@ CmaOptimizer cma;
 
 int main(int argc, char *argv[])
 {
-    printf("hehe");
     QApplication a(argc, argv);
 
     hubo = new HuboVpController;
@@ -36,7 +35,7 @@ int main(int argc, char *argv[])
     contWin.init(hubo);
     contWin.setReferMotion(huboRefer->huboVpBody->pHuboMotion);
     time_t start = time(NULL);
-    contWin.cmaRun();
+    contWin.cmaRun(300);
     //contWin.cma.loadSolution("../CmaData/trackingCmaSolution.txt");
     contWin.setCmaMotion();
     //contWin.setInitMotion();

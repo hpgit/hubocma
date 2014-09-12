@@ -41,6 +41,8 @@ LIBS += -L"../usr/lib" \
         -lcma \
         -lGLU \
         -lvpLib
+
+CONFIG += console
 win32{
 LIBS -= -lGL
 LIBS -= -lGLU

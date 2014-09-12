@@ -20,7 +20,8 @@ public:
 
     void init(HuboVpController *_hubo);
 
-    void		resizeEvent(QResizeEvent *);
+    void resizeEvent(QResizeEvent *);
+	void adjustHuboMotionToViewer();
 
     QTimer          *displayTimer;
     HuboGlWidget	*glWidget;

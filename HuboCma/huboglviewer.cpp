@@ -30,6 +30,7 @@ void HuboGlViewer::init(HuboVpController *_hubo)
     ui->glLayout->addWidget(glWidget, 0, 0);
 
     displayTimer = new QTimer(this);
+	displayTimer->setInterval(glWidget->pHuboMotion->getFrameTime());
     connect(displayTimer, SIGNAL(timeout()), this, SLOT(timer()));
 
     ui->frameSlider->setRange(0, _hubo->huboVpBody->pHuboMotion->getMotionSize()-1);
@@ -59,6 +60,12 @@ void HuboGlViewer::timer()
     glWidget->updateGL();
 }
 
+void HuboGlViewer::adjustHuboMotionToViewer()
+{
+	displayTimer->setInterval(glWidget->pHuboMotion->getFrameTime());
+    ui->frameSlider->setRange(0, hubo->huboVpBody->pHuboMotion->getMotionSize()-1);
+    ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
+}
 
 /*
 QSlider* HUBOViewDialog::createSlider(const char *changedSignal, const char *setterSlot)
@@ -77,10 +84,11 @@ QSlider* HUBOViewDialog::createSlider(const char *changedSignal, const char *set
 
 void HuboGlViewer::on_playBtn_clicked()
 {
-    if(displayTimer->isActive())
-        displayTimer->stop();
-    else
-        displayTimer->start(100);
+	if (displayTimer->isActive())
+		displayTimer->stop();
+	else
+		displayTimer->start();
+        //displayTimer->start(100);
 }
 
 void HuboGlViewer::on_frameSlider_valueChanged(int value)

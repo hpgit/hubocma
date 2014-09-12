@@ -101,7 +101,7 @@ static double fitfunc(const double *x, int dim)
     }
 
     double phase = 0;
-    double referInitialX = referMotion->getHuboComGlobalPositionInTime(0).y();
+    double referInitialX = referMotion->getHuboComGlobalPositionInTime(0).x();
     huboCont->huboVpBody->setInitialHuboHipFromMotion(referMotion);
 
     for (int i = 0; i <= totalStep; i++)
@@ -190,11 +190,12 @@ static double fitfunc(const double *x, int dim)
             - referMotion->getHuboComGlobalPositionInTime(time).y()
             );
 
-        if (abs(dy) > 0.5)
+        if (abs(dy) > 0.3)
         {
             fitness += (totalStep-i) * dy*dy;
-            //fitness += (totalStep-i) * abs(dy);
             break;
+            //fitness += (totalStep-i) * abs(dy);
+            //fitness += dy*dy;
         }
 
         //fitness += 1*dy*dy;
@@ -213,7 +214,7 @@ static double fitfunc(const double *x, int dim)
         //fitness += 20*(hubo->huboVpBody->getHipDirection()-Vector3d(0,0,1)).squaredNorm();
 
         //torque term
-        fitness += 0.0001*torques.squaredNorm();
+        fitness += 0.00001*torques.squaredNorm();
     }
     // goal position term
     //fitness += RES * (hubo->huboVpBody->getCOMposition()-Vector3d(0, 0.7, 0.25)).squaredNorm();
@@ -255,7 +256,7 @@ void HuboTrackingViewer::useLatestCmaResult(char* filename, std::vector<double> 
     fin.close();
 }
 
-void HuboTrackingViewer::cmaRun()
+void HuboTrackingViewer::cmaRun(int maxIter)
 {
     if (referMotion == NULL)
     {
@@ -270,7 +271,7 @@ void HuboTrackingViewer::cmaRun()
 
     if (useLatestResult == 1)
     {
-        useLatestCmaResult("trackingCmaSolution.txt", xstart);
+        useLatestCmaResult("../CmaData/trackingCmaSolution.txt", xstart);
         for (int i = 0; i < dim; i++)
             xdev.push_back(0.05);
     }
@@ -311,12 +312,12 @@ void HuboTrackingViewer::cmaRun()
         xdev,
         lb,
         ub);
-    cma.maxIteration = 500;
+    cma.maxIteration = maxIter;
 
     cma.run_boundary();
     //cma.run();
 
-    cma.saveSolution("trackingCmaSolution.txt");
+    cma.saveSolution("../CmaData/trackingCmaSolution.txt");
 
     //for debug
     //for(auto it = cma.solution.begin(); it!=cma.solution.end(); it++)
@@ -488,6 +489,7 @@ void HuboTrackingViewer::setCmaMotion(int frameRate)
                 hubo->huboVpBody->pHuboMotion->setCurrentFrame(hubo->huboVpBody->pHuboMotion->getCurrentFrame() + 1);
         }
     }
+	adjustHuboMotionToViewer();
 }
 
 void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
