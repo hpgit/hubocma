@@ -55,6 +55,8 @@ LIBS += -lglu32
 macx {
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/include/c++/4.2.1
+LIBS -= -L"../usr/lib"
+LIBS += -L"../../usr/lib"
 LIBS -= -lGL
 LIBS -= -lGLU
 LIBS += -L/usr/local/lib \

@@ -487,7 +487,7 @@ inline se3 Log(const SE3 &T)
 {
 #ifdef WIN32
 	scalar theta = acos(__max(__min(SCALAR_1_2 * (T[0] + T[4] + T[8] - SCALAR_1), SCALAR_1), -SCALAR_1)), alpha, beta, gamma;
-#elif
+#else
 	scalar theta = acos(max(min(SCALAR_1_2 * (T[0] + T[4] + T[8] - SCALAR_1), SCALAR_1), -SCALAR_1)), alpha, beta, gamma;
 #endif
 
@@ -539,7 +539,7 @@ inline Axis LogR(const SE3 &T)
 {
 #ifdef WIN32
 	scalar theta = acos(__max(__min(SCALAR_1_2 * (T[0] + T[4] + T[8] - SCALAR_1), SCALAR_1), -SCALAR_1)), alpha;
-#elif
+#else
 	scalar theta = acos(max(min(SCALAR_1_2 * (T[0] + T[4] + T[8] - SCALAR_1), SCALAR_1), -SCALAR_1)), alpha;
 #endif
 
