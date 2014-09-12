@@ -1,5 +1,6 @@
 #include "hubomaincontroller.h"
 #include "hubotrackingviewer.h"
+#include "hubotrackingmanage.h"
 #include <QApplication>
 #include <HuboVpController.h>
 #include <CmaOptimizer.h>
@@ -31,15 +32,16 @@ int main(int argc, char *argv[])
     win.show();
 
     HuboTrackingViewer contWin;
-    contWin.setWindowTitle(QString("Hubo Reference Motion"));
+    contWin.setWindowTitle(QString("Hubo Tracking Viewer"));
     contWin.init(hubo);
     contWin.setReferMotion(huboRefer->huboVpBody->pHuboMotion);
     time_t start = time(NULL);
-    contWin.cmaRun(300);
+    //contWin.cmaRun(300);
     //contWin.cma.loadSolution("../CmaData/trackingCmaSolution.txt");
-    contWin.setCmaMotion();
+    //contWin.setCmaMotion();
     //contWin.setInitMotion();
     contWin.show();
+
     printf("cacluation time : %u", time(NULL) - start);
 
     return a.exec();

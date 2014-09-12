@@ -1,4 +1,5 @@
 #include "hubotrackingviewer.h"
+#include "hubotrackingmanage.h"
 #include <UniformBspline.h>
 #include <HpMotionMath.h>
 
@@ -498,4 +499,6 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
 void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
 {
     referMotion = refer;
+    HuboTrackingManage huboTrMan;
+    huboTrMan.exec();
 }

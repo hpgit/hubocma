@@ -16,15 +16,18 @@ SOURCES += main.cpp\
         hubomaincontroller.cpp \
     huboglviewer.cpp \
     huboglwidget.cpp \
-    hubotrackingviewer.cpp
+    hubotrackingviewer.cpp \
+    hubotrackingmanage.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
     huboglwidget.h \
-    hubotrackingviewer.h
+    hubotrackingviewer.h \
+    hubotrackingmanage.h
 
 FORMS    += hubomaincontroller.ui \
-    huboglviewer.ui
+    huboglviewer.ui \
+    hubotrackingmanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \
