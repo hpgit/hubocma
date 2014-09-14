@@ -24,6 +24,7 @@ public:
 	std::vector<QSlider*> sliders;
 
 private slots:
+    void text_valueChanged();
 	void slider_valueChanged();
 
 	void on_groundSetBtn_clicked();

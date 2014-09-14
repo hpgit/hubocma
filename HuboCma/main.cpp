@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     HuboGlViewer win;
     win.setWindowTitle(QString("Hubo Reference Motion"));
     win.init(huboRefer);
-    win.show();
+    //win.show();
 
     HuboTrackingViewer contWin;
     contWin.setWindowTitle(QString("Hubo Tracking Viewer"));

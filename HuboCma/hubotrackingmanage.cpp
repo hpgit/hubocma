@@ -25,7 +25,7 @@ void HuboTrackingManage::init(HuboTrackingViewer *_viewer)
 			sliders.back()->setRange(0, 1000);
 			sliders.back()->setValue(500);
 			sliders.back()->setSingleStep(1);
-			sliders.back()->setTickInterval(20);
+            sliders.back()->setTickInterval(2);
 			if (j < 6)
 				ui->gridLayout->addWidget(sliders.back(), j, 2 * i);
 			else
@@ -46,6 +46,8 @@ void HuboTrackingManage::init(HuboTrackingViewer *_viewer)
 
 	for (int i = 0; i < sliders.size(); i++)
 		connect(sliders.at(i), SIGNAL(valueChanged(int)), this, SLOT(slider_valueChanged()));
+    for (int i = 0; i < values.size(); i++)
+        connect(values.at(i), SIGNAL(textChanged()), this, SLOT(text_valueChanged()));
 }
 
 void HuboTrackingManage::on_simulBtn_clicked()
@@ -84,4 +86,21 @@ void HuboTrackingManage::slider_valueChanged()
 		values.at(i)->setText(value);
 	}
 	
+}
+
+void HuboTrackingManage::text_valueChanged()
+{
+    for (int i=0; i<values.size(); i++)
+    {
+        QString str = values.at(i)->toPlainText();
+        if(str.size() < 5 || (str.at(0) == '-' && str.size() < 6) )
+            return;
+    }
+    for (int i = 0; i < values.size(); i++)
+    {
+
+        double value = values.at(i)->toPlainText().toDouble();
+        sliders.at(i)->setValue( value*1000. / M_PI +500. );
+    }
+
 }

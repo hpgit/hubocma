@@ -501,5 +501,6 @@ void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
     referMotion = refer;
     HuboTrackingManage *huboTrMan = new HuboTrackingManage;
 	huboTrMan->init(this);
+    huboTrMan->move(this->pos().x()+this->width(), this->pos().y());
     huboTrMan->show();
 }
