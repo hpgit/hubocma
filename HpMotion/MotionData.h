@@ -36,6 +36,8 @@ public:
 	int import(string filename, int firstFrame, int lastFrame);
 	void draw(int _frame);
 	void draw();
+	void drawBox(int _frame);
+	void drawBox();
 	void setFrameRate(double _frameRate);
 	double getFrameRate();
 	void setFrameTime(double _frameTime);

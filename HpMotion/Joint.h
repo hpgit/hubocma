@@ -115,6 +115,7 @@ public:
 	void init();
 	int importOBJ(char* filename);
 	void drawHierarchical(int frame);
+	void drawBoxHierarchical(int frame);
 	//void drawHierarchical();
 
 	Vector3d getGlobalPosition(int frame);
@@ -156,6 +157,7 @@ public:
 
 	void makeBB();
 	void drawBB();
+	void drawBBRigid();
 
 
 	void setConstraintAngle(double min, double max);

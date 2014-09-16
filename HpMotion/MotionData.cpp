@@ -26,6 +26,17 @@ void MotionData::draw()
 	rootJoint->drawHierarchical(getCurrentFrame());
 }
 
+void MotionData::drawBox(int _frame)
+{
+	assert(_frame < frameTotal);
+	rootJoint->drawBoxHierarchical(_frame);
+}
+
+void MotionData::drawBox()
+{
+	rootJoint->drawBoxHierarchical(getCurrentFrame());
+}
+
 void MotionData::setFrameRate(double _frameRate)
 {
 	assert(_frameRate > 0);

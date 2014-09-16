@@ -298,6 +298,28 @@ void Joint::drawHierarchical(int frame)
 		children.at(i)->drawHierarchical(frame);
 	
 }
+
+
+void Joint::drawBoxHierarchical(int frame)
+{
+	glPushMatrix();
+	{
+        Vector3d translation = getGlobalPosition(frame);
+		Quaterniond rotation = getGlobalOrientation(frame);
+		Eigen::Affine3d a;
+		a.setIdentity();
+		a.rotate(rotation).pretranslate(translation);
+		glMultMatrixd(a.data());
+
+		glEnable(GL_LIGHTING);
+		drawBBRigid();
+		glDisable(GL_LIGHTING);
+	}
+	glPopMatrix();
+
+	for(int i=0; i<children.size() ; i++)
+		children.at(i)->drawBoxHierarchical(frame);
+}
 #endif
 
 Vector3d Joint::getGlobalPosition(int frame)
@@ -650,6 +672,65 @@ void Joint::drawBB()
 	glVertex3dv(BBpoints[7].data());
 	glVertex3dv(BBpoints[6].data());
 	glVertex3dv(BBpoints[2].data());
+	glEnd();
+}
+void Joint::drawBBRigid()
+{
+	glColor3f(.5f, .5f, .5f);
+	glBegin(GL_QUADS);
+	glNormal3d(1, 0, 0);
+	glVertex3dv(BBpoints[0].data());
+	glNormal3d(1, 0, 0);
+	glVertex3dv(BBpoints[2].data());
+	glNormal3d(1, 0, 0);
+	glVertex3dv(BBpoints[3].data());
+	glNormal3d(1, 0, 0);
+	glVertex3dv(BBpoints[1].data());
+
+	glNormal3d(0, 1, 0);
+	glVertex3dv(BBpoints[0].data());
+	glNormal3d(0, 1, 0);
+	glVertex3dv(BBpoints[1].data());
+	glNormal3d(0, 1, 0);
+	glVertex3dv(BBpoints[5].data());
+	glNormal3d(0, 1, 0);
+	glVertex3dv(BBpoints[4].data());
+
+	glNormal3d(0, 0, 1);
+	glVertex3dv(BBpoints[0].data());
+	glNormal3d(0, 0, 1);
+	glVertex3dv(BBpoints[4].data());
+	glNormal3d(0, 0, 1);
+	glVertex3dv(BBpoints[6].data());
+	glNormal3d(0, 0, 1);
+	glVertex3dv(BBpoints[2].data());
+
+	glNormal3d(0, -1, 0);
+	glVertex3dv(BBpoints[2].data());
+	glNormal3d(0, -1, 0);
+	glVertex3dv(BBpoints[6].data());
+	glNormal3d(0, -1, 0);
+	glVertex3dv(BBpoints[7].data());
+	glNormal3d(0, -1, 0);
+	glVertex3dv(BBpoints[3].data());
+
+	glNormal3d(0, 0, -1);
+	glVertex3dv(BBpoints[1].data());
+	glNormal3d(0, 0, -1);
+	glVertex3dv(BBpoints[3].data());
+	glNormal3d(0, 0, -1);
+	glVertex3dv(BBpoints[7].data());
+	glNormal3d(0, 0, -1);
+	glVertex3dv(BBpoints[5].data());
+
+	glNormal3d(-1, 0, 0);
+	glVertex3dv(BBpoints[4].data());
+	glNormal3d(-1, 0, 0);
+	glVertex3dv(BBpoints[5].data());
+	glNormal3d(-1, 0, 0);
+	glVertex3dv(BBpoints[7].data());
+	glNormal3d(-1, 0, 0);
+	glVertex3dv(BBpoints[6].data());
 	glEnd();
 }
 

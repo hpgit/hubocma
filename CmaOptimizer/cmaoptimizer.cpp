@@ -65,6 +65,10 @@ void CmaOptimizer::setOptimizer(
 	)
 {
 	this->solution.clear();
+	this->xstart.clear();
+	this->stddev.clear();
+	this->lowerBounds.clear();
+	this->upperBounds.clear();
 	this->fitFunc = fitFunc;
 	this->dim = dim;
 	this->lambda = lambda;
@@ -118,6 +122,7 @@ void CmaOptimizer::run()
 
 	dimension = (unsigned long)cmaes_Get(&evo, "dimension");
 	
+	printf("New Cma Starts\n");
 	//cmaes_ReadSignals(&evo, "cmaes_signals.par");  /* write header and initial values */
 	evo.sp.stopMaxIter = maxIteration;
 
@@ -150,6 +155,7 @@ void CmaOptimizer::run()
 	    fflush(stdout); /* useful in MinGW */
 	  }
 	fout<<generation << " " << minarFunvals<<std::endl;
+	std::cout << generation << " " << minarFunvals << std::endl;
 
 	//printf("Stop:\n%s\n",  cmaes_TestForTermination(&evo)); /* print termination reason */
 	//cmaes_WriteToFile(&evo, "all", "allcmaes.dat");         /* write final results */
@@ -206,6 +212,7 @@ void CmaOptimizer::run_boundary()
 	dimension = (unsigned long)cmaes_Get(&evo, "dimension");
 	
 	//printf("%s\n", cmaes_SayHello(&evo));
+	printf("New Cma Starts\n");
 	
 	x_in_bounds = cmaes_NewDouble(dimension); /* calloc another vector */
 	//cmaes_ReadSignals(&evo, "cmaes_signals.par");  /* write header and initial values */
@@ -253,6 +260,7 @@ void CmaOptimizer::run_boundary()
 	    //cmaes_ReadSignals(&evo, "cmaes_signals.par");
 	    fflush(stdout); /* useful in MinGW */
 	  }
+	std::cout << generation << " " << minarFunvals << std::endl;
 	fout<<generation << " " << minarFunvals<<std::endl;
 
 	//printf("Stop:\n%s\n",  cmaes_TestForTermination(&evo)); /* print termination reason */

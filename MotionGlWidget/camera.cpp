@@ -80,3 +80,31 @@ void Camera::vecInvalidate(Eigen::Affine3d &_se3)
     obj = eye + ( distance * view );
     up = _se3.linear() * Eigen::Vector3d::UnitY();
 }
+
+void Camera::yview()
+{
+    se3.setIdentity();
+    se3.translate(Eigen::Vector3d(.0, 5.0, 0.0));
+	se3.rotate(Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitX()));
+    transforming_se3 = se3;
+    distance = 5.0;
+}
+
+void Camera::xview()
+{
+    se3.setIdentity();
+    se3.translate(Eigen::Vector3d(-4.0, 3.0, .0));
+	se3.rotate(Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitY()));
+    se3.rotate(Eigen::AngleAxisd( -atan((double)0.75), Eigen::Vector3d::UnitX()));
+    transforming_se3 = se3;
+    distance = 5.0;
+}
+
+void Camera::zview()
+{
+    se3.setIdentity();
+    se3.translate(Eigen::Vector3d(.0, 3.0, 4.0));
+    se3.rotate(Eigen::AngleAxisd( -atan((double)0.75), Eigen::Vector3d::UnitX()));
+    transforming_se3 = se3;
+    distance = 5.0;
+}

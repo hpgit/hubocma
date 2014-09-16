@@ -16,7 +16,7 @@ public:
 		//ks(5000), kd(141.42)
 		//ks(4000), kd(126.49)
 		ks(2000), kd(89.44),
-		grfKs(2000), grfDs(700)
+		grfKs(75000), grfDs(100)
 	{
 		init();
 	}

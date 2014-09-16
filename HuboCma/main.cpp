@@ -1,6 +1,6 @@
 #include "hubomaincontroller.h"
 #include "hubotrackingviewer.h"
-#include "hubotrackingmanage.h"
+#include "huboikviewer.h"
 #include <QApplication>
 #include <HuboVpController.h>
 #include <CmaOptimizer.h>
@@ -9,40 +9,112 @@
 #include <ctime>
 #endif
 
-HuboVpController *hubo, *huboRefer;
-//HuboGlWindow *huboGl, *huboReferGl;
-CmaOptimizer cma;
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    hubo = new HuboVpController;
-    hubo->setTimeStep(0.001);
-    huboRefer = new HuboVpController;
+	if (false)
+	{
+		HuboVpController *hubo, *huboRefer;
+		//for tracking
+		CmaOptimizer cma;
+		hubo = new HuboVpController;
+		hubo->setTimeStep(0.001);
+		huboRefer = new HuboVpController;
 
-    hubo->initController();
+		hubo->initController();
 
-////huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk.txt");
-    huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk_repeated.txt", 35, 120);
-    huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/walk_repeated_contactPeriod.txt", 35, 120);
-    HuboGlViewer win;
-    win.setWindowTitle(QString("Hubo Reference Motion"));
-    win.init(huboRefer);
-    //win.show();
+		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/walk_repeated.txt", 35, 120);
+		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/walk_repeated_contactPeriod.txt", 35, 120);
+		HuboGlViewer *win = new HuboGlViewer;
+		win->setWindowTitle(QString("Hubo Reference Motion"));
+		win->init(huboRefer);
+		//win->show();
 
-    HuboTrackingViewer contWin;
-    contWin.setWindowTitle(QString("Hubo Tracking Viewer"));
-    contWin.init(hubo);
-    contWin.setReferMotion(huboRefer->huboVpBody->pHuboMotion);
-    time_t start = time(NULL);
-    //contWin.cmaRun(300);
-    //contWin.cma.loadSolution("../CmaData/trackingCmaSolution.txt");
-    //contWin.setCmaMotion();
-    //contWin.setInitMotion();
-    contWin.show();
+		HuboTrackingViewer *contWin = new HuboTrackingViewer;
+		contWin->setWindowTitle(QString("Hubo Tracking Viewer"));
+		contWin->init(hubo);
+		//contWin->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		contWin->move(200, 200);
+		//contWin.cmaRun(300);
+		//contWin.cma.loadSolution("../CmaData/trackingCmaSolution.txt");
+		//contWin.setCmaMotion();
+		//contWin.setInitMotion();
+		//contWin->show();
+	}
 
-    printf("cacluation time : %u", time(NULL) - start);
+	if (false)
+	{
+		HuboVpController *hubo, *huboRefer;
+		//for tracking
+		CmaOptimizer cma;
+		hubo = new HuboVpController;
+		hubo->setTimeStep(0.001);
+		huboRefer = new HuboVpController;
+
+		hubo->initController();
+
+		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
+		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/n_wd2_WalkForwardFast05_contactPeriod.txt", 10, 110);
+		HuboGlViewer *win = new HuboGlViewer;
+		win->setWindowTitle(QString("Hubo Reference Motion"));
+		win->init(huboRefer);
+		win->show();
+
+		HuboTrackingViewer *contWin = new HuboTrackingViewer;
+		contWin->setWindowTitle(QString("Hubo Tracking Viewer"));
+		contWin->init(hubo);
+		contWin->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		contWin->move(200, 200);
+		//contWin.cmaRun(300);
+		//contWin.cma.loadSolution("../CmaData/trackingCmaSolution.txt");
+		//contWin.setCmaMotion();
+		//contWin.setInitMotion();
+		contWin->show();
+	}
+
+	if (true)
+	{
+		//for IK
+		HuboVpController *hubo, *huboRefer;
+		hubo = new HuboVpController;
+		hubo->setTimeStep(0.001);
+		huboRefer = new HuboVpController;
+
+		hubo->initController();
+
+		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
+		HuboGlViewer *win = new HuboGlViewer;
+		win->setWindowTitle(QString("Hubo Reference Motion"));
+		win->init(huboRefer);
+		win->show();
+
+		HuboIkViewer *contWin = new HuboIkViewer;
+		hubo->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
+		contWin->setWindowTitle(QString("Hubo Inverse Kinematics Viewer"));
+		contWin->init(hubo);
+		contWin->move(200, 200);
+		contWin->show();
+
+	}
+
+	if (0)
+	{
+		//for balancing
+		HuboVpController *hubo, *huboRefer;
+		hubo = new HuboVpController;
+		hubo->setTimeStep(0.001);
+		huboRefer = new HuboVpController;
+
+		hubo->initController();
+
+		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_kick.txt", 35, 100);
+		HuboGlViewer *win = new HuboGlViewer;
+		win->setWindowTitle(QString("HuboReference Motion"));
+		win->init(huboRefer);
+		//win->show();
+
+	}
 
     return a.exec();
 }

@@ -62,19 +62,19 @@ static double fitfunc(const double *x, int dim)
     {
         angleOffset.setZero();
 
-        angleOffset(HuboVPBody::eLHY) = x[6*i];
-        angleOffset(HuboVPBody::eLHR) = x[6*i+1];
-        angleOffset(HuboVPBody::eLHP) = x[6*i+2];
-        angleOffset(HuboVPBody::eLKN) = x[6*i+3];
-        angleOffset(HuboVPBody::eLAP) = x[6*i+4];
-        angleOffset(HuboVPBody::eLAR) = x[6*i+5];
+        angleOffset(HuboVPBody::eLHY) = x[12*i];
+        angleOffset(HuboVPBody::eLHR) = x[12*i+1];
+        angleOffset(HuboVPBody::eLHP) = x[12*i+2];
+        angleOffset(HuboVPBody::eLKN) = x[12*i+3];
+        angleOffset(HuboVPBody::eLAP) = x[12*i+4];
+        angleOffset(HuboVPBody::eLAR) = x[12*i+5];
 
-        angleOffset(HuboVPBody::eRHY) =-x[6*i];
-        angleOffset(HuboVPBody::eRHR) =-x[6*i+1];
-        angleOffset(HuboVPBody::eRHP) = x[6*i+2];
-        angleOffset(HuboVPBody::eRKN) = x[6*i+3];
-        angleOffset(HuboVPBody::eRAP) = x[6*i+4];
-        angleOffset(HuboVPBody::eRAR) =-x[6*i+5];
+        angleOffset(HuboVPBody::eRHY) = x[12*i+6];
+        angleOffset(HuboVPBody::eRHR) = x[12*i+7];
+        angleOffset(HuboVPBody::eRHP) = x[12*i+8];
+        angleOffset(HuboVPBody::eRKN) = x[12*i+9];
+        angleOffset(HuboVPBody::eRAP) = x[12*i+10];
+        angleOffset(HuboVPBody::eRAR) = x[12*i+11];
 
         angleOffsetSpline.setControlPoint(i, angleOffset);
         if (i == 0)
@@ -87,23 +87,26 @@ static double fitfunc(const double *x, int dim)
         //std::cout << huboCont->huboVpBody->vptohuboJointmap[huboCont->huboVpBody->joints.at(HuboVPBody::eLHP)]->name;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLHY) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLHR) = 0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eLHP) = 0+rhpOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eLHP) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLKN) = 0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eLAP) = 0+rapOffset;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eLAP) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLAR) = 0;
 
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHY) = -0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHR) = -0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) =  0+rhpOffset;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRKN) =  0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) =  0+rapOffset;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRAR) = -0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHY) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHR) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRKN) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRAR) = 0;
 
     }
 
     double phase = 0;
-    double referInitialX = referMotion->getHuboComGlobalPositionInTime(0).x();
     huboCont->huboVpBody->setInitialHuboHipFromMotion(referMotion);
+    Eigen::Vector3d rInitial = referMotion->getHuboComGlobalPositionInTime(0);
+    Eigen::Vector3d vInitial = huboCont->huboVpBody->getCOMposition();
+
+	double jointFit = 0, torqueFit = 0, velFit = 0, dirFit = 0, heightFit = 0;
 
     for (int i = 0; i <= totalStep; i++)
     {
@@ -170,7 +173,6 @@ static double fitfunc(const double *x, int dim)
         //Vec3 hand1 = huboCont->huboVpBody->Hand[0]->GetFrame().GetPosition();
         //Vec3 hand2 = huboCont->huboVpBody->Hand[0]->GetFrame().GetPosition();
 
-
         //foot term
         //Vec3 foot1 = hubo->huboVpBody->Foot[0]->GetFrame().GetPosition();
         //Vec3 foot2 = hubo->huboVpBody->Foot[1]->GetFrame().GetPosition();
@@ -180,9 +182,31 @@ static double fitfunc(const double *x, int dim)
         // stance foot term
         //fitness += (foot2[1]-foot2init[1])*(foot2[1]-foot2init[1]);
 
+		//joint term
+		Eigen::VectorXd rAngles;
+		referMotion->getAllAngleInHuboMotionInTime(time, rAngles);
+		huboCont->huboVpBody->getAllAngle(angle);
+
+		jointFit += (rAngles - angle).squaredNorm();
+
+        //torque term
+        torqueFit += 0.00001*torques.squaredNorm();
 
         //velocity term
-        //fitness += (hubo->huboVpBody->getCOMvelocity() - Vector3d(0, 0, 0.4)).squaredNorm();
+		Eigen::Vector3d vrcom = referMotion->getHipJointVelInHuboMotionInTime(time);
+		Eigen::Vector3d vpcom = huboCont->huboVpBody->getCOMvelocity();
+		vrcom.y() = 0;
+		vpcom.y() = 0;
+		velFit += abs(vrcom.squaredNorm() - vpcom.squaredNorm());
+
+		//direction term
+		Eigen::Vector3d vDir  = huboCont->huboVpBody->getCOMvelocity().normalized();
+		Eigen::Vector3d vrDir = (huboCont->huboVpBody->getCOMposition() - vInitial).normalized();
+
+        dirFit += 1-vDir.dot(vrDir) ;
+
+        //direction term
+        //fitness += 20*(hubo->huboVpBody->getHipDirection()-Vector3d(0,0,1)).squaredNorm();
 
         //height term
         double dy =
@@ -193,7 +217,7 @@ static double fitfunc(const double *x, int dim)
 
         if (abs(dy) > 0.3)
         {
-            fitness += (totalStep-i) * dy*dy;
+            heightFit += (totalStep-i) * dy*dy;
             break;
             //fitness += (totalStep-i) * abs(dy);
             //fitness += dy*dy;
@@ -201,21 +225,6 @@ static double fitfunc(const double *x, int dim)
 
         //fitness += 1*dy*dy;
         //fitness += 1 * abs(dy);
-
-        double dx =
-            (
-            huboCont->huboVpBody->getCOMposition().x()
-            - (referMotion->getHuboComGlobalPositionInTime(time).x()-referInitialX)
-            );
-
-        fitness += 0.1*dx*dx;
-
-
-        //direction term
-        //fitness += 20*(hubo->huboVpBody->getHipDirection()-Vector3d(0,0,1)).squaredNorm();
-
-        //torque term
-        fitness += 0.00001*torques.squaredNorm();
     }
     // goal position term
     //fitness += RES * (hubo->huboVpBody->getCOMposition()-Vector3d(0, 0.7, 0.25)).squaredNorm();
@@ -237,6 +246,15 @@ static double fitfunc(const double *x, int dim)
 
     //// swing foot term
     //fitness += RES*(foot1final[1] - foot1init[1]) *(foot1final[1]-foot1init[1]);
+	fitness = 0.5*jointFit + torqueFit + 0.5*velFit + 0.05*dirFit + 20*heightFit;
+
+	/*
+	std::cout << "joint : " << 0.2*jointFit <<
+		" torque : " << torqueFit <<
+		" vel : " << 0.5*velFit <<
+		" dir : " << 0.05*dirFit <<
+		" height : " << 3*heightFit << std::endl;
+		//*/
 
     return fitness;
 }
@@ -267,8 +285,8 @@ void HuboTrackingViewer::cmaRun(int maxIter)
     huboCont = this->hubo;
     std::vector<double> xstart, xdev, ub, lb;
 
-    int dim = 18;
-    int useLatestResult = 1;
+    int dim = 36;
+    int useLatestResult = 0;
 
     if (useLatestResult == 1)
     {
@@ -281,10 +299,16 @@ void HuboTrackingViewer::cmaRun(int maxIter)
         for (int i = 0; i < dim; i++)
         {
             xstart.push_back(0.0);
-            xdev.push_back(0.1);
+            xdev.push_back(M_PI/4);
         }
     }
+	for (int i = 0; i < dim; i++)
+	{
+		ub.push_back(M_PI/2);
+		lb.push_back(-M_PI/2);
+	}
 
+	/*
     for (int i = 0; i < 3; i++)
     {
         ub.push_back(hubo->huboVpBody->vptohuboJointmap[hubo->huboVpBody->LHY]->constraintAngle[1]);
@@ -301,6 +325,7 @@ void HuboTrackingViewer::cmaRun(int maxIter)
         lb.push_back(hubo->huboVpBody->vptohuboJointmap[hubo->huboVpBody->LAP]->constraintAngle[0]);
         lb.push_back(hubo->huboVpBody->vptohuboJointmap[hubo->huboVpBody->LAR]->constraintAngle[0]);
     }
+	*/
 
     //hubo->huboVpBody->getHuboLimit(0, lb);
     //hubo->huboVpBody->getHuboLimit(1, ub);
@@ -416,12 +441,12 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
         angleOffsetWhenNonPeriodic(HuboVPBody::eLAP) = 0;
         angleOffsetWhenNonPeriodic(HuboVPBody::eLAR) = 0;
 
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHY) = -0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHR) = -0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) =  0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRKN) =  0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) =  0;
-        angleOffsetWhenNonPeriodic(HuboVPBody::eRAR) = -0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHY) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHR) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRHP) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRKN) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRAP) = 0;
+        angleOffsetWhenNonPeriodic(HuboVPBody::eRAR) = 0;
 
     }
     double phase = 0;
@@ -501,6 +526,7 @@ void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
     referMotion = refer;
     HuboTrackingManage *huboTrMan = new HuboTrackingManage;
 	huboTrMan->init(this);
-    huboTrMan->move(this->pos().x()+this->width(), this->pos().y());
+    huboTrMan->move(200+width()+20, 200);
+	huboTrMan->setWindowTitle(QString("Manual Solution"));
     huboTrMan->show();
 }

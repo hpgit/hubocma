@@ -23,8 +23,14 @@ public:
 	std::vector<QTextEdit*>values;
 	std::vector<QSlider*> sliders;
 
+	int sliderMoveFlag;
+
+	void save(char *filename);
+	void load(char *filename);
+
 private slots:
-    void text_valueChanged();
+
+	void text_valueChanged();
 	void slider_valueChanged();
 
 	void on_groundSetBtn_clicked();
@@ -36,6 +42,12 @@ private slots:
     void on_runCmaWithThis_clicked();
 
     void on_runCmaWithRes_clicked();
+
+	void on_runCmaBtn_clicked();
+
+	void on_saveBtn_clicked();
+
+	void on_loadBtn_clicked();
 
 private:
     Ui::HuboTrackingManage *ui;

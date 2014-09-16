@@ -3,8 +3,10 @@
 
 HuboVPBody::HuboVPBody()
 {
-	grfKs = 2000.;
-	grfDs = 700.;
+	grfKs = 75000.;
+	grfDs = 100.;
+	//grfKs = 2000.;
+	//grfDs = 700.;
 	//grfDs = 2 * sqrt(grfKs);
 	//grfKs = 800.;
 	//grfDs = 50.;

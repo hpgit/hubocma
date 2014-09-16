@@ -27,6 +27,11 @@ public:
 
     void invalidate();
 
+	void yview();
+	void xview();
+	void zview();
+	
+
 private:
     Eigen::Vector3d eye;
     Eigen::Vector3d view;

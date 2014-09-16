@@ -66,7 +66,8 @@ void HuboGlViewer::timer()
     ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
 	char buf[32];
 	sprintf(buf, "%d", ui->frameSlider->value());
-	ui->textEdit->setText(QString(buf));
+	//ui->textEdit->setText(QString(buf));
+	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
     glWidget->updateGL();
 }
 
@@ -78,7 +79,9 @@ void HuboGlViewer::adjustHuboMotionToViewer()
     ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
 	char buf[32];
 	sprintf(buf, "%d", ui->frameSlider->value());
-	ui->textEdit->setText(QString(buf));
+	//ui->textEdit->setText(QString(buf));
+	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
+	glWidget->updateGL();
 }
 
 /*
@@ -109,7 +112,8 @@ void HuboGlViewer::on_frameSlider_valueChanged(int value)
 {
 	char buf[32];
 	sprintf(buf, "%d", value);
-	ui->textEdit->setText(QString(buf));
+	//ui->textEdit->setText(QString(buf));
+	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
     glWidget->pHuboMotion->setCurrentFrame(value);
     glWidget->updateGL();
 }
