@@ -22,9 +22,11 @@ void HuboIkViewer::rFoot()
 	HuboMotionData *data = hubo->huboVpBody->pHuboMotion;
 	IKSolver *ik = new IKSolver(hubo->huboVpBody->pHuboMotion);
 
-	Eigen::Vector3d p = data->jointMap["RAR"]->getGlobalPosition(data->getCurrentFrame());
+	Eigen::Vector3d p = data->jointMap["RAR"]->getGlobalComPosition(data->getCurrentFrame());
+	
 	Quaterniond q(1, 0, 0, 0);
 	ik->run_r("RAR", p, q);
 
 	delete ik;
+	glWidget->updateGL();
 }

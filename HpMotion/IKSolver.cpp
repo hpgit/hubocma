@@ -24,6 +24,7 @@ void IKSolver::run_r(string PartName, Vector3d &goalPosition, Quaterniond &goalO
 	makeParts();
 
 	for(int j=0; j<IKMOTIONSIZE && computepenalty() > IKEPSILON; j++)
+	//for(int j=0; j<1 && computepenalty() > IKEPSILON; j++)
 	{
 		solve(dp, 10);
 		for(int i=0; i < Parts.size(); i++)
@@ -47,17 +48,17 @@ void IKSolver::solve(Eigen::VectorXd &dp, int nStep)
 	const int frame = obj->getCurrentFrame();
 	Eigen::MatrixXd Jt, Jp;
 	Eigen::VectorXd bp, b;
-	Vector3d btemp = ( goal - obj->jointMap[goalname]->getGlobalPosition(frame) ) / nStep;
+	
+	Vector3d btemp = ( goal - obj->jointMap[goalname]->getGlobalComPosition(frame) ) / nStep;
 	Quaterniond orien = obj->jointMap[goalname]->getGlobalOrientation(frame);
 	Vector3d bQuatTemp = ::diffQuat(goalQuat,orien);
-	btemp.normalize();
+	if (btemp.squaredNorm() >= DBL_EPSILON)
+		btemp.normalize();
 
-	b.resize(3);
+	b.resize(6);
 	
 	b.segment(0,3) = btemp;
 	b.segment(3,3) = bQuatTemp;
-	//b.head(3) = btemp;
-	//b.tail(3) = bQuatTemp;
 
 	computeJacobian();
 	dp = jacobian.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
@@ -72,18 +73,13 @@ void IKSolver::computeJacobian()
 	for(int i=0; i<Parts.size(); i++)
 	{
 		//Vector3d endEffV = rotateAxis.at(i) * ( GoalPosition - Parts.at(i)->getGlobalPosition(obj->frameTotal-1) );
+		std::cout << Parts.at(i)->name << " " << Parts.at(i)->getGlobalRotationAxis(frame).transpose() << std::endl;
 		Vector3d endEffV = Parts.at(i)->getGlobalRotationAxis(frame).cross( 
-			( obj->jointMap[goalname]->getGlobalPosition(frame) - Parts.at(i)->getGlobalPosition(frame)) );
-		Vector3d endEffW = Parts.at(i)->constraintAxis;
+			( obj->jointMap[goalname]->getGlobalComPosition(frame) - Parts.at(i)->getGlobalPosition(frame)) );
+		Vector3d endEffW = Parts.at(i)->getGlobalRotationAxis(frame);
 
 		jacobian.block(0, i, 3, 1) = endEffV;
 		jacobian.block(3, i, 3, 1) = endEffW;
-		//jacobian(0, i)= Parts.at(i)->IKweight * endEffV.x();
-		//jacobian(1, i)= Parts.at(i)->IKweight * endEffV.y();
-		//jacobian(2, i)= Parts.at(i)->IKweight * endEffV.z();
-		//jacobian(3, i)= Parts.at(i)->IKweight * endEffW.x();
-		//jacobian(4, i)= Parts.at(i)->IKweight * endEffW.y();
-		//jacobian(5, i)= Parts.at(i)->IKweight * endEffW.z();
 	}	
 }
 
@@ -125,16 +121,6 @@ void IKSolver::computeFullJacobian()
 			fullJacobian.block(i, 3, 3, 1) = valongx;
 			fullJacobian.block(i, 4, 3, 1) = valongy;
 			fullJacobian.block(i, 5, 3, 1) = valongz;
-			//fullJacobian(i  ,3)=valongx[0];
-			//fullJacobian(i+1,3)=valongx[1];
-			//fullJacobian(i+2,3)=valongx[2];
-			//fullJacobian(i  ,4)=valongy[0];
-			//fullJacobian(i+1,4)=valongy[1];
-			//fullJacobian(i+2,4)=valongy[2];
-			//fullJacobian(i  ,5)=valongz[0];
-			//fullJacobian(i+1,5)=valongz[1];
-			//fullJacobian(i+2,5)=valongz[2];
-			
 		}
 
 		{
@@ -143,15 +129,6 @@ void IKSolver::computeFullJacobian()
 				fullJacobian.block(i, 3, 3, 1) = Vector3d::UnitX();
 				fullJacobian.block(i, 4, 3, 1) = Vector3d::UnitY();
 				fullJacobian.block(i, 5, 3, 1) = Vector3d::UnitZ();
-				//fullJacobian(i  , 3)= 1;
-				//fullJacobian(i+1, 3)= 0;
-				//fullJacobian(i+2, 3)= 0;
-				//fullJacobian(i  , 4)= 0;
-				//fullJacobian(i+1, 4)= 1;
-				//fullJacobian(i+2, 4)= 0;
-				//fullJacobian(i  , 5)= 0;
-				//fullJacobian(i+1, 5)= 0;
-				//fullJacobian(i+2, 5)= 1;
 			}
 		}
 	}
@@ -177,16 +154,10 @@ void IKSolver::computeFullJacobian()
 				v = w.cross( (rcom-rk) );
 
 				fullJacobian.block(i, j+5, 3, 1) = v;
-				//fullJacobian(i  , j+5)= v[0];
-				//fullJacobian(i+1, j+5)= v[1];
-				//fullJacobian(i+2, j+5)= v[2];
 			}
 			else
 			{
 				fullJacobian.block(i, j+5, 3, 1) = Vector3d::Zero();
-				//fullJacobian(i  , j+5)= 0;
-				//fullJacobian(i+1, j+5)= 0;
-				//fullJacobian(i+2, j+5)= 0;
 			}
 		}
 	}
@@ -203,16 +174,10 @@ void IKSolver::computeFullJacobian()
 					w = obj->joints[j]->getGlobalRotationAxis(frame).normalized();
 
 					fullJacobian.block(i, j+5, 3, 1) = w;
-					//fullJacobian(i  , j+5)= w[0];
-					//fullJacobian(i+1, j+5)= w[1];
-					//fullJacobian(i+2, j+5)= w[2];
 				}
 				else
 				{
 					fullJacobian.block(i, j+5, 3, 1) = Vector3d::Zero();
-					//fullJacobian(i  , j+5)=0;
-					//fullJacobian(i+1, j+5)=0;
-					//fullJacobian(i+2, j+5)=0;
 				}
 			}
 		}
@@ -258,29 +223,11 @@ void IKSolver::computeConstraintFullJacobian(Joint* joint, Eigen::MatrixXd &cons
 		constraintJacobian.block(0, 3, 3, 1) = valongx;
 		constraintJacobian.block(0, 4, 3, 1) = valongy;
 		constraintJacobian.block(0, 5, 3, 1) = valongz;
-		//constraintJacobian(0,3)=valongx[0];
-		//constraintJacobian(1,3)=valongx[1];
-		//constraintJacobian(2,3)=valongx[2];
-		//constraintJacobian(0,4)=valongy[0];
-		//constraintJacobian(1,4)=valongy[1];
-		//constraintJacobian(2,4)=valongy[2];
-		//constraintJacobian(0,5)=valongz[0];
-		//constraintJacobian(1,5)=valongz[1];
-		//constraintJacobian(2,5)=valongz[2];
 		//
 
 		fullJacobian.block(3, 3, 3, 1) = Vector3d::UnitX();
 		fullJacobian.block(3, 4, 3, 1) = Vector3d::UnitY();
 		fullJacobian.block(3, 5, 3, 1) = Vector3d::UnitZ();
-		//constraintJacobian(3,3)= 1;
-		//constraintJacobian(4,3)= 0;
-		//constraintJacobian(5,3)= 0;
-		//constraintJacobian(3,4)= 0;
-		//constraintJacobian(4,4)= 1;
-		//constraintJacobian(5,4)= 0;
-		//constraintJacobian(3,5)= 0;
-		//constraintJacobian(4,5)= 0;
-		//constraintJacobian(5,5)= 1;
 	}
 
 	
@@ -303,16 +250,10 @@ void IKSolver::computeConstraintFullJacobian(Joint* joint, Eigen::MatrixXd &cons
 			v = w.cross( (rcom-rk) );
 
 			constraintJacobian.block(0, j+5, 3, 1) = v;
-			//constraintJacobian(0, j+5)= v[0];
-			//constraintJacobian(1, j+5)= v[1];
-			//constraintJacobian(2, j+5)= v[2];
 		}
 		else
 		{
 			constraintJacobian.block(0, j+5, 3, 1) = Vector3d::Zero();
-			//constraintJacobian(0, j+5)= 0;
-			//constraintJacobian(1, j+5)= 0;
-			//constraintJacobian(2, j+5)= 0;
 		}
 	}
 
@@ -325,16 +266,10 @@ void IKSolver::computeConstraintFullJacobian(Joint* joint, Eigen::MatrixXd &cons
 				w = obj->joints[j]->getGlobalRotationAxis(frame).normalized();
 
 				constraintJacobian.block(3, j+5, 3, 1) = w;
-				//constraintJacobian(3,j+5)= w[0];
-				//constraintJacobian(4,j+5)= w[1];
-				//constraintJacobian(5,j+5)= w[2];
 			}
 			else
 			{
 				constraintJacobian.block(3, j+5, 3, 1) = Vector3d::Zero();
-				//constraintJacobian(3,j+5)=0;
-				//constraintJacobian(4,j+5)=0;
-				//constraintJacobian(5,j+5)=0;
 			}
 		}
 	}
@@ -345,7 +280,7 @@ void IKSolver::makeParts()
 {
 	Joint *tempPart = obj->jointMap[goalname];
 
-	for( ; tempPart->parent->name != obj->rootJoint->name ; tempPart = tempPart->parent)
+	for( ; tempPart->name != obj->rootJoint->name ; tempPart = tempPart->parent)
 	//for( ; tempPart != obj->rootJoint ; tempPart = tempPart->parent)
 	{
 		if(tempPart->constraintAxis.norm()>0.5)
@@ -475,10 +410,12 @@ double IKSolver::findMinAlongGradient(int dim, double x0[], double d[], double x
 
 double IKSolver::computepenalty()
 {
+	const int frame = obj->getCurrentFrame();
 	Joint *EndEffector = obj->jointMap[goalname];
 	
 	//distance penalty
-	double dist_penalty = (goal - EndEffector->getGlobalPosition(obj->frameTotal-1)).norm();
+	double dist_penalty = (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
+	dist_penalty += ::diffQuat(goalQuat, obj->jointMap[goalname]->getGlobalOrientation(frame)).squaredNorm();
 
 	/*
 	//angle limit penalty
@@ -499,7 +436,7 @@ double IKSolver::computepenalty()
 	// TODO:
 
 	//return dist_penalty + limit_penalty;
-	return dist_penalty;
+	return sqrt(dist_penalty);
 }
 
 /*
