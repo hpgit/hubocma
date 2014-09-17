@@ -20,7 +20,19 @@ public:
 	void init(HuboIkViewer *viewer);
 
 private slots:
-	void on_rFootBtn_clicked();
+	void on_solveBtn_clicked();
+
+	void on_backupBtn_clicked();
+
+	void on_initBtn_clicked();
+
+	void on_initAllBtn_clicked();
+
+	void on_propagateBtn_clicked();
+
+	void on_saveBtn_clicked();
+
+	void on_applyBtn_clicked();
 
 private:
 	Ui::HuboIkManage *ui;

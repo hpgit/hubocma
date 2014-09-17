@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
 		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/walk_repeated_contactPeriod.txt", 35, 120);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
-		win->init(huboRefer);
+		win->initCont(huboRefer);
 		//win->show();
 
 		HuboTrackingViewer *contWin = new HuboTrackingViewer;
 		contWin->setWindowTitle(QString("Hubo Tracking Viewer"));
-		contWin->init(hubo);
+		contWin->initCont(hubo);
 		//contWin->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
 		contWin->move(200, 200);
 		//contWin.cmaRun(300);
@@ -58,12 +58,12 @@ int main(int argc, char *argv[])
 		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/n_wd2_WalkForwardFast05_contactPeriod.txt", 10, 110);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
-		win->init(huboRefer);
+		win->initCont(huboRefer);
 		win->show();
 
 		HuboTrackingViewer *contWin = new HuboTrackingViewer;
 		contWin->setWindowTitle(QString("Hubo Tracking Viewer"));
-		contWin->init(hubo);
+		contWin->initCont(hubo);
 		contWin->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
 		contWin->move(200, 200);
 		//contWin.cmaRun(300);
@@ -86,13 +86,14 @@ int main(int argc, char *argv[])
 		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
-		win->init(huboRefer);
+		win->initCont(huboRefer);
 		win->show();
 
 		HuboIkViewer *contWin = new HuboIkViewer;
 		hubo->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
 		contWin->setWindowTitle(QString("Hubo Inverse Kinematics Viewer"));
-		contWin->init(hubo);
+		contWin->initCont(hubo);
+		contWin->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
 		contWin->move(200, 200);
 		contWin->show();
 
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
 		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_kick.txt", 35, 100);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("HuboReference Motion"));
-		win->init(huboRefer);
+		win->initCont(huboRefer);
 		//win->show();
 
 	}

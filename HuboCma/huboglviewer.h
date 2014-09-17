@@ -18,7 +18,7 @@ public:
     explicit HuboGlViewer(QWidget *parent = 0);
     ~HuboGlViewer();
 
-    void init(HuboVpController *_hubo);
+    void initCont(HuboVpController *_hubo);
 
     void resizeEvent(QResizeEvent *);
 	void adjustHuboMotionToViewer();

@@ -40,6 +40,8 @@ public:
 	int importContactPeriodAnnotation(char* _filename, int firstFrame, int lastFrame = 0);
 	int importSkeleton(char* _filename);
 	void printAllMotion(char* _filename);
+	
+	void save(char* filename, int firstFrame, int lastFrame = 0);
 
 	void setOBJon();
 	void unsetOBJon();

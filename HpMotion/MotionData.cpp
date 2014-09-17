@@ -2,6 +2,7 @@
 #include <queue>
 #include <iostream>
 #include <fstream>
+#include "HpMotionMath.h"
 
 MotionData::~MotionData()
 {
@@ -159,4 +160,90 @@ int MotionData::canGoOneFrame()
 	if (frame >= frameTotal - 1)
 		return 0;
 	return 1;
+}
+
+void MotionData::backUpMotionForIk(int _frame)
+{
+	for (int i = 0; i < joints.size(); i++)
+		joints.at(i)->backUpMotionForIk = *(joints.at(i)->motions.at(_frame));
+}
+
+void MotionData::restoreMotionForIk(int _frame)
+{
+	for (int i = 0; i < joints.size(); i++)
+		*(joints.at(i)->motions.at(_frame)) = joints.at(i)->backUpMotionForIk;
+}
+
+void MotionData::backUpMotion(int _frame)
+{
+	for (int i = 0; i < joints.size(); i++)
+		joints.at(i)->backUpMotion = *(joints.at(i)->motions.at(_frame));
+}
+
+void MotionData::restoreMotion(int _frame)
+{
+	for (int i = 0; i < joints.size(); i++)
+		*(joints.at(i)->motions.at(_frame)) = joints.at(i)->backUpMotion;
+}
+
+void MotionData::copyOneMotion(MotionData *src, int srcFrame, int dstFrame)
+{
+	for (int i = 0; i < joints.size(); i++)
+		*(joints.at(i)->motions.at(dstFrame)) = *(src->joints.at(i)->motions.at(srcFrame));
+}
+
+void MotionData::copyAllMotion(MotionData *src)
+{
+	const int motionSize = src->getMotionSize();
+	setMotionSize(motionSize);
+	for (int j = 0; j < motionSize; j++)
+		for (int i = 0; i < joints.size(); i++)
+			*(joints.at(i)->motions.at(j)) = *(src->joints.at(i)->motions.at(j));
+
+}
+
+void MotionData::propagateDiffer(int beginFrame, int endFrame)
+{
+	Motion currM;
+	Motion m;
+
+	Eigen::Vector3d currDiffv;
+	Eigen::Quaterniond currDiffq;
+
+	Eigen::Vector3d v;
+	Eigen::Quaterniond q;
+	Eigen::Quaterniond qtarget;
+	double ratio;
+	for (int j = 0; j < joints.size(); j++)
+	{
+		currM = *(joints.at(j)->motions.at(frame));
+		//currDiffv = currM.getTranslation() - joints.at(j)->backUpMotion.getTranslation();
+		Eigen::Quaterniond q2 = currM.getRotation();
+		Eigen::Quaterniond q1 = joints.at(j)->backUpMotion.getRotation();
+		currDiffq = q1.inverse() * q2;
+
+		for (int i = beginFrame + 1; i < frame; i++)
+		{
+			ratio = ((double)(i - beginFrame)) / (frame - beginFrame);
+			m = *(joints.at(j)->motions.at(i));
+			//v = m.getTranslation() + ratio * currDiffv;
+			qtarget = m.getRotation() * currDiffq;
+			q = m.getRotation().slerp(ratio, qtarget);
+			
+			//joints.at(j)->motions.at(i)->setTranslation(v);
+			joints.at(j)->motions.at(i)->setRotation(q);
+		}
+
+		for (int i = frame + 1; i < endFrame; i++)
+		{
+			ratio = ((double)(endFrame - i)) / (endFrame - frame);
+			m = *(joints.at(j)->motions.at(i));
+			v = m.getTranslation() + ratio * currDiffv;
+			qtarget = m.getRotation() * currDiffq;
+			q = m.getRotation().slerp(ratio, qtarget);
+			
+			//joints.at(j)->motions.at(i)->setTranslation(v);
+			joints.at(j)->motions.at(i)->setRotation(q);
+		}
+	}
 }

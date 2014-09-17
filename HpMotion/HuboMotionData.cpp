@@ -824,3 +824,18 @@ void HuboMotionData::printAllMotion(char* filename)
 
 	out.close();
 }
+
+void HuboMotionData::save(char *_filename, int firstFrame, int lastFrame)
+{
+	if (lastFrame == 0)
+		lastFrame = frameTotal - 1;
+	if (firstFrame > lastFrame || firstFrame <0 || lastFrame > frameTotal - 1)
+	{
+		printf("save error: invalid frame setting");
+		return;
+	}
+	//TODO:
+
+
+
+}

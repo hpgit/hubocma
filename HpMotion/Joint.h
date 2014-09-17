@@ -80,6 +80,8 @@ public:
 	std::vector<DOF> dof; // saved in local coordinate order
 	std::vector< std::pair<double,double> > constraints;
 	std::vector<Motion*> motions;
+	Motion backUpMotionForIk;
+	Motion backUpMotion;
 	std::vector<double> angles;
 	//UniformBspline angleBspline;
 	double angleOffset;

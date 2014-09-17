@@ -51,6 +51,22 @@ public:
 	void setCurrentFrame(int _frame);
 	int getCurrentFrame();	
 	int canGoOneFrame();
+
+	void backUpMotion(int _frame);
+	void restoreMotion(int _frame);
+	void backUpMotionForIk(int _frame);
+	void restoreMotionForIk(int _frame);
+
+	void copyOneMotion(MotionData *src, int srcFrame, int dstFrame);
+	void copyAllMotion(MotionData *src);
+	//TODO:
+	void copyMotions(MotionData *src, int srcBeginFrame, int srcEndFrame, MotionData *dst, int dstBeginFrame);
+
+	// This function always runs at currentFrame.
+	// Before using this function, 
+	// use backUpMotion(frame) in right position.
+	// DON'T OVERWRITE backUpMotion UNEXPECTEDLY!!!
+	void propagateDiffer(int beginFrame, int endFrame);
 };
 
 #endif

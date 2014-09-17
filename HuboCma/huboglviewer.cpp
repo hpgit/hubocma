@@ -18,7 +18,7 @@ HuboGlViewer::~HuboGlViewer()
     delete ui;
 }
 
-void HuboGlViewer::init(HuboVpController *_hubo)
+void HuboGlViewer::initCont(HuboVpController *_hubo)
 {
     hubo = _hubo;
     glWidget = new HuboGlWidget(this);

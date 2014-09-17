@@ -400,7 +400,7 @@ void HuboVpController::comTrackingWithoutPhysics(
 
 	double angle;
 
-	for(int j=0; j < IKMOTIONSIZE*10
+	for(int j=0; j < 2000
 		&& computePenaltyWithCom(constraints, constraintPosition, constraintOrientation) ; j++)
 	{
 

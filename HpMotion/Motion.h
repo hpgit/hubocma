@@ -25,7 +25,7 @@ public:
 
 	Motion(Vector3d &_v, Quaterniond &_q): translation(_v), rotation(_q){};
 
-private:
+public:
 	Vector3d translation;
 	Quaterniond rotation;
 	

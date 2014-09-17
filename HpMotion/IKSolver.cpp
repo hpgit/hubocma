@@ -15,6 +15,9 @@ void IKSolver::run_r(string PartName, Vector3d &goalPosition, Quaterniond &goalO
 	Eigen::VectorXd dp;
 	Joint *EndEffector = obj->jointMap[PartName];
 	double angle;
+	double penalty;
+	double _stepsize;
+	int cnt = 0;
 	
 	
 	Parts.clear();
@@ -23,48 +26,96 @@ void IKSolver::run_r(string PartName, Vector3d &goalPosition, Quaterniond &goalO
 	goalQuat = goalOrientation;
 	makeParts();
 
-	for(int j=0; j<IKMOTIONSIZE && computepenalty() > IKEPSILON; j++)
+	penalty = computepenalty();
+
+	for(int j=0; j<maxIter && penalty > ikEps; j++)
 	//for(int j=0; j<1 && computepenalty() > IKEPSILON; j++)
 	{
 		solve(dp, 10);
-		for(int i=0; i < Parts.size(); i++)
-		{
-			angle = Parts.at(i)->getAngle(frame) + dp(i);
+		//std::cout << dp.transpose() << std::endl;
 
-			if(angle < Parts.at(i)->constraintAngle[0])
+		///*
+		_stepsize = stepSize * 1024;
+
+		//1. copy frame to ikframe;
+		obj->backUpMotionForIk(frame);
+
+		do{
+			obj->restoreMotionForIk(frame);
+			if (cnt++ % 2 == 0)
+				_stepsize /= 2.0;
+			else
+				_stepsize *= -1;
+
+			//2. modify this frame
+			for (int i = 0; i < Parts.size(); i++)
+			{
+				angle = Parts.at(i)->getAngle(frame) + dp(i)*_stepsize;
+
+				/*
+				if (angle < Parts.at(i)->constraintAngle[0])
+					angle = Parts.at(i)->constraintAngle[0];
+				else if (angle > Parts.at(i)->constraintAngle[1])
+					angle = Parts.at(i)->constraintAngle[1];
+				*/
+				Quaterniond q =
+					Quaterniond(Eigen::AngleAxisd(angle, Parts.at(i)->constraintAxis));
+
+				Parts.at(i)->setRotation(frame, q);
+			}
+			if ( abs(stepSize / _stepsize) > 2048)
+			{
+				obj->restoreMotionForIk(frame);
+				break;
+			}
+			
+		} while (computepenalty() > penalty);
+		//*/
+		/*
+		for (int i = 0; i < Parts.size(); i++)
+		{
+			angle = Parts.at(i)->getAngle(frame) + dp(i)*_stepsize;
+
+			if (angle < Parts.at(i)->constraintAngle[0])
 				angle = Parts.at(i)->constraintAngle[0];
-			else if(angle > Parts.at(i)->constraintAngle[1])
+			else if (angle > Parts.at(i)->constraintAngle[1])
 				angle = Parts.at(i)->constraintAngle[1];
-			Quaterniond q = 
+			Quaterniond q =
 				Quaterniond(Eigen::AngleAxisd(angle, Parts.at(i)->constraintAxis));
 
-			Parts.at(i)->setRotation(frame,	q);
-		}	
+			Parts.at(i)->setRotation(frame, q);
+		}
+		*/
+
+		penalty = computepenalty();
 	}
 }
 
 void IKSolver::solve(Eigen::VectorXd &dp, int nStep)
 {
 	const int frame = obj->getCurrentFrame();
-	Eigen::MatrixXd Jt, Jp;
-	Eigen::VectorXd bp, b;
+	Eigen::VectorXd b;
 	
-	Vector3d btemp = ( goal - obj->jointMap[goalname]->getGlobalComPosition(frame) ) / nStep;
+	Vector3d btemp = ( goal - obj->jointMap[goalname]->getGlobalBoundingBoxPosition(frame) );
 	Quaterniond orien = obj->jointMap[goalname]->getGlobalOrientation(frame);
-	Vector3d bQuatTemp = ::diffQuat(goalQuat,orien);
-	if (btemp.squaredNorm() >= DBL_EPSILON)
-		btemp.normalize();
+	Vector3d bQuatTemp = diffQuat(goalQuat,orien);
+
+	//if (btemp.squaredNorm() >= DBL_EPSILON)
+	//	btemp.normalize();
 
 	b.resize(6);
 	
 	b.segment(0,3) = btemp;
 	b.segment(3,3) = bQuatTemp;
+	//std::cout << "diffVec : " << btemp.transpose() << std::endl;
+	//std::cout << "diffQuat : " << bQuatTemp.transpose() << std::endl;
 
 	computeJacobian();
 	dp = jacobian.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+	//dp = jacobian.inverse()*b;
 }
 
-void IKSolver::computeJacobian()
+double IKSolver::computeJacobian()
 {
 	const int frame = obj->getCurrentFrame();
 
@@ -73,14 +124,22 @@ void IKSolver::computeJacobian()
 	for(int i=0; i<Parts.size(); i++)
 	{
 		//Vector3d endEffV = rotateAxis.at(i) * ( GoalPosition - Parts.at(i)->getGlobalPosition(obj->frameTotal-1) );
-		std::cout << Parts.at(i)->name << " " << Parts.at(i)->getGlobalRotationAxis(frame).transpose() << std::endl;
+		//std::cout << Parts.at(i)->name << " " << Parts.at(i)->getGlobalRotationAxis(frame).transpose() << std::endl;
 		Vector3d endEffV = Parts.at(i)->getGlobalRotationAxis(frame).cross( 
-			( obj->jointMap[goalname]->getGlobalComPosition(frame) - Parts.at(i)->getGlobalPosition(frame)) );
+			( obj->jointMap[goalname]->getGlobalBoundingBoxPosition(frame) - Parts.at(i)->getGlobalPosition(frame)) );
 		Vector3d endEffW = Parts.at(i)->getGlobalRotationAxis(frame);
 
 		jacobian.block(0, i, 3, 1) = endEffV;
 		jacobian.block(3, i, 3, 1) = endEffW;
 	}	
+	//std::cout << "jacobian :" << std::endl;
+	//std::cout << jacobian << std::endl;
+
+	double dist_penalty = (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
+    Quaterniond curQuat = obj->jointMap[goalname]->getGlobalOrientation(frame);
+    dist_penalty += ::diffQuat(goalQuat, curQuat).squaredNorm();
+
+	return dist_penalty;
 }
 
 void IKSolver::computeFullJacobian()
@@ -315,108 +374,14 @@ void IKSolver::releaseConstraintJoint(Joint *joint)
 	}
 }
 
-/*
-void IKSolver::updateGoldenSection(int dim, double x[], double x2[], double x4[], double d[], double &a1, double &a2, double &a3)
-{
-	double a4 = ( a2 - a1 > a3 - a2) ? 
-		a2 + (a1-a2)/(1+GOLDENRATIO) : a2 + (a3-a2)/(1+GOLDENRATIO);
-	
-	for(int i=0; i<dim; i++)
-		x2[i] = x[i] + a2 * d[i];
-	for(int i=0; i<dim; i++)
-		x4[i] = x[i] + a4 * d[i];
-
-	if( computepenalty(x4) > computepenalty(x2))
-	{
-		if(a2 < a4) a3 = a4;
-		else a1 = a4;
-	}
-	else
-	{
-		if(a2 < a4)
-		{
-			a1 = a2;
-			a2 = a4;
-		}
-		else
-		{
-			a3 = a2;
-			a2 = a4;
-		}
-	}
-	
-}
-
-double IKSolver::findMinAlongGradient(int dim, double x0[], double d[], double xmin[], double xmax[])
-{
-	double a = 0;
-	double amaxForXmin = DBL_MAX;
-	double amaxForXmax = -DBL_MAX;
-	double amax = 0;
-	
-	if(dim <=0 )
-		return 0;
-
-	double *x2 = new double [dim];
-	double *x4 = new double [dim];
-
-
-	if(xmin != NULL)
-	{
-		double temp = 0;
-		for(int i=0; i < dim; i++)
-		{
-			if( std::abs(d[i]) > 0 )
-			{
-				temp = (xmin[i]-x0[i]) / d[i];
-				if(temp > 0 && temp < amaxForXmin)
-					amaxForXmin = temp;
-			}
-		}
-	}
-
-	if(xmax != NULL)
-	{
-		double temp = 0;
-		for(int i=0; i < dim; i++)
-		{
-			if( std::abs(d[i]) > 0 )
-			{
-				temp = (xmax[i]-x0[i]) / d[i];
-				if(temp > 0 && temp < amaxForXmax)
-					amaxForXmax = temp;
-			}
-		}
-	}
-
-	amax = amaxForXmin < amaxForXmax ? amaxForXmin:amaxForXmax;
-	
-	unsigned iter = 0;
-	double a1 = 0, a2 = amax / (1+GOLDENRATIO), a3 = amax;		// for golden ratio
-	
-	for(iter = 0; iter < MAXITER ; iter++)
-	{
-		updateGoldenSection(dim, x0, x2, x4, d, a1, a2, a3);
-		if( std::abs(a2-a1) < DBL_EPSILON) 
-			break;
-	}
-	
-	delete []x2;
-	delete []x4;
-
-	return a2;
-}
-*/
-
 double IKSolver::computepenalty()
 {
 	const int frame = obj->getCurrentFrame();
-	Joint *EndEffector = obj->jointMap[goalname];
 	
 	//distance penalty
-	double dist_penalty = (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
+	double dist_penalty = weightPos * (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
     Quaterniond curQuat = obj->jointMap[goalname]->getGlobalOrientation(frame);
-    dist_penalty += ::diffQuat(goalQuat, curQuat).squaredNorm();
+    dist_penalty += weightAng * diffQuat(goalQuat, curQuat).squaredNorm();
 
 	/*
 	//angle limit penalty
@@ -440,56 +405,108 @@ double IKSolver::computepenalty()
 	return sqrt(dist_penalty);
 }
 
-/*
-void IKSolver::run_gradient_descent(string PartName, Vector3d &GoalPosition)
+double IKSolver::computePenalty(Eigen::VectorXd &p)
 {
-	Eigen::VectorXd dp;
-	Joint *EndEffector = obj->jointMap[PartName];
-	Motion IKmotion;
-	double alpha = 0;
-	double *angles = NULL, *dangles = NULL;
-	double *anglemax = NULL, *anglemin = NULL;
+	const int frame = obj->getCurrentFrame();
+
+	//1. copy frame to ikframe;
+	obj->backUpMotionForIk(frame);
+
+	//2. modify this frame
+	for(int i=0; i < Parts.size(); i++)
+	{
+		double angle = Parts.at(i)->getAngle(frame) + p(i);
+		if(angle < Parts.at(i)->constraintAngle[0])
+			angle = Parts.at(i)->constraintAngle[0];
+		else if(angle > Parts.at(i)->constraintAngle[1])
+			angle = Parts.at(i)->constraintAngle[1];
+
+		Quaterniond q = 
+			Quaterniond(Eigen::AngleAxisd(angle, Parts.at(i)->constraintAxis));
+
+		Parts.at(i)->setRotation(frame,	q);
+	}	
+		
+	//distance penalty
+	double dist_penalty = (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
+    Quaterniond curQuat = obj->jointMap[goalname]->getGlobalOrientation(frame);
+    dist_penalty += ::diffQuat(goalQuat, curQuat).squaredNorm();
+
+	//3. restore this frame from ikframe
+	obj->restoreMotionForIk(frame);
+
+	return sqrt(dist_penalty);
+}
+
+double IKSolver::computePenaltyGradient(Eigen::VectorXd &p, Eigen::VectorXd &dp)
+{
+	double dist;
+
+	const int frame = obj->getCurrentFrame();
+	Eigen::VectorXd b;
 	
+	//1. copy frame to ikframe;
+	obj->backUpMotionForIk(frame);
+
+	//2. modify this frame
+	for(int i=0; i < Parts.size(); i++)
+	{
+		double angle = Parts.at(i)->getAngle(frame) + p(i);
+		if(angle < Parts.at(i)->constraintAngle[0])
+			angle = Parts.at(i)->constraintAngle[0];
+		else if(angle > Parts.at(i)->constraintAngle[1])
+			angle = Parts.at(i)->constraintAngle[1];
+
+		Quaterniond q = 
+			Quaterniond(Eigen::AngleAxisd(angle, Parts.at(i)->constraintAxis));
+
+		Parts.at(i)->setRotation(frame,	q);
+	}	
+
+	Vector3d btemp = ( goal - obj->jointMap[goalname]->getGlobalBoundingBoxPosition(frame) );
+	Quaterniond orien = obj->jointMap[goalname]->getGlobalOrientation(frame);
+	Vector3d bQuatTemp = diffQuat(goalQuat,orien);
+
+	b.resize(6);
+	b.segment(0,3) = btemp;
+	b.segment(3,3) = bQuatTemp;
+
+	dist = computeJacobian();
+	dp = jacobian.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+	//3. restore this frame from ikframe
+	obj->restoreMotionForIk(frame);
+
+	return sqrt(dist);
+}
+
+void IKSolver::run_gradient_descent(std::string _goalName, Eigen::Vector3d &goalpos, Eigen::Quaterniond &goalOri)
+{
 	Parts.clear();
-	goalname = PartName;
-	goal = GoalPosition;
+	goalname = _goalName;
+	goal = goalpos;
+	goalQuat = goalOri;
 	makeParts();
 
-	angles = new double [Parts.size()];
-	dangles = new double [Parts.size()];
-	anglemax = new double [Parts.size()];
-	anglemin = new double [Parts.size()];
+	int iter = 0;
+	double f;
+	Eigen::VectorXd p;
+	p.resize(Parts.size());
+	gradient_descent(p, Parts.size(), 0.1, iter, f, this);
 	
-	for(unsigned i=0; i<Parts.size(); i++)
+	const int frame = obj->getCurrentFrame();
+	double angle;
+	for(int i=0; i < Parts.size(); i++)
 	{
-		IKmotion.setTranslation(Parts.at(i)->IKmotion.at(Parts.at(i)->IKmotion.size()-1)->getTranslation());
-		IKmotion.setRotation(Parts.at(i)->IKmotion.at(Parts.at(i)->IKmotion.size()-1)->getRotation());
-		Parts.at(i)->IKmotion.push_back(new Motion(IKmotion.getTranslation(), IKmotion.getRotation()));
-	}
-	for(unsigned i=0; i<Parts.size(); i++)
-		anglemin[i] = Parts.at(i)->constraintAngle[0];
-	for(unsigned i=0; i<Parts.size(); i++)
-		anglemax[i] = Parts.at(i)->constraintAngle[1];
-	for(unsigned i=0; i<Parts.size(); i++)
-		angles[i] = Parts.at(i)->IKmotion.at(Parts.at(i)->IKmotion.size()-1)->getAngle();
+		angle = Parts.at(i)->getAngle(frame) + p(i);
 
-	for(unsigned j=0; j<IKMOTIONSIZE && computepenalty(angles) > IKEPSILON ; j++)
-	{
-		solve(dp, 10);
-		dp(dangles);
-		alpha = findMinAlongGradient(Parts.size(), angles, dangles, anglemin, anglemax);
-		for(unsigned i=0; i<Parts.size(); i++)
-			angles[i] += alpha * dangles[i];
-		for(unsigned i=0; i<Parts.size(); i++)
-		{
-			if(angles[i] < Parts.at(i)->constraintAngle[0])
-				angles[i] = Parts.at(i)->constraintAngle[0];
-			else if(angles[i] > Parts.at(i)->constraintAngle[1])
-				angles[i] = Parts.at(i)->constraintAngle[1];
-		}
-	}
-	delete []angles;
-	delete []dangles;
+		//if(angle < Parts.at(i)->constraintAngle[0])
+		//	angle = Parts.at(i)->constraintAngle[0];
+		//else if(angle > Parts.at(i)->constraintAngle[1])
+		//	angle = Parts.at(i)->constraintAngle[1];
+		Quaterniond q = 
+			Quaterniond(Eigen::AngleAxisd(angle, Parts.at(i)->constraintAxis));
 
+		Parts.at(i)->setRotation(frame,	q);
+	}	
 }
-*/
