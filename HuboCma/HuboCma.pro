@@ -17,17 +17,22 @@ SOURCES += main.cpp\
     huboglviewer.cpp \
     huboglwidget.cpp \
     hubotrackingviewer.cpp \
-    hubotrackingmanage.cpp
+    hubotrackingmanage.cpp \
+    huboikmanage.cpp \
+    huboikviewer.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
     huboglwidget.h \
     hubotrackingviewer.h \
-    hubotrackingmanage.h
+    hubotrackingmanage.h \
+    huboikmanage.h \
+    huboikviewer.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
-    hubotrackingmanage.ui
+    hubotrackingmanage.ui \
+    huboikmanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \

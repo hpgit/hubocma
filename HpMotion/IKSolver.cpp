@@ -415,7 +415,8 @@ double IKSolver::computepenalty()
 	
 	//distance penalty
 	double dist_penalty = (goal - obj->jointMap[goalname]->getGlobalPosition(frame)).squaredNorm();
-	dist_penalty += ::diffQuat(goalQuat, obj->jointMap[goalname]->getGlobalOrientation(frame)).squaredNorm();
+    Quaterniond curQuat = obj->jointMap[goalname]->getGlobalOrientation(frame);
+    dist_penalty += ::diffQuat(goalQuat, curQuat).squaredNorm();
 
 	/*
 	//angle limit penalty
