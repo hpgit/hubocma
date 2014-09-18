@@ -23,6 +23,7 @@ void matrixStackUptoDown(Eigen::MatrixXd &a, Eigen::MatrixXd &b);
 Eigen::Vector3d ln(Eigen::Quaterniond &q);
 Eigen::Vector3d diffQuat(Eigen::Quaterniond &q1, Eigen::Quaterniond &q2);
 
+//vector contain (zangle, yangle, xangle)
 Eigen::Vector3d qToEulerZYX(Eigen::Quaterniond &q);
 
 //for IK

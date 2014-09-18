@@ -22,7 +22,7 @@ int HuboMotionData::import(char* _filename, int firstFrame, int lastFrame)
 	fin >> str;
 	fin >> totalFrame;
 
-	if (lastFrame == 0)
+	if (lastFrame == 0 || lastFrame > totalFrame-1)
 		lastFrame = totalFrame;
 	else
 		totalFrame = lastFrame+1;
@@ -825,7 +825,7 @@ void HuboMotionData::printAllMotion(char* filename)
 	out.close();
 }
 
-void HuboMotionData::save(char *_filename, int firstFrame, int lastFrame)
+void HuboMotionData::save(const char *_filename, int firstFrame, int lastFrame)
 {
 	if (lastFrame == 0)
 		lastFrame = frameTotal - 1;
@@ -834,14 +834,35 @@ void HuboMotionData::save(char *_filename, int firstFrame, int lastFrame)
 		printf("save error: invalid frame setting");
 		return;
 	}
+
+	const int numFrame = lastFrame - firstFrame + 1;
 	//TODO:
+	std::ofstream fout;
+	fout.open(_filename);
 
 	// total frame
+	fout << "TotalFrames " << numFrame << std::endl;
+
+	for (int i = firstFrame; i <= lastFrame; i++)
 	{
+		fout << "Frame " << (i - firstFrame + 1) << std::endl;
+
 		//hip translation and orientation
-	}
-	for(int i=0; i<activeJoints.size(); i++)
-	{
+		Eigen::Quaterniond q = rootJoint->motions.at(i)->getRotation();
+		Eigen::Vector3d v = qToEulerZYX(q);
+		fout << "Hip "
+			<< rootJoint->motions.at(i)->getTranslation().transpose()
+			<< " "
+			<< v.reverse().transpose()
+			<< std::endl;
+
+		for (int j = 0; j < activeJoints.size(); j++)
+		{
+			fout << activeJoints.at(j)->name << " "
+				<< activeJoints.at(j)->getAngle(i)
+				<< std::endl;
+		}
 	}
 
+	fout.close();
 }

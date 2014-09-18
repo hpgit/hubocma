@@ -76,10 +76,16 @@ Eigen::Vector3d qToEulerZYX(Eigen::Quaterniond &q)
 {
 	Eigen::Matrix3d m = q.toRotationMatrix();
 	//Eigen::Matrix3d m = q.toRotationMatrix().transpose();
-	return Vector3d(atan2(m(0, 0), m(0,1)), 
-		atan2(m(0,2), sqrt(m(0,0) * m(0,0) + m(0,1)*m(0,1))), 
-		atan2(m(1,2), m(2,2))
-		);
+	double zang, xang, yang;
+	zang = atan2(m(1, 0), m(0, 0));
+	xang = atan2(m(2, 1), m(2, 2));
+	if (abs(cos(zang)) < DBL_EPSILON)
+		yang = atan2(-m(2, 0), m(1, 0) / sin(zang));
+	else
+		yang = atan2(-m(2, 0), m(0, 0) / cos(zang));
+
+
+	return Vector3d(zang, yang, xang);
 }
 
 #define GOLD 1.61803398874989484820

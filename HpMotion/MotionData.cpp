@@ -217,7 +217,7 @@ void MotionData::propagateDiffer(int beginFrame, int endFrame)
 	for (int j = 0; j < joints.size(); j++)
 	{
 		currM = *(joints.at(j)->motions.at(frame));
-		//currDiffv = currM.getTranslation() - joints.at(j)->backUpMotion.getTranslation();
+		currDiffv = currM.getTranslation() - joints.at(j)->backUpMotion.getTranslation();
 		Eigen::Quaterniond q2 = currM.getRotation();
 		Eigen::Quaterniond q1 = joints.at(j)->backUpMotion.getRotation();
 		currDiffq = q1.inverse() * q2;
@@ -226,11 +226,11 @@ void MotionData::propagateDiffer(int beginFrame, int endFrame)
 		{
 			ratio = ((double)(i - beginFrame)) / (frame - beginFrame);
 			m = *(joints.at(j)->motions.at(i));
-			//v = m.getTranslation() + ratio * currDiffv;
+			v = m.getTranslation() + ratio * currDiffv;
 			qtarget = m.getRotation() * currDiffq;
 			q = m.getRotation().slerp(ratio, qtarget);
 			
-			//joints.at(j)->motions.at(i)->setTranslation(v);
+			joints.at(j)->motions.at(i)->setTranslation(v);
 			joints.at(j)->motions.at(i)->setRotation(q);
 		}
 
@@ -242,7 +242,7 @@ void MotionData::propagateDiffer(int beginFrame, int endFrame)
 			qtarget = m.getRotation() * currDiffq;
 			q = m.getRotation().slerp(ratio, qtarget);
 			
-			//joints.at(j)->motions.at(i)->setTranslation(v);
+			joints.at(j)->motions.at(i)->setTranslation(v);
 			joints.at(j)->motions.at(i)->setRotation(q);
 		}
 	}

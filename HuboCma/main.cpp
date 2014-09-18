@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 		//contWin->show();
 	}
 
-	if (false)
+	if (true)
 	{
 		HuboVpController *hubo, *huboRefer;
 		//for tracking
@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 
 		hubo->initController();
 
-		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_wd2_WalkForwardFast05.txt", 10, 110);
-		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/n_wd2_WalkForwardFast05_contactPeriod.txt", 10, 110);
+		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/new_n_wd2_WalkForwardFast05.txt", 0, 100);
+		huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation("../CmaData/new_n_wd2_WalkForwardFast05_contactPeriod.txt", 0, 100);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
 		win->initCont(huboRefer);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 		contWin->show();
 	}
 
-	if (true)
+	if (false)
 	{
 		//for IK
 		HuboVpController *hubo, *huboRefer;

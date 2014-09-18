@@ -41,7 +41,7 @@ public:
 	int importSkeleton(char* _filename);
 	void printAllMotion(char* _filename);
 	
-	void save(char* filename, int firstFrame, int lastFrame = 0);
+	void save(const char* filename, int firstFrame, int lastFrame = 0);
 
 	void setOBJon();
 	void unsetOBJon();

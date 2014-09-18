@@ -84,8 +84,8 @@ void HuboIkManage::on_propagateBtn_clicked()
 void HuboIkManage::on_saveBtn_clicked()
 {
 	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
-	//data->save();
-	
+	QString filename = QFileDialog::getSaveFileName();
+	data->save(filename.toStdString().data(), 0);
 }
 
 void HuboIkManage::on_applyBtn_clicked()
