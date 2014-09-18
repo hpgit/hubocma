@@ -24,6 +24,7 @@ public:
 	std::vector<QSlider*> sliders;
 
 	int sliderMoveFlag;
+    int textMoveFlag;
 
 	void save(char *filename);
 	void load(char *filename);

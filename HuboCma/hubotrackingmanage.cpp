@@ -7,6 +7,7 @@ HuboTrackingManage::HuboTrackingManage(QWidget *parent) :
 {
     ui->setupUi(this);
 	sliderMoveFlag = 0;
+    textMoveFlag = 0;
 }
 
 HuboTrackingManage::~HuboTrackingManage()
@@ -139,6 +140,8 @@ void HuboTrackingManage::on_servoSetBtn_clicked()
 
 void HuboTrackingManage::slider_valueChanged()
 {
+    if(textMoveFlag)
+        return;
 	sliderMoveFlag = 1;
 	for (int i = 0; i < sliders.size(); i++)
 	{
@@ -155,6 +158,7 @@ void HuboTrackingManage::text_valueChanged()
 {
 	if (sliderMoveFlag)
 		return;
+    textMoveFlag =1;
     for (int i=0; i<values.size(); i++)
     {
         QString str = values.at(i)->toPlainText();
@@ -166,6 +170,7 @@ void HuboTrackingManage::text_valueChanged()
         double value = values.at(i)->toPlainText().toDouble();
         sliders.at(i)->setValue( value*1000. / M_PI +500. );
     }
+    textMoveFlag = 0;
 
 }
 
