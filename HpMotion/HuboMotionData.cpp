@@ -836,6 +836,12 @@ void HuboMotionData::save(char *_filename, int firstFrame, int lastFrame)
 	}
 	//TODO:
 
-
+	// total frame
+	{
+		//hip translation and orientation
+	}
+	for(int i=0; i<activeJoints.size(); i++)
+	{
+	}
 
 }
