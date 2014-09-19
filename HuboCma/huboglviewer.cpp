@@ -64,9 +64,6 @@ void HuboGlViewer::timer()
 {
     glWidget->goOneFrame();
     ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
-	char buf[32];
-	sprintf(buf, "%d", ui->frameSlider->value());
-	//ui->textEdit->setText(QString(buf));
 	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
     glWidget->updateGL();
 }
@@ -77,27 +74,9 @@ void HuboGlViewer::adjustHuboMotionToViewer()
 	displayTimer->setInterval(glWidget->pHuboMotion->getFrameTime());
     ui->frameSlider->setRange(0, hubo->huboVpBody->pHuboMotion->getMotionSize()-1);
     ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
-	char buf[32];
-	sprintf(buf, "%d", ui->frameSlider->value());
-	//ui->textEdit->setText(QString(buf));
 	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
 	glWidget->updateGL();
 }
-
-/*
-QSlider* HUBOViewDialog::createSlider(const char *changedSignal, const char *setterSlot)
-{
-    QSlider *slider = new QSlider(Qt::Horizontal);
-    slider->setRange(0, 360 * 16);
-    slider->setSingleStep(16);
-    slider->setPageStep(15 * 16);
-    slider->setTickInterval(15 * 16);
-    slider->setTickPosition(QSlider::TicksRight);
-    connect(slider, SIGNAL(valueChanged(int)), glWidget, setterSlot);
-    connect(glWidget, changedSignal, slider, SLOT(setValue(int)));
-    return slider;
-}
-*/
 
 void HuboGlViewer::on_playBtn_clicked()
 {
@@ -110,9 +89,6 @@ void HuboGlViewer::on_playBtn_clicked()
 
 void HuboGlViewer::on_frameSlider_valueChanged(int value)
 {
-	char buf[32];
-	sprintf(buf, "%d", value);
-	//ui->textEdit->setText(QString(buf));
 	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
     glWidget->pHuboMotion->setCurrentFrame(value);
     glWidget->updateGL();

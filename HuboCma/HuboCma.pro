@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     hubotrackingviewer.cpp \
     hubotrackingmanage.cpp \
     huboikmanage.cpp \
-    huboikviewer.cpp
+    huboikviewer.cpp \
+    hubocmamanage.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -27,12 +28,14 @@ HEADERS  += hubomaincontroller.h \
     hubotrackingviewer.h \
     hubotrackingmanage.h \
     huboikmanage.h \
-    huboikviewer.h
+    huboikviewer.h \
+    hubocmamanage.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
     hubotrackingmanage.ui \
-    huboikmanage.ui
+    huboikmanage.ui \
+    hubocmamanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \
