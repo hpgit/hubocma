@@ -1,7 +1,9 @@
 #include "hubotrackingviewer.h"
 #include "hubotrackingmanage.h"
+#include "hubocmamanage.h"
 #include <UniformBspline.h>
 #include <HpMotionMath.h>
+#include <thread>
 
 static HuboVpController *huboCont;
 static HuboMotionData *referMotion;
@@ -339,14 +341,15 @@ void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
         ub);
     cma.maxIteration = maxIter;
 
-    cma.run_boundary();
+    //cma.run_boundary();
     //cma.run();
 
-    cma.saveSolution("../CmaData/trackingCmaSolution.txt");
+    //cma.saveSolution("../CmaData/trackingCmaSolution.txt");
 
     //for debug
     //for(auto it = cma.solution.begin(); it!=cma.solution.end(); it++)
 
+	std::thread th(&CmaOptimizer::run_boundary, &cma);
 }
 
 void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
@@ -523,9 +526,16 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
 void HuboTrackingViewer::setReferMotion(HuboMotionData *refer)
 {
     referMotion = refer;
+	/*
     HuboTrackingManage *huboTrMan = new HuboTrackingManage;
 	huboTrMan->init(this);
     huboTrMan->move(200+width()+20, 200);
 	huboTrMan->setWindowTitle(QString("Manual Solution"));
+    huboTrMan->show();
+	*/
+    HuboCmaManage *huboTrMan = new HuboCmaManage;
+	huboTrMan->initManager(this);
+    huboTrMan->move(200+width()+20, 200);
+	huboTrMan->setWindowTitle(QString("Cma Dialog"));
     huboTrMan->show();
 }

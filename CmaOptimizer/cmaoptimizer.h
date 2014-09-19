@@ -7,7 +7,12 @@ class CmaOptimizer
 {
 
 public:
-	CmaOptimizer(){maxIteration = 3000; fitFunc = 0; readyToRun = false;}
+	CmaOptimizer()
+		: stopBit(0), maxIteration(1000), fitFunc(0),
+		readyToRun(false), hasLowerBounds(false),
+		hasUpperBounds(false),
+		dim(0), lambda(0), running(0)
+	{}
 	
 	// lambda : init # of samples
 	// base : 4+(int)(3*log(N))
@@ -26,12 +31,19 @@ public:
 	void run();
 	void run_boundary();
 
+	void pause();
+	void stop();
+	void resume();
+	void hehe();
+
 	void printSolution(const double *x, int dim);
 	void printSolution();
 	void saveSolution(char *filename);
 	void loadSolution(char *filename);
 
+	int stopBit; // 0: stop 1: run 2: pause
 	int maxIteration;
+	int running; // 0: not running 1: running
 	bool readyToRun;
 	bool hasLowerBounds;
 	bool hasUpperBounds;

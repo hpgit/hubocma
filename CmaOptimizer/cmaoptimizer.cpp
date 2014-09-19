@@ -8,6 +8,26 @@
 #include <cfloat>
 #include <cstdlib>
 #include <cstring>
+#ifdef WIN32
+#include <Windows.h>
+#else
+static struct timespec reqtime;
+#endif
+
+
+
+
+static void SLEEP(unsigned int millisecond)
+{
+#ifdef WIN32
+	Sleep(millisecond);
+#else
+	reqtime.tv_sec = 0;
+	reqtime.tv_nsec = 100000*millisecond;
+	nanosleep(&reqtime, NULL);
+#endif
+
+}
 
 bool CmaOptimizer::isFeasible(double const *x, int dim)
 {
@@ -125,13 +145,20 @@ void CmaOptimizer::run()
 	printf("New Cma Starts\n");
 	//cmaes_ReadSignals(&evo, "cmaes_signals.par");  /* write header and initial values */
 	evo.sp.stopMaxIter = maxIteration;
-
+	fflush(stdout);
 	int generation = 0;
 	double minarFunvals = DBL_MAX;
 	
+	running = 1;
+	stopBit = 1;
+
 	/* Iterate until stop criterion holds */
 	while(!cmaes_TestForTermination(&evo))
 	  { 
+		/* check for stopping or pausing */
+		if (stopBit == 0) break;
+		while (stopBit == 2) SLEEP(100);
+
 	    /* generate lambda new search points, sample population */
 	    pop = cmaes_SamplePopulation(&evo); /* do not change content of pop */
 	
@@ -143,10 +170,18 @@ void CmaOptimizer::run()
 		  if(minarFunvals > arFunvals[i])
 			  minarFunvals = arFunvals[i];
 	    }
-		if( generation++ % 10 == 0)
+		if (generation++ % 10 == 0)
+		{
+			const double *midSol = cmaes_GetNew(&evo, "xbestever");
+			solution.clear();
+			for(i=0; i<dimension; i++)
+				solution.push_back(midSol[i]);
+
+			printf("%d %lf\n", generation, minarFunvals);
 			//printf("generation : %3.d\tminFunvals : %lf\n", generation, minarFunvals);
-				//fout<<generation++ << " " << minarFunvals<<std::endl;
-				std::cout<<generation << " " << minarFunvals<<std::endl;
+			//fout<<generation++ << " " << minarFunvals<<std::endl;
+			//std::cout << generation << " " << minarFunvals << std::endl;
+		}
 	
 	    /* update the search distribution used for cmaes_SampleDistribution() */
 	    cmaes_UpdateDistribution(&evo, arFunvals);  /* assumes that pop[i] has not been modified */
@@ -155,12 +190,14 @@ void CmaOptimizer::run()
 	    fflush(stdout); /* useful in MinGW */
 	  }
 	fout<<generation << " " << minarFunvals<<std::endl;
-	std::cout << generation << " " << minarFunvals << std::endl;
+	printf("%d %lf\n", generation, minarFunvals);
+	//std::cout << generation << " " << minarFunvals << std::endl;
 
 	//printf("Stop:\n%s\n",  cmaes_TestForTermination(&evo)); /* print termination reason */
 	//cmaes_WriteToFile(&evo, "all", "allcmaes.dat");         /* write final results */
 	/* get best estimator for the optimum, xmean */
 	xfinal = cmaes_GetNew(&evo, "xbestever");
+	printf("Cma Ends.\n");
 	
 	for(i=0; i<dimension; i++)
 		solution.push_back(xfinal[i]);
@@ -171,6 +208,16 @@ void CmaOptimizer::run()
 	free(xfinal);
 
 	readyToRun = false;
+}
+
+void CmaOptimizer::hehe()
+{
+	while (1)
+	{
+		//SLEEP(1000);
+		printf("hehe");
+	}
+
 }
 
 void CmaOptimizer::run_boundary()
@@ -190,7 +237,7 @@ void CmaOptimizer::run_boundary()
 	std::ofstream fout;
 	fout.open("cmaResults.txt", std::ios::app);
 	char buf[60];
-	time_t tt;
+	time_t tt;   
 	time(&tt);
 	strcpy(buf, ctime(&tt));
 	fout << buf << std::endl;
@@ -222,9 +269,16 @@ void CmaOptimizer::run_boundary()
 	evo.sp.stopMaxIter = maxIteration;
 	double minarFunvals=DBL_MAX;
 	
+	running = 1;
+	stopBit = 1;
+
 	/* Iterate until stop criterion holds */
 	while(!cmaes_TestForTermination(&evo))
 	  { 
+		/* check for stopping or pausing */
+		if (stopBit == 0) break;
+		while (stopBit == 2) SLEEP(100);
+
 	    /* generate lambda new search points, sample population */
 	    pop = cmaes_SamplePopulation(&evo); /* do not change content of pop */
 	
@@ -248,10 +302,18 @@ void CmaOptimizer::run_boundary()
 		  if(minarFunvals > arFunvals[i])
 			  minarFunvals = arFunvals[i];
 	    }
-		if( generation++ % 10 == 0)
+		if (generation++ % 10 == 0)
+		{
+			const double *midSol = cmaes_GetPtr(&evo, "xbestever");
+			solution.clear();
+			for(i=0; i<dimension; i++)
+				solution.push_back(midSol[i]);
+
+			printf("%d %lf\n", generation, minarFunvals);
 			//printf("generation : %3.d\tminFunvals : %lf\n", generation, minarFunvals);
-				//fout<<generation++ << " " << minarFunvals<<std::endl;
-				std::cout<<generation << " " << minarFunvals<<std::endl;
+			//fout<<generation++ << " " << minarFunvals<<std::endl;
+			//std::cout << generation << " " << minarFunvals << std::endl;
+		}
 	
 	    /* update the search distribution used for cmaes_SampleDistribution() */
 	    cmaes_UpdateDistribution(&evo, arFunvals);  /* assumes that pop[i] has not been modified */
@@ -260,8 +322,11 @@ void CmaOptimizer::run_boundary()
 	    //cmaes_ReadSignals(&evo, "cmaes_signals.par");
 	    fflush(stdout); /* useful in MinGW */
 	  }
-	std::cout << generation << " " << minarFunvals << std::endl;
+	running = 0;
+	printf("%d %lf\n", generation, minarFunvals);
+	//std::cout << generation << " " << minarFunvals << std::endl;
 	fout<<generation << " " << minarFunvals<<std::endl;
+	printf("Cma Ends.\n");
 
 	//printf("Stop:\n%s\n",  cmaes_TestForTermination(&evo)); /* print termination reason */
 	//cmaes_WriteToFile(&evo, "all", "allcmaes.dat");         /* write final results */
@@ -281,6 +346,19 @@ void CmaOptimizer::run_boundary()
 	cmaes_exit(&evo); /* release memory */
 	boundary_transformation_exit(&boundaries); /* release memory */
 	free(x_in_bounds);
+}
+
+void CmaOptimizer::pause()
+{
+	if (running) stopBit = 2;
+}
+void CmaOptimizer::stop()
+{
+	if (running) stopBit = 0;
+}
+void CmaOptimizer::resume()
+{
+	if (running) stopBit = 1;
 }
 
 void CmaOptimizer::saveSolution(char *filename)
