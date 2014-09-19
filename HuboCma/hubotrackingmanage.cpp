@@ -111,13 +111,18 @@ void HuboTrackingManage::on_runCmaWithThis_clicked()
 
 void HuboTrackingManage::on_runCmaWithRes_clicked()
 {
-	//TODO:
-
+    viewer->cmaRun(ui->cmaRunIterEdit->toPlainText().toInt(), 1);
+    for (int i = 0; i < viewer->cma.solution.size(); i++)
+    {
+        double value = viewer->cma.solution.at(i);
+        sliders.at(i)->setValue(value *1000. /M_PI + 500.);
+    }
+    viewer->setCmaMotion();
 }
 
 void HuboTrackingManage::on_runCmaBtn_clicked()
 {
-	viewer->cmaRun(ui->cmaRunIterEdit->toPlainText().toInt());
+    viewer->cmaRun(ui->cmaRunIterEdit->toPlainText().toInt(), 0);
 	for (int i = 0; i < viewer->cma.solution.size(); i++)
 	{
 		double value = viewer->cma.solution.at(i);

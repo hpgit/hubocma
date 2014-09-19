@@ -275,7 +275,7 @@ void HuboTrackingViewer::useLatestCmaResult(char* filename, std::vector<double> 
     fin.close();
 }
 
-void HuboTrackingViewer::cmaRun(int maxIter)
+void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
 {
     if (referMotion == NULL)
     {
@@ -286,13 +286,12 @@ void HuboTrackingViewer::cmaRun(int maxIter)
     std::vector<double> xstart, xdev, ub, lb;
 
     int dim = 36;
-    int useLatestResult = 0;
 
     if (useLatestResult == 1)
     {
         useLatestCmaResult("../CmaData/trackingCmaSolution.txt", xstart);
         for (int i = 0; i < dim; i++)
-            xdev.push_back(0.01);
+            xdev.push_back(M_PI/8);
     }
     else
     {
