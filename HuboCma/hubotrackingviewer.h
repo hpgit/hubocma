@@ -3,6 +3,7 @@
 
 #include "huboglviewer.h"
 #include <CmaOptimizer.h>
+#include "hubocmathread.h"
 
 class HuboTrackingViewer : public HuboGlViewer
 {
@@ -10,6 +11,7 @@ public:
     HuboTrackingViewer(QWidget *parent = 0);
 
     CmaOptimizer cma;
+	HuboCmaThread cmaTh;
 	std::vector<double> manualSol;
     void useLatestCmaResult(char* filename, std::vector<double> &solution);
     void cmaRun(int maxIter = 1000, int useLatestResult = 0);

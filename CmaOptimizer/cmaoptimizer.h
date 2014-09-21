@@ -7,12 +7,7 @@ class CmaOptimizer
 {
 
 public:
-	CmaOptimizer()
-		: stopBit(0), maxIteration(1000), fitFunc(0),
-		readyToRun(false), hasLowerBounds(false),
-		hasUpperBounds(false),
-		dim(0), lambda(0), running(0)
-	{}
+	CmaOptimizer(){ init(); }
 	
 	// lambda : init # of samples
 	// base : 4+(int)(3*log(N))
@@ -31,10 +26,10 @@ public:
 	void run();
 	void run_boundary();
 
+	void init();
 	void pause();
 	void stop();
 	void resume();
-	void hehe();
 
 	void printSolution(const double *x, int dim);
 	void printSolution();

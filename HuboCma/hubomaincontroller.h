@@ -15,6 +15,9 @@ public:
     explicit HuboMainController(QWidget *parent = 0);
     ~HuboMainController();
 
+private slots:
+	void on_loadRefBtn_clicked();
+
 private:
     Ui::HuboMainController *ui;
 };

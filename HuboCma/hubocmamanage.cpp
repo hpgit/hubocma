@@ -60,6 +60,7 @@ void HuboCmaManage::on_resumeBtn_clicked()
 void HuboCmaManage::on_stopBtn_clicked()
 {
 	viewer->cma.stop();
+	viewer->cmaTh.wait();
 }
 
 void HuboCmaManage::on_simulateBtn_clicked()

@@ -3,7 +3,6 @@
 #include "hubocmamanage.h"
 #include <UniformBspline.h>
 #include <HpMotionMath.h>
-#include <thread>
 
 static HuboVpController *huboCont;
 static HuboMotionData *referMotion;
@@ -330,7 +329,7 @@ void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
 
     //hubo->huboVpBody->getHuboLimit(0, lb);
     //hubo->huboVpBody->getHuboLimit(1, ub);
-
+	cma.init();
     cma.setOptimizer(
         fitfunc,
         dim,
@@ -341,6 +340,9 @@ void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
         ub);
     cma.maxIteration = maxIter;
 
+	cmaTh.setCmaOptimizer(&cma);
+	cmaTh.start();
+
     //cma.run_boundary();
     //cma.run();
 
@@ -348,8 +350,6 @@ void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
 
     //for debug
     //for(auto it = cma.solution.begin(); it!=cma.solution.end(); it++)
-
-	std::thread th(&CmaOptimizer::run_boundary, &cma);
 }
 
 void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)

@@ -29,6 +29,26 @@ static void SLEEP(unsigned int millisecond)
 
 }
 
+void CmaOptimizer::init()
+{
+	fitFunc = 0;
+	stopBit = 0;
+	maxIteration = 1000;
+	fitFunc = 0;
+	readyToRun = false;
+	hasLowerBounds = false;
+	hasUpperBounds = false;
+	dim = 0;
+	lambda = 0;
+	running = 0;
+	xstart.clear();
+	stddev.clear();
+	lowerBounds.clear();
+	upperBounds.clear();
+	solution.clear();
+
+}
+
 bool CmaOptimizer::isFeasible(double const *x, int dim)
 {
 	if(hasLowerBounds)
@@ -210,15 +230,6 @@ void CmaOptimizer::run()
 	readyToRun = false;
 }
 
-void CmaOptimizer::hehe()
-{
-	while (1)
-	{
-		//SLEEP(1000);
-		printf("hehe");
-	}
-
-}
 
 void CmaOptimizer::run_boundary()
 {
@@ -277,7 +288,11 @@ void CmaOptimizer::run_boundary()
 	  { 
 		/* check for stopping or pausing */
 		if (stopBit == 0) break;
-		while (stopBit == 2) SLEEP(100);
+		if (stopBit == 2)
+		{
+			printf("%d %lf\n", generation, minarFunvals);
+			while (stopBit == 2) SLEEP(100);
+		}
 
 	    /* generate lambda new search points, sample population */
 	    pop = cmaes_SamplePopulation(&evo); /* do not change content of pop */
@@ -350,15 +365,28 @@ void CmaOptimizer::run_boundary()
 
 void CmaOptimizer::pause()
 {
-	if (running) stopBit = 2;
+	if (running)
+	{
+		printf("pause cma\n");
+		stopBit = 2;
+	}
+
 }
 void CmaOptimizer::stop()
 {
-	if (running) stopBit = 0;
+	if (running)
+	{
+		printf("stop cma\n");
+		stopBit = 0;
+	}
 }
 void CmaOptimizer::resume()
 {
-	if (running) stopBit = 1;
+	if (running)
+	{
+		printf("resume cma\n");
+		stopBit = 1;
+	}
 }
 
 void CmaOptimizer::saveSolution(char *filename)
