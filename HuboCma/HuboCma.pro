@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     hubotrackingmanage.cpp \
     huboikmanage.cpp \
     huboikviewer.cpp \
-    hubocmamanage.cpp
+    hubocmamanage.cpp \
+    hubocmathread.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -29,7 +30,8 @@ HEADERS  += hubomaincontroller.h \
     hubotrackingmanage.h \
     huboikmanage.h \
     huboikviewer.h \
-    hubocmamanage.h
+    hubocmamanage.h \
+    hubocmathread.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
