@@ -92,5 +92,4 @@ void HuboIkManage::on_applyBtn_clicked()
 {
 	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
 	viewer->refer->copyAllMotion(data);
-	
 }

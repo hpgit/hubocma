@@ -2,6 +2,7 @@
 #define HUBOMAINCONTROLLER_H
 
 #include <QMainWindow>
+#include <HuboVpController.h>
 
 namespace Ui {
 class HuboMainController;
@@ -14,9 +15,14 @@ class HuboMainController : public QMainWindow
 public:
     explicit HuboMainController(QWidget *parent = 0);
     ~HuboMainController();
+	HuboVpController *huboRefer, *huboIk, *huboCma;
 
 private slots:
-    //void on_loadRefBtn_clicked();
+    void on_loadReferBtn_clicked();
+
+	void on_ikDlgBtn_clicked();
+
+	void on_cmaDlgBtn_clicked();
 
 private:
     Ui::HuboMainController *ui;

@@ -35,10 +35,10 @@ public:
 	int startPeriodFrame;
 	int contactPeriod;
 
-	int import(char* _filename, int firstFrame, int lastFrame = 0);
-	int importContactAnnotation(char* _filename, int firstFrame, int lastFrame = 0);
-	int importContactPeriodAnnotation(char* _filename, int firstFrame, int lastFrame = 0);
-	int importSkeleton(char* _filename);
+	int import(const char* _filename, int firstFrame, int lastFrame = 0);
+	int importContactAnnotation(const char* _filename, int firstFrame, int lastFrame = 0);
+	int importContactPeriodAnnotation(const char* _filename, int firstFrame, int lastFrame = 0);
+	int importSkeleton(const char* _filename);
 	void printAllMotion(char* _filename);
 	
 	void save(const char* filename, int firstFrame, int lastFrame = 0);

@@ -55,7 +55,9 @@ void HuboIkViewer::solve(std::string name, Eigen::Vector3d &dpos, bool parallel,
 	if (parallel)
 	{
 		//TODO:
-		q = refer->jointMap[name]->getGlobalOrientation(data->getCurrentFrame());
+		Quaterniond qq = refer->jointMap[name]->getGlobalOrientation(data->getCurrentFrame());
+
+		q = qq;
 	}
 	else
 	{

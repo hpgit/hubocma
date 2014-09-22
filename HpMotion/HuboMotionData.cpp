@@ -6,7 +6,7 @@
 Eigen::MatrixXd HuboMotionData::naturalToBsplineFourPoint;
 int HuboMotionData::naturalToBsplineFourPointIsReady = 0;
 
-int HuboMotionData::import(char* _filename, int firstFrame, int lastFrame)
+int HuboMotionData::import(const char* _filename, int firstFrame, int lastFrame)
 {
 	std::ifstream fin;
 	fin.open(_filename);
@@ -78,7 +78,7 @@ int HuboMotionData::import(char* _filename, int firstFrame, int lastFrame)
 	return 0;
 }
 
-int HuboMotionData::importContactAnnotation(char* _filename, int firstFrame, int lastFrame)
+int HuboMotionData::importContactAnnotation(const char* _filename, int firstFrame, int lastFrame)
 {
 	std::ifstream fin;
 	fin.open(_filename);
@@ -121,7 +121,7 @@ int HuboMotionData::importContactAnnotation(char* _filename, int firstFrame, int
 	return 0;
 }
 
-int HuboMotionData::importContactPeriodAnnotation(char* _filename, int firstFrame, int lastFrame)
+int HuboMotionData::importContactPeriodAnnotation(const char* _filename, int firstFrame, int lastFrame)
 {
 	std::stringstream ss;
 	std::ifstream fin;
@@ -158,7 +158,7 @@ int HuboMotionData::importContactPeriodAnnotation(char* _filename, int firstFram
 	return 0;
 }
 
-int HuboMotionData::importSkeleton(char* _filename)
+int HuboMotionData::importSkeleton(const char* _filename)
 {
 	std::ifstream in;
 	in.open(_filename);

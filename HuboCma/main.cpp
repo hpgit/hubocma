@@ -13,6 +13,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+	HuboMainController *mainCont = new HuboMainController;
+	mainCont->setWindowTitle(QString("Hubo Main Controller"));
+	mainCont->show();
+
 	if (false)
 	{
 		HuboVpController *hubo, *huboRefer;
@@ -43,7 +47,7 @@ int main(int argc, char *argv[])
 		//contWin->show();
 	}
 
-	if (true)
+	if (false)
 	{
 		HuboVpController *hubo, *huboRefer;
 		//for tracking
@@ -99,7 +103,7 @@ int main(int argc, char *argv[])
 
 	}
 
-	if (0)
+	if (false)
 	{
 		//for balancing
 		HuboVpController *hubo, *huboRefer;
@@ -116,6 +120,7 @@ int main(int argc, char *argv[])
 		//win->show();
 
 	}
+
 
     return a.exec();
 }
