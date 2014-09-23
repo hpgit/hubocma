@@ -162,6 +162,26 @@ int MotionData::canGoOneFrame()
 	return 1;
 }
 
+double MotionData::timeToTimeBetweenFrame(double t)
+{
+	double tt = t * frameRate;
+	int _frame = (int)tt;
+	double time = tt - _frame;
+	if (_frame == frameTotal)
+		time = 1.0;
+	return time;
+}
+int MotionData::timeToFrame(double t)
+{
+	double tt = t * frameRate;
+	int _frame = (int)tt;
+	double time = tt - _frame;
+	if (_frame == frameTotal)
+		_frame--;
+
+	return _frame;
+}
+
 void MotionData::backUpMotionForIk(int _frame)
 {
 	for (int i = 0; i < joints.size(); i++)

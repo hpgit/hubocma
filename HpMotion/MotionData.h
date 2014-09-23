@@ -52,6 +52,9 @@ public:
 	int getCurrentFrame();	
 	int canGoOneFrame();
 
+	double timeToTimeBetweenFrame(double time);
+	int timeToFrame(double time);
+
 	void backUpMotion(int _frame);
 	void restoreMotion(int _frame);
 	void backUpMotionForIk(int _frame);

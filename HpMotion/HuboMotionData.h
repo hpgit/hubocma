@@ -50,6 +50,7 @@ public:
 
 	double getPeriodPhaseInTime(double time);
 
+
 	Vector3d getHuboComGlobalPositionInTime(double t);
 	Vector3d getHuboComGlobalPosition(int frame);
 	Vector3d getHuboComGlobalPosition();

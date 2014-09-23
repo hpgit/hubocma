@@ -20,7 +20,7 @@ static double fitfunc(const double *x, int dim)
     double Kd = huboCont->kd;
 
     //huboCont->huboVpBody->pHuboMotion->setMotionSize(referMotion->getMotionSize());
-    huboCont->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
+    //huboCont->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
 
     huboCont->initController();
 
@@ -103,16 +103,21 @@ static double fitfunc(const double *x, int dim)
     }
 
     double phase = 0;
+	double timeBetFrame = 0;
+	int frame = 0;
     huboCont->huboVpBody->setInitialHuboHipFromMotion(referMotion);
     Eigen::Vector3d rInitial = referMotion->getHuboComGlobalPositionInTime(0);
     Eigen::Vector3d vInitial = huboCont->huboVpBody->getCOMposition();
 
-	double jointFit = 0, torqueFit = 0, velFit = 0, dirFit = 0, heightFit = 0;
+	double jointFit = 0, torqueFit = 0, velFit = 0, dirFit = 0, heightFit = 0, footToComFit = 0;
 
     for (int i = 0; i <= totalStep; i++)
     {
         time = i * huboCont->timestep;
         framestep += huboCont->timestep;
+
+		frame = referMotion->timeToFrame(time);
+		timeBetFrame = referMotion->timeToTimeBetweenFrame(time);
 
         // get desired acceleration for instance time
         hipPosRefer = referMotion->getHipJointGlobalPositionInTime(time);
@@ -224,6 +229,35 @@ static double fitfunc(const double *x, int dim)
             //fitness += dy*dy;
         }
 
+		//foot to com term
+		
+		Eigen::Vector3d footToCom(0,0,0), refFootToCom(0,0,0);
+		if (phase >= 0 && phase <= 0.5)
+		{
+			footToCom = Vec3Tovector(
+				huboCont->huboVpBody->Foot[1]->GetFrame().GetPosition()
+				- huboCont->huboVpBody->getCOM() 
+				);
+			refFootToCom =
+				referMotion->jointMap["LAR"]->getGlobalBoundingBoxPosition(frame, timeBetFrame)
+				- referMotion->getHuboComGlobalPositionInTime(time);
+		}
+		else if (phase > 0.5)
+		{
+			footToCom = Vec3Tovector(
+				huboCont->huboVpBody->Foot[0]->GetFrame().GetPosition()
+				- huboCont->huboVpBody->getCOM() 
+				);
+			refFootToCom =
+				referMotion->jointMap["RAR"]->getGlobalBoundingBoxPosition(frame, timeBetFrame)
+				- referMotion->getHuboComGlobalPositionInTime(time);
+		}
+
+		footToComFit += (footToCom - refFootToCom).squaredNorm();
+		
+
+
+
         //fitness += 1*dy*dy;
         //fitness += 1 * abs(dy);
     }
@@ -247,14 +281,22 @@ static double fitfunc(const double *x, int dim)
 
     //// swing foot term
     //fitness += RES*(foot1final[1] - foot1init[1]) *(foot1final[1]-foot1init[1]);
-	fitness = 0.5*jointFit + torqueFit + 0.5*velFit + 0.05*dirFit + 20*heightFit;
+	fitness = 
+		0.5	*jointFit
+		+ 1.0	*torqueFit
+		+ 0.5	*velFit
+		+ 0.05	*dirFit
+		+ 20 * heightFit
+		+ 1 * footToComFit;
 
 	/*
-	std::cout << "joint : " << 0.2*jointFit <<
+	std::cout << "joint : " << 0.5*jointFit <<
 		" torque : " << torqueFit <<
 		" vel : " << 0.5*velFit <<
 		" dir : " << 0.05*dirFit <<
-		" height : " << 3*heightFit << std::endl;
+		" height : " << 20*heightFit << 
+		" footToCom : " << 1*footToComFit << 
+		std::endl;
 		//*/
 
     return fitness;
@@ -329,6 +371,7 @@ void HuboTrackingViewer::cmaRun(int maxIter, int useLatestResult)
 
     //hubo->huboVpBody->getHuboLimit(0, lb);
     //hubo->huboVpBody->getHuboLimit(1, ub);
+
 	cma.init();
     cma.setOptimizer(
         fitfunc,

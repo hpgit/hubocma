@@ -91,38 +91,16 @@
 	mass 0.2247
 }
 {
-	name RHand
-	translation 0 -0.06 0
-	parent RWP
-} 
-{
 	name NKY
 	id 24
-	translation  9.06924e-39  0.227  -0.065
+	file ../RobotObj/Head.obj
+	translation  1.2326e-32  0.3278 -0.065
 	RotateAxis Y 
 	Constraint -3.14  3.14 
 	parent WST
 
-	com 0.0001 0.0658 0
-	mass 0.3899
-} 
-{ 
-	name HeadX
-	translation  1.2326e-32  0.1008 0 
-	parent NKY
-} 
-{ 
-	name HeadZ
-	translation 0  0  0 
-	parent HeadX
-
-	com 0.0003 0.0295 0.0044
-	mass 0.3676
-}
-{
-	name Head
-	file ../RobotObj/Head.obj
-	parent HeadZ
+	com 0.0002 0.0971 0
+	mass 0.7575
 } 
 { 
 	name RHY
@@ -196,11 +174,6 @@
 	com -0.0014 -0.0179 -0.0019
 	mass 1.4561
 }
-{
-	name RFoot
-	translation 0 -0.046 0
-	parent RAR
-} 
 { 
 	name LHY
 	id 6
@@ -271,11 +244,6 @@
 	
 	com 0.0014 -0.0179 -0.0019
 	mass 1.4561
-}
-{
-	name LFoot
-	translation 0 -0.046 0
-	parent LAR
 }
 { 
 	name LSP
@@ -348,9 +316,4 @@
 
 	com 0.0015 -0.0635 0.0028
 	mass 0.2247
-}
-{
-	name LHand
-	translation 0 -0.06 0
-	parent LWP
 }

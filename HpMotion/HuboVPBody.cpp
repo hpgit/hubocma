@@ -215,9 +215,11 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 
 	setInitBodyJoint(Hip, NULL, "Hip", NULL, Hubo_elasticity, Hubo_damping);
 	setInitBodyJoint(Torso, WST, "WST", Hip, Hubo_elasticity, Hubo_damping);
-	//setInitBodyJoint(Head, NKY, "NKY", Torso, Hubo_elasticity, Hubo_damping);
+	setInitBodyJoint(Head, NKY, "NKY", Torso, Hubo_elasticity, Hubo_damping);
 
 	// Head
+	//setInitBodyJoint(ShoulderP[RIGHT], RSP, "RSP", Torso, Hubo_elasticity, Hubo_damping);
+	/*
 	const Vec3 HeadSize = vectorToVec3(huboJointMap["Head"]->BBsizev);
 	Torso->SetJoint(NKY, vectorToVec3(huboJointMap["NKY"]->offsetFromParent-huboJointMap["WST"]->BSpos));
 	Head->SetJoint(NKY, -vectorToVec3(huboJointMap["Head"]->BSpos));
@@ -232,6 +234,7 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 		(huboJointMap["NKY"]->childBodyMass + huboJointMap["Head"]->childBodyMass) / huboJointMap["Head"]->BBvol,
 		vectorToVec3(huboJointMap["Head"]->BBsizev/2))
 		);
+		*/
 	//Head->SetInertia(Inertia(0.3899+0.3676, 0.00087963+0.0018836, 0.00014442+0.0020738, 0.000786+0.0018211));
 
 	setInitBodyJoint(ShoulderP[RIGHT], RSP, "RSP", Torso, Hubo_elasticity, Hubo_damping);

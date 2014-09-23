@@ -52,14 +52,20 @@ void HuboIkViewer::solve(std::string name, Eigen::Vector3d &dpos, bool parallel,
 	ik->weightPos = weightPos;
 	ik->stepSize = stepSize;
 
+	std::cout << "solve IK!" << std::endl;
+	Quaterniond qqq= data->jointMap[name]->getGlobalOrientation(data->getCurrentFrame());
+	std::cout << qqq.w() << " " << qqq.vec().transpose() << std::endl;
+
 	if (parallel)
 	{
 		//TODO:
 		Quaterniond qq = refer->jointMap[name]->getGlobalOrientation(data->getCurrentFrame());
         Quaterniond qv(0, 0,0,1);
         Vector3d vv = (qq*qv*qq.inverse()).vec();
+		std::cout << vv.transpose() << std::endl;
         Vector3d yy(0,1,0);
         q = Quaterniond(Eigen::AngleAxisd(atan2(vv.x(), vv.z()), yy));
+		std::cout << q.w() << " " << q.vec().transpose() << std::endl;
 	}
 	else
 	{
@@ -67,6 +73,9 @@ void HuboIkViewer::solve(std::string name, Eigen::Vector3d &dpos, bool parallel,
 	}
 
 	ik->run_r(name, p, q);
+
+	qqq= data->jointMap[name]->getGlobalOrientation(data->getCurrentFrame());
+	std::cout << qqq.w() << " " << qqq.vec().transpose() << std::endl;
 
 	delete ik;
 	glWidget->updateGL();
