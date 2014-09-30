@@ -210,32 +210,11 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 	initJoint();
 	initBody();
 
-	// Hip & Torso
 	pWorld->AddBody(Hip);
 
 	setInitBodyJoint(Hip, NULL, "Hip", NULL, Hubo_elasticity, Hubo_damping);
 	setInitBodyJoint(Torso, WST, "WST", Hip, Hubo_elasticity, Hubo_damping);
 	setInitBodyJoint(Head, NKY, "NKY", Torso, Hubo_elasticity, Hubo_damping);
-
-	// Head
-	//setInitBodyJoint(ShoulderP[RIGHT], RSP, "RSP", Torso, Hubo_elasticity, Hubo_damping);
-	/*
-	const Vec3 HeadSize = vectorToVec3(huboJointMap["Head"]->BBsizev);
-	Torso->SetJoint(NKY, vectorToVec3(huboJointMap["NKY"]->offsetFromParent-huboJointMap["WST"]->BSpos));
-	Head->SetJoint(NKY, -vectorToVec3(huboJointMap["Head"]->BSpos));
-	pWorld->IgnoreCollision(Torso, Head);
-	NKY->SetElasticity(Hubo_elasticity);
-	NKY->SetDamping(Hubo_damping);
-	NKY->SetAxis(vectorToVec3(huboJointMap["NKY"]->constraintAxis));
-	//Head.AddGeometry(new vpBox(TorsoSize), vectorToVec3(huboJointMap["Head"]->BSpos + huboJointMap["HeadX"]->offsetFromParent));
-	bodyGeoms.push_back(new vpBox(HeadSize));
-	Head->AddGeometry(bodyGeoms.back(), vectorToVec3(huboJointMap["Head"]->BSpos+ huboJointMap["HeadZ"]->offsetFromParent + huboJointMap["HeadX"]->offsetFromParent));
-	Head->SetInertia(BoxInertia(
-		(huboJointMap["NKY"]->childBodyMass + huboJointMap["Head"]->childBodyMass) / huboJointMap["Head"]->BBvol,
-		vectorToVec3(huboJointMap["Head"]->BBsizev/2))
-		);
-		*/
-	//Head->SetInertia(Inertia(0.3899+0.3676, 0.00087963+0.0018836, 0.00014442+0.0020738, 0.000786+0.0018211));
 
 	setInitBodyJoint(ShoulderP[RIGHT], RSP, "RSP", Torso, Hubo_elasticity, Hubo_damping);
 	setInitBodyJoint(ShoulderR[RIGHT], RSR, "RSR", ShoulderP[RIGHT], Hubo_elasticity, Hubo_damping);
@@ -709,11 +688,12 @@ void HuboVPBody::applyAllJointTorque(
 
 void HuboVPBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 {
-	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0);
+	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.04, 0);
 	Eigen::Quaterniond ori = refer->getHipJointGlobalOrientationInTime(0);
 	Eigen::Affine3d m;
 	m.setIdentity();
 	m.rotate(ori);
+	//m.pretranslate(pos);
 	m.pretranslate(pos);
 	
 	double mat[16];
@@ -722,6 +702,20 @@ void HuboVPBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 
 	SE3 T(mat);
 	Hip->SetFrame(T);
+}
+void HuboVPBody::setInitialHuboAngleFromMotion(HuboMotionData *refer)
+{
+	Eigen::VectorXd rAngles;
+	refer->getAllAngleInHuboMotion(0, rAngles);
+	for (int i = 0; i < joints.size(); i++)
+		joints.at(i)->SetAngle(rAngles(i));
+}
+void HuboVPBody::setInitialHuboAngleRateFromMotion(HuboMotionData *refer)
+{
+	Eigen::VectorXd rVels;
+	refer->getAllAngleRateInHuboMotion(0, rVels);
+	for (int i = 0; i < joints.size(); i++)
+		joints.at(i)->SetVelocity(rVels(0));
 }
 
 vpRJoint *HuboVPBody::getParentJoint(vpRJoint *joint)

@@ -173,6 +173,13 @@ public:
 	
 	Eigen::VectorXd getValue(double tt)
 	{
+		if (ctrlPoint.size() == 0)
+		{
+			Eigen::VectorXd v;
+			v.resize(1);
+			v(0) = 0;
+			return v;
+		}
 		int idx = 3*((int)tt);
 		double t = tt - (int)tt;
 		if (ctrlPoint.size()-1 == idx)

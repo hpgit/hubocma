@@ -5,6 +5,22 @@
 #include <QtWidgets>
 #include "hubotrackingviewer.h"
 
+class HuboCmaManage;
+
+class HuboCmaBezier : public QWidget
+{
+public:
+	HuboCmaBezier(){}
+	HuboCmaBezier(HuboCmaManage *_cmaman)
+		:cmaman(_cmaman)
+	{}
+
+	HuboCmaManage *cmaman;
+	BezierSpline bs;
+	void setBezierSpline(std::vector<double> &sol, int num);
+	void paintEvent(QPaintEvent *event);
+};
+
 namespace Ui {
 class HuboCmaManage;
 }
@@ -21,6 +37,8 @@ public:
 
 	HuboTrackingViewer *viewer;
 
+	HuboCmaBezier cb;
+
 	void physSetting();
 
 private slots:
@@ -32,10 +50,12 @@ private slots:
 	void on_resumeBtn_clicked();
 	void on_stopBtn_clicked();
 	void on_simulateBtn_clicked();
+	void on_plotBtn_clicked();
 	
 
 private:
     Ui::HuboCmaManage *ui;
 };
+
 
 #endif // HUBOCMAMANAGE_H

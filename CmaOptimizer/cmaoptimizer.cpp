@@ -46,6 +46,7 @@ void CmaOptimizer::init()
 	lowerBounds.clear();
 	upperBounds.clear();
 	solution.clear();
+	hasSolution = 0;
 
 }
 
@@ -135,6 +136,7 @@ void CmaOptimizer::run()
 		std::cout << "CMA is not ready. Please set this CmaOptimizer." << std::endl;
 		return;
 	}
+	hasSolution = 0;
 	cmaes_t evo; /* an CMA-ES type struct or "object" */
 	evo.version = NULL;
 	double *arFunvals, *xfinal, *const*pop;
@@ -177,7 +179,18 @@ void CmaOptimizer::run()
 	  { 
 		/* check for stopping or pausing */
 		if (stopBit == 0) break;
-		while (stopBit == 2) SLEEP(100);
+		if (stopBit == 2)
+		{
+			const double *midSol = cmaes_GetPtr(&evo, "xbestever");
+			hasSolution = 0;
+			solution.clear();
+			for(i=0; i<dimension; i++)
+				solution.push_back(midSol[i]);
+			hasSolution = 1;
+
+			printf("%d %lf\n", generation, minarFunvals);
+			while (stopBit == 2) SLEEP(100);
+		}
 
 	    /* generate lambda new search points, sample population */
 	    pop = cmaes_SamplePopulation(&evo); /* do not change content of pop */
@@ -193,9 +206,11 @@ void CmaOptimizer::run()
 		if (generation++ % 10 == 0)
 		{
 			const double *midSol = cmaes_GetNew(&evo, "xbestever");
+			hasSolution = 0;
 			solution.clear();
 			for(i=0; i<dimension; i++)
 				solution.push_back(midSol[i]);
+			hasSolution = 1;
 
 			printf("%d %lf\n", generation, minarFunvals);
 			//printf("generation : %3.d\tminFunvals : %lf\n", generation, minarFunvals);
@@ -228,6 +243,7 @@ void CmaOptimizer::run()
 	free(xfinal);
 
 	readyToRun = false;
+	hasSolution = 1;
 }
 
 
@@ -235,6 +251,7 @@ void CmaOptimizer::run_boundary()
 {
 	if(readyToRun == false)
 		return;
+	hasSolution = 0;
 	cmaes_t evo; /* an CMA-ES type struct or "object" */
 	evo.version = NULL;
 	boundary_transformation_t boundaries;
@@ -290,6 +307,13 @@ void CmaOptimizer::run_boundary()
 		if (stopBit == 0) break;
 		if (stopBit == 2)
 		{
+			const double *midSol = cmaes_GetPtr(&evo, "xbestever");
+			hasSolution = 0;
+			solution.clear();
+			for(i=0; i<dimension; i++)
+				solution.push_back(midSol[i]);
+			hasSolution = 1;
+
 			printf("%d %lf\n", generation, minarFunvals);
 			while (stopBit == 2) SLEEP(100);
 		}
@@ -320,9 +344,11 @@ void CmaOptimizer::run_boundary()
 		if (generation++ % 10 == 0)
 		{
 			const double *midSol = cmaes_GetPtr(&evo, "xbestever");
+			hasSolution = 0;
 			solution.clear();
 			for(i=0; i<dimension; i++)
 				solution.push_back(midSol[i]);
+			hasSolution = 1;
 
 			printf("%d %lf\n", generation, minarFunvals);
 			//printf("generation : %3.d\tminFunvals : %lf\n", generation, minarFunvals);
@@ -361,6 +387,7 @@ void CmaOptimizer::run_boundary()
 	cmaes_exit(&evo); /* release memory */
 	boundary_transformation_exit(&boundaries); /* release memory */
 	free(x_in_bounds);
+	hasSolution = 1;
 }
 
 void CmaOptimizer::pause()

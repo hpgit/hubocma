@@ -106,6 +106,8 @@ static double fitfunc(const double *x, int dim)
 	double timeBetFrame = 0;
 	int frame = 0;
     huboCont->huboVpBody->setInitialHuboHipFromMotion(referMotion);
+	huboCont->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
+	huboCont->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
     Eigen::Vector3d rInitial = referMotion->getHuboComGlobalPositionInTime(0);
     Eigen::Vector3d vInitial = huboCont->huboVpBody->getCOMposition();
 
@@ -120,6 +122,7 @@ static double fitfunc(const double *x, int dim)
 		timeBetFrame = referMotion->timeToTimeBetweenFrame(time);
 
         // get desired acceleration for instance time
+		vpRJoint v;
         hipPosRefer = referMotion->getHipJointGlobalPositionInTime(time);
         hipOrienRefer = referMotion->getHipJointGlobalOrientationInTime(time);
         hipVelRefer = referMotion->getHipJointVelInHuboMotionInTime(time);
@@ -134,6 +137,7 @@ static double fitfunc(const double *x, int dim)
 
         referMotion->getAllAngleInHuboMotionInTime(time, angleRefer);
         phase = referMotion->getPeriodPhaseInTime(time);
+		
         if (phase >= 0)
             angleRefer += angleOffsetSpline.getValue(phase);
         else
@@ -214,20 +218,6 @@ static double fitfunc(const double *x, int dim)
         //direction term
         //fitness += 20*(hubo->huboVpBody->getHipDirection()-Vector3d(0,0,1)).squaredNorm();
 
-        //height term
-        double dy =
-            (
-            huboCont->huboVpBody->getCOMposition().y()
-            - referMotion->getHuboComGlobalPositionInTime(time).y()
-            );
-
-        if (abs(dy) > 0.3)
-        {
-            heightFit += (totalStep-i) * dy*dy;
-            break;
-            //fitness += (totalStep-i) * abs(dy);
-            //fitness += dy*dy;
-        }
 
 		//foot to com term
 		
@@ -255,11 +245,28 @@ static double fitfunc(const double *x, int dim)
 
 		footToComFit += (footToCom - refFootToCom).squaredNorm();
 		
+        //height term
+        double dy =
+            (
+            huboCont->huboVpBody->getCOMposition().y()
+            - referMotion->getHuboComGlobalPositionInTime(time).y()
+            );
 
+        if (abs(dy) > 0.3)
+        {
+			jointFit += (totalStep - i) *(rAngles - angle).squaredNorm();
+			torqueFit += (totalStep - i) *0.00001*torques.squaredNorm();
+			velFit += (totalStep - i) *abs(vrcom.squaredNorm() - vpcom.squaredNorm());
+			dirFit += (totalStep - i) *1-vDir.dot(vrDir) ;
+			footToComFit += (totalStep - i) *(footToCom - refFootToCom).squaredNorm();
 
+            heightFit += (totalStep-i) * dy*dy;
 
-        //fitness += 1*dy*dy;
-        //fitness += 1 * abs(dy);
+            //heightFit += (totalStep-i)*(totalStep-i);
+            break;
+            //fitness += (totalStep-i) * abs(dy);
+            //fitness += dy*dy;
+        }
     }
     // goal position term
     //fitness += RES * (hubo->huboVpBody->getCOMposition()-Vector3d(0, 0.7, 0.25)).squaredNorm();
@@ -281,13 +288,14 @@ static double fitfunc(const double *x, int dim)
 
     //// swing foot term
     //fitness += RES*(foot1final[1] - foot1init[1]) *(foot1final[1]-foot1init[1]);
-	fitness = 
-		0.5	*jointFit
+	fitness = 0
+		+ 1.0	*jointFit
 		+ 1.0	*torqueFit
-		+ 0.5	*velFit
+		+ 1.0	*velFit
 		+ 0.05	*dirFit
-		+ 20 * heightFit
-		+ 1 * footToComFit;
+		+ 1.0 * heightFit
+		+ 1 * footToComFit
+		;
 
 	/*
 	std::cout << "joint : " << 0.5*jointFit <<
@@ -404,10 +412,13 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
         std::cout << "Reference motion is empty. Please set a reference motion.(using setReferMotion())" << std::endl;
         return;
     }
-    std::vector<double> &x = cma.solution;
+	double *x = new double [cma.solution.size()];
+	for (int i = 0; i < cma.solution.size(); i++)
+		x[i] = cma.solution.at(i);
+	/*
 	if (useManualSolution)
 		x = manualSol;
-	
+	*/
     double Ks = hubo->ks;
     double Kd = hubo->kd;
 
@@ -496,6 +507,8 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
     }
     double phase = 0;
     hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
+	huboCont->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
+	huboCont->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
     for (int i = 0; i <= totalStep; i++)
     {
@@ -561,7 +574,16 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
             hubo->huboVpBody->applyAllJointValueVptoHubo();
             if (hubo->huboVpBody->pHuboMotion->canGoOneFrame())
                 hubo->huboVpBody->pHuboMotion->setCurrentFrame(hubo->huboVpBody->pHuboMotion->getCurrentFrame() + 1);
+			//height term
+			//double dy =
+			//	(
+			//	huboCont->huboVpBody->getCOMposition().y()
+			//	- referMotion->getHuboComGlobalPositionInTime(time).y()
+			//	);
+			// std::cout << hubo->huboVpBody->pHuboMotion->getCurrentFrame() << " " << dy << std::endl;
         }
+
+
     }
 	adjustHuboMotionToViewer();
 }

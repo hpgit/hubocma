@@ -36,6 +36,7 @@ public:
 	void saveSolution(char *filename);
 	void loadSolution(char *filename);
 
+	int hasSolution;
 	int stopBit; // 0: stop 1: run 2: pause
 	int maxIteration;
 	int running; // 0: not running 1: running

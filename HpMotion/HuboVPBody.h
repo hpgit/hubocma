@@ -96,6 +96,8 @@ public:
 	void applyAllJointDofAccel(Eigen::VectorXd &acc);
 
 	void setInitialHuboHipFromMotion(HuboMotionData *refer);
+	void setInitialHuboAngleFromMotion(HuboMotionData *refer);
+	void setInitialHuboAngleRateFromMotion(HuboMotionData *refer);
 
 	vpRJoint *getParentJoint(vpRJoint *joint);
 	

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>267</height>
+    <height>324</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -213,6 +213,29 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QComboBox" name="plotComboBox">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>280</y>
+     <width>101</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="plotBtn">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>270</y>
+     <width>101</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>plot solution</string>
+   </property>
   </widget>
  </widget>
  <resources/>

@@ -382,9 +382,9 @@ Vector3d HuboMotionData::getHipJointGlobalPositionInTime(double t)
 	int _frame = (int)tt;
 	double time = tt - _frame;
 	if (_frame >= frameTotal-1)
-		return hip->getGlobalPosition(frameTotal-1);
-	Vector3d q1 = hip->getGlobalPosition(frame);
-	Vector3d q2 = hip->getGlobalPosition(frame+1);
+		return hip->getGlobalBoundingBoxPosition(frameTotal-1);
+	Vector3d q1 = hip->getGlobalBoundingBoxPosition(frame);
+	Vector3d q2 = hip->getGlobalBoundingBoxPosition(frame+1);
 	return q1*(1-time) + q2*time;
 }
 
