@@ -31,18 +31,18 @@ public:
 	Joint()	: name("")
 	{
 		init();
-	};
+    }
 
 	Joint(string _name) : name(_name)
 	{
 		init();
-	};
+    }
 
 	Joint(string _name, char* filename) : name(_name)
 	{ 
 		init();
 		hasObjects = importOBJ(filename);
-	};
+    }
 
 	~Joint();
 

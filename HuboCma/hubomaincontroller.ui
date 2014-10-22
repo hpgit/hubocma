@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>224</height>
+    <width>420</width>
+    <height>338</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>230</x>
       <y>30</y>
-      <width>133</width>
-      <height>121</height>
+      <width>151</width>
+      <height>181</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -46,6 +46,13 @@ reference motion</string>
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="balanceDlgBtn">
+       <property name="text">
+        <string>Balancing</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -54,8 +61,8 @@ reference motion</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
-     <height>21</height>
+     <width>420</width>
+     <height>31</height>
     </rect>
    </property>
   </widget>

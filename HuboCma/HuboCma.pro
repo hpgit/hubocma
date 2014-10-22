@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     huboikmanage.cpp \
     huboikviewer.cpp \
     hubocmamanage.cpp \
-    hubocmathread.cpp
+    hubocmathread.cpp \
+    hubobalanceviewer.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -31,13 +32,15 @@ HEADERS  += hubomaincontroller.h \
     huboikmanage.h \
     huboikviewer.h \
     hubocmamanage.h \
-    hubocmathread.h
+    hubocmathread.h \
+    hubobalanceviewer.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
     hubotrackingmanage.ui \
     huboikmanage.ui \
-    hubocmamanage.ui
+    hubocmamanage.ui \
+    hubobalanceviewer.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \
@@ -57,6 +60,7 @@ LIBS += -L"../usr/lib" \
 
 CONFIG += console
 win32{
+DEFINES += WIN32
 LIBS -= -lGL
 LIBS -= -lGLU
 LIBS -= -fopenmp

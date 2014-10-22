@@ -6,7 +6,7 @@
 class BVHMotionData : public MotionData {
 	
 public:
-    BVHMotionData(){};
+    BVHMotionData(){}
 	string filename;
 
 	int import(char*  _filename);

@@ -21,6 +21,7 @@ void Joint::init()
 	canRotate = 0;
 	Vector3d v0(0,0,0);
 	Quaterniond q0(1,0,0,0);
+	Quaterniond q(1, 0, 0, 0);
 	motions.push_back(
 		new Motion(v0, q0)
 		);

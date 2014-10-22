@@ -21,9 +21,9 @@ using Eigen::aligned_allocator;
 class Motion{
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	Motion(): translation(Vector3d(0,0,0)), rotation(Quaterniond(1,0,0,0)){};
+    Motion(): translation(Vector3d(0,0,0)), rotation(Quaterniond(1,0,0,0)){}
 
-	Motion(Vector3d &_v, Quaterniond &_q): translation(_v), rotation(_q){};
+    Motion(Vector3d &_v, Quaterniond &_q): translation(_v), rotation(_q){}
 
 public:
 	Vector3d translation;

@@ -52,8 +52,6 @@ void HuboVpController::initController(void)
 	huboVpBody->create(world, huboMotion);
 	huboVpBody->grfDs = grfDs;
 	huboVpBody->grfKs = grfKs;
-	//TODO:
-	//is it right?
 	huboVpBody->ignoreVpHuboBodyCollision(world);
 	huboVpBody->ignoreVpGroundBodyCollision(world, ground);
 
