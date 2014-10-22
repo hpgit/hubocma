@@ -36,14 +36,12 @@ void HuboMainController::on_loadReferBtn_clicked()
 	QString title1("Motion Contact Info File");
 	QString dir1("../motiondata/");
 	QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
-	std::cout << filename1.toStdString() << std::endl;
-	fflush(stdout);
 	if (filename.length() > 0)
 	{
 		huboRefer = new HuboVpController;
 		huboRefer->initController();
 		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 0);
-		if(filename1.length() > 3)
+		if(filename1.length() > 0)
 			huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation(filename1.toStdString().data(), 0);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
