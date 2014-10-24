@@ -39,6 +39,8 @@ void HuboGlWidget::paintGL()
                 glVertex3dv(com.data());
                 com.y() = 0;
                 glVertex3dv(com.data());
+				glColor3f(0,0,1);
+				glVertex3dv(pHuboMotion->getFootCenter().data());
                 //glVertex3dv(cont->huboOdeBody->getHuboCom().data());
         glEnd();
         //if (cont != NULL)

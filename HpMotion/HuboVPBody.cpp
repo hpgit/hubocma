@@ -1169,12 +1169,6 @@ bool HuboVPBody::_calcPenaltyForce(
 		// tangential reaction force
 		frictionForce = mu * normalForce;
 
-		// 가만히 서있을 때 미끄러지는 현상 방지하기 위해
-		// rigid body이므로 point locking이 힘들어서 정지마찰력 구현이 어려움
-		// 미끄러지는 원인이 속도의 반대방향으로 큰 마찰력이 작용에 다음 step에서는 
-		// 다시 그 반대방향으로 마찰력이 작용하면서 진동을 하며 미끄러지기 때문
-		// 이를 방지하기 위해 일정 속도 이하에서는 마찰력의 일정 비율만 적용하도록 임시 코딩
-
 		if (tangentialRelVel < _lockingVel)
 			frictionForce *= tangentialRelVel / _lockingVel;
 
@@ -1248,9 +1242,6 @@ void HuboVPBody::calcPenaltyForceBoxGround(
 	return ;
 }
 
-// @param position 작용할 지점(global)
-// @param [out] force 발생한 penalty force(global)
-// @return penalty force가 발생했으면 true
 bool HuboVPBody::_calcPenaltyForceBoxGround( 
 	const Vec3& boxSize, const SE3& boxFrame, const vpBody* pBody, 
 	const Vec3& position, const Vec3& velocity, 
@@ -1265,7 +1256,6 @@ bool HuboVPBody::_calcPenaltyForceBoxGround(
 	//
 	double _lockingVel = 0.05;
 
-	// box 처리 관련
 	static Vec3 position_moved, velocity_moved, force_moved;
 	static const Vec3 vZero(0,0,0);
 	SE3 boxR;
@@ -1302,11 +1292,6 @@ bool HuboVPBody::_calcPenaltyForceBoxGround(
 		// tangential reaction force
 		frictionForce = mu * normalForce;
 
-		// 가만히 서있을 때 미끄러지는 현상 방지하기 위해
-		// rigid body이므로 point locking이 힘들어서 정지마찰력 구현이 어려움
-		// 미끄러지는 원인이 속도의 반대방향으로 큰 마찰력이 작용에 다음 step에서는 
-		// 다시 그 반대방향으로 마찰력이 작용하면서 진동을 하며 미끄러지기 때문
-		// 이를 방지하기 위해 일정 속도 이하에서는 마찰력의 일정 비율만 적용하도록 임시 코딩
 		if(tangentialRelVel < _lockingVel) 
 			frictionForce *= tangentialRelVel/_lockingVel;
 
@@ -1431,8 +1416,8 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 	// joint part
 
 	Vec3 rcom, rk, w, v; 
-	// rcom : link의 CoM
-	// rk : 회전을 고려할 조인트의 위치
+	// rcom : com of link
+	// rk : position of joint which is considered
 	// w : an axis of the joint 
 
 	for(int j=0; j<jointssize; j++)
@@ -1691,8 +1676,8 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 	// joint part
 
 	Vec3 rcom, rk, w, v; 
-	// rcom : link의 CoM
-	// rk : 회전을 고려할 조인트의 위치
+	// rcom : CoM of link
+	// rk : position of joint which is considered
 	// w : an axis of the joint 
 
 	for(int j=0; j<jointssize; j++)
@@ -1800,10 +1785,10 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 	{
 		Vec3 rcom, rk, wb, v, wp, w, sumWcrossRk, rKpforSum, rKcforSum, wKforSum;
 		vpRJoint *parentJoint = NULL, *joint  = NULL;
-		// rcom : link의 CoM
-		// rk : 기준이 되는 조인트의 위치
-		// rKpforSum, rKcforSum : sumWcrossRk를 계산할 때 사용하는 변수, 각 조인트의 위치
-		// wKforSum : sumWcrossRk를 계산할 때 사용하는 변수, 각 body의 각속도
+		// rcom : com of link
+		// rk : position of joint of basis
+		// rKpforSum, rKcforSum : variables that calculating sumWcrossRk, position of each joint
+		// wKforSum : variables that calculating sumWcrossRk, angular velocity of each body
 		// wb : normalized angular velocity of joint : Z(j) 
 		// wp : angular velocity of parent link : w(j)
 		//sumWcrossRk : <sum k=j to n> {w(k+1)<cross>P(k+1, k)}
@@ -1902,7 +1887,6 @@ void HuboVPBody::getLinkMatrix(Eigen::MatrixXd &M)
 
 		M.block(0, i, 3, 3) = inertia.block(3, 3, 3, 3);
 
-		//TODO : U, V 잘 들어갔는지 확인
 
 		M.block(3, 3 * bodiessize + i, 3, 3) = inertia.block(0, 0, 3, 3);
 
@@ -1935,8 +1919,6 @@ void HuboVPBody::getDifferentialLinkMatrix(Eigen::MatrixXd &dM)
 		for (int j = 0; j < 6; j++)
 			for (int k = 0; k < 6; k++)
 				inertia(j, k) = mat[6 * j + k];
-
-		//TODO : U', V' 맞는지 확인
 
 		dM.block(3, 3 * bodiessize + i, 3, 3) =
 			vectorToSkewMat(Vec3Tovector(bodies[i / 3]->GetAngVelocity())) * inertia.block(0, 0, 3, 3);

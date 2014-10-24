@@ -507,8 +507,8 @@ void HuboTrackingViewer::setCmaMotion(int frameRate, int useManualSolution)
     }
     double phase = 0;
     hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
-	huboCont->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
-	huboCont->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
     for (int i = 0; i <= totalStep; i++)
     {

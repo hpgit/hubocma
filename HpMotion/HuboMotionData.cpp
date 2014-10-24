@@ -655,6 +655,86 @@ void HuboMotionData::getAllHipStateInTime(
 
 }
 
+Eigen::Vector3d HuboMotionData::getFootCenter()
+{
+	Joint* footr = jointMap["RAR"];
+	Joint* footl = jointMap["LAR"];
+
+	Eigen::Vector3d qr, ql;
+	Eigen::Vector3d q(0,0,0);
+
+	qr = footr->getGlobalBoundingBoxPosition(this->frame);
+	ql = footl->getGlobalBoundingBoxPosition(this->frame);
+
+	if(qr.y() <0.1 && ql.y() < 0.1)
+	{
+		q = (qr+ql)/2;
+	}
+	else if(qr.y() < 0.1)
+	{
+		q = qr;
+	}
+	else if(ql.y() < 0.1)
+	{
+		q = ql;
+	}
+	else
+	{
+		q = (qr+ql)/2;
+	}
+
+	q.y() = 0.;
+	return q;
+}
+
+
+Eigen::Vector3d HuboMotionData::getFootCenterInTime(double t)
+{
+	Joint* footr = jointMap["RAR"];
+	Joint* footl = jointMap["LAR"];
+	double tt = t * frameRate;
+	int _frame = (int)tt;
+	double time = tt - _frame;
+
+	Eigen::Vector3d qr, ql;
+	Eigen::Vector3d q(0,0,0);
+
+	if (_frame >= frameTotal-1)
+	{
+		qr = footr->getGlobalBoundingBoxPosition(frameTotal-1);
+		ql = footl->getGlobalBoundingBoxPosition(frameTotal-1);
+	}
+	else
+	{
+		Vector3d qr1 = footr->getGlobalBoundingBoxPosition(frame);
+		Vector3d qr2 = footl->getGlobalBoundingBoxPosition(frame+1);
+		Vector3d ql1 = footr->getGlobalBoundingBoxPosition(frame);
+		Vector3d ql2 = footl->getGlobalBoundingBoxPosition(frame+1);
+		qr = qr1*(1-time) + qr2*time;
+		ql = ql1*(1-time) + ql2*time;
+	}
+
+	if(qr.y() <0.1 && ql.y() < 0.1)
+	{
+		q = (qr+ql)/2;
+	}
+	else if(qr.y() < 0.1)
+	{
+		q = qr;
+	}
+	else if(ql.y() < 0.1)
+	{
+		q = ql;
+	}
+	else
+	{
+		q = (qr+ql)/2;
+	}
+
+	q.y() = 0.;
+	return q;
+}
+
 void HuboMotionData::getAllAngleInHuboMotion(int frame, Eigen::VectorXd &angles)
 {
 	angles.resize(26);

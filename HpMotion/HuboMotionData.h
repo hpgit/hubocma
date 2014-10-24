@@ -70,6 +70,9 @@ public:
 		Eigen::Vector3d &Accel,
 		Eigen::Vector3d &AngAccel);
 
+	Eigen::Vector3d getFootCenter();
+	Eigen::Vector3d getFootCenterInTime(double t);
+
 	void getAllAngleInHuboMotion(int frame, Eigen::VectorXd &angles);
 	void getAllAngleInHuboMotion(int firstFrame, double t, Eigen::VectorXd &angles);
 	void getAllAngleRateInHuboMotion(int frame, Eigen::VectorXd &angles);

@@ -1,6 +1,11 @@
 #ifndef HUBOMAINCONTROLLER_H
 #define HUBOMAINCONTROLLER_H
 
+#ifdef WIN32
+#pragma warning(disable:4189)
+#pragma warning(disable:4100)
+#endif
+
 #include <QMainWindow>
 #include <HuboVpController.h>
 

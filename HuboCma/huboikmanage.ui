@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>544</width>
-    <height>300</height>
+    <width>672</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
   <widget class="QPushButton" name="propagateBtn">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>450</x>
      <y>200</y>
      <width>81</width>
      <height>51</height>
@@ -42,7 +42,7 @@
   <widget class="QPushButton" name="saveBtn">
    <property name="geometry">
     <rect>
-     <x>450</x>
+     <x>550</x>
      <y>200</y>
      <width>81</width>
      <height>51</height>
@@ -55,7 +55,7 @@
   <widget class="QPushButton" name="backupBtn">
    <property name="geometry">
     <rect>
-     <x>340</x>
+     <x>440</x>
      <y>20</y>
      <width>71</width>
      <height>51</height>
@@ -71,8 +71,8 @@ frame</string>
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>151</width>
-     <height>221</height>
+     <width>194</width>
+     <height>227</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -183,7 +183,7 @@ frame</string>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>450</x>
      <y>80</y>
      <width>160</width>
      <height>109</height>
@@ -231,7 +231,7 @@ frame</string>
   <widget class="QPushButton" name="initBtn">
    <property name="geometry">
     <rect>
-     <x>420</x>
+     <x>520</x>
      <y>20</y>
      <width>51</width>
      <height>51</height>
@@ -244,9 +244,9 @@ frame</string>
   <widget class="QWidget" name="formLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>210</x>
      <y>10</y>
-     <width>155</width>
+     <width>203</width>
      <height>221</height>
     </rect>
    </property>
@@ -258,16 +258,6 @@ frame</string>
      <widget class="QLabel" name="label_9">
       <property name="text">
        <string>dx</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QTextEdit" name="dxEdit">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>30</height>
-       </size>
       </property>
      </widget>
     </item>
@@ -290,6 +280,16 @@ frame</string>
       <property name="text">
        <string>parallel
 to ground</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QTextEdit" name="dxEdit">
+      <property name="maximumSize">
+       <size>
+        <width>80</width>
+        <height>30</height>
+       </size>
       </property>
      </widget>
     </item>
@@ -318,7 +318,7 @@ to ground</string>
   <widget class="QPushButton" name="initAllBtn">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>580</x>
      <y>20</y>
      <width>51</width>
      <height>51</height>

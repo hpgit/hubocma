@@ -13,10 +13,9 @@ public:
 	HuboVpController() :
 		huboVpBody(NULL), huboMotion(NULL), world(NULL), 
 		ground(NULL), groundGeom(NULL), timestep(0.001),
-		//ks(5000), kd(141.42)
-		//ks(4000), kd(126.49)
 		ks(2000), kd(89.44),
-		grfKs(75000), grfDs(100)
+		//grfKs(75000), grfDs(100)
+		grfKs(7500), grfDs(100)
 	{
 		init();
 	}

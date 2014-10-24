@@ -1,8 +1,3 @@
-#ifdef WIN32
-#pragma warning(disable:4189)
-#pragma warning(disable:4100)
-#endif
-
 #include <QtWidgets>
 #include "hubomaincontroller.h"
 #include "ui_hubomaincontroller.h"
@@ -40,7 +35,7 @@ void HuboMainController::on_loadReferBtn_clicked()
 	{
 		huboRefer = new HuboVpController;
 		huboRefer->initController();
-		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 0);
+		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 33);
 		if(filename1.length() > 0)
 			huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation(filename1.toStdString().data(), 0);
 		HuboGlViewer *win = new HuboGlViewer;
@@ -89,6 +84,7 @@ void HuboMainController::on_balanceDlgBtn_clicked()
 		win->setWindowTitle(QString("Hubo Balance Viewer"));
 		win->initCont(huboBalance);
 		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->setCmaMotion(30);
 		win->show();
 	}
 }

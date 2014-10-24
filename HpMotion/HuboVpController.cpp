@@ -237,7 +237,7 @@ void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotion
 
 void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 {
-	double kl=1, dl=2, kh=1, dh=2;
+	double kl=100, dl=2*std::sqrt(kl), kh=100, dh=2*std::sqrt(kh);
 
 	//[Macchietto 2009]
 	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
@@ -258,12 +258,17 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 
 	dofVels.segment(0, 3) = Vec3Tovector(rootVel);
 	dofVels.segment(3, 3) = Vec3Tovector(rootAngVel);
+	dofVels.tail(26) = angVels;
+	//std::cout << "dofVels: " << dofVels.transpose() << std::endl;
 
 	Eigen::MatrixXd RS = M*J;
 	Eigen::MatrixXd R = RS.block(0, 0, 3, 32);
 	Eigen::MatrixXd S = RS.block(3, 0, 3, 32);
 
-	Eigen::VectorXd rs = (M*dJ + dM*J)*dofVels;
+	Eigen::VectorXd rs = (dM*J+M*dJ)*dofVels;
+	//std::cout << "rs: " << rs.transpose() << std::endl;
+
+
 	Eigen::Vector3d rbias = rs.head(3);
 	Eigen::Vector3d sbias = rs.tail(3);
 
@@ -275,10 +280,13 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	comPlane.y() = 0;
 
 	//LdotDes
-	LdotDes = 
-		kl * huboVpBody->mass*(supCenter - comPlane)
-		+ dl * huboVpBody->mass * huboVpBody->getCOMvelocity();
+	LdotDes = huboVpBody->mass *(
+		kl * (supCenter - comPlane)	- dl * huboVpBody->getCOMvelocity()
+			);
 	LdotDes.y() = 0;
+	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
+	//		  << ",  LdotDes: " << LdotDes.transpose()
+	//		  << std::endl;
 	
 	
 	//HdotDes
@@ -302,29 +310,38 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	//cpBeforeOneStep is calculated in stepAheadWithPenaltyForces()
 	Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
 	Eigen::Vector3d cpOld, pdes, dp, ddpdes;
+	int bCalCP = 1;
+
+	//std::cout << "cp: " <<cp.transpose() << std::endl;
 
 	//TODO : when cp.y() < 0
 	if (cp.y() < 0)
 	{
 		HdotDes = Vector3d(0, 0, 0);
+		bCalCP = 0;
 	}
 	else
 	{
-
 		cpOld = this->cpBeforeOneStep;
 		Eigen::Vector3d pdes, dp, ddpdes;
+		Eigen::Vector3d refSupCenter =
+				huboVpBody->pHuboMotion->getFootCenterInTime(time);
 
 		dp = cp - cpOld;
 
-		ddpdes = kh*(supCenter - cp) - dh*dp;
+		ddpdes = kh*(refSupCenter - cp) - dh*dp;
 		pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
 		HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
 	}
+	//std::cout << "HdotDes: " << HdotDes.transpose() << std::endl;
+
 	// tracking term
-	Eigen::VectorXd desAccel;
+	Eigen::VectorXd desDofAccel;
+	desDofAccel.resize(32);
 	{
 		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
-	
+		Eigen::VectorXd desAccel;
+
 		Eigen::Vector3d hipPosRefer, hipVelRefer, hipAccelRefer, hipDesAccel;
 		Eigen::Vector3d hipPos, hipVel;
 		Eigen::Vector3d hipAngVelRefer, hipAngAccelRefer, hipDesAngAccel;
@@ -352,6 +369,12 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 		getDesiredDofAccelForRoot(hipPosRefer, hipPos, hipVelRefer, hipVel, hipAccelRefer, hipDesAccel);
 		getDesiredDofAngAccelForRoot(hipOrienRefer, hipOrien, hipAngVelRefer, hipAngVel, hipAngAccelRefer, hipDesAngAccel);
 		getDesiredDofAccel(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desAccel);
+
+		desDofAccel.head(3) = hipDesAccel;
+		desDofAccel.segment(3,3) = hipDesAngAccel;
+		desDofAccel.tail(26) = desAccel;
+
+		//std::cout << "desAccel :" << desAccel.transpose() << std::endl;
 	}
 
 	// constraint
@@ -363,23 +386,39 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	Eigen::MatrixXd A;
 	Eigen::VectorXd b;
 
+	//A.resize(32, 32);
 	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
 	A.setZero();
 	A.block(0, 0, 32, 32).setIdentity();
 	A.block(0, 0, 32, 32) *= 2;
-	A.block(0, 0, 32, 32) += 2 * (R.transpose()*R + S.transpose() * S);
-	A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
-	A.block(32, 0, Jsup.rows(), 32) = Jsup;
+	//A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
+	if(bCalCP)
+	{
+		//A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
+		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
+		A.block(32, 0, Jsup.rows(), 32) = Jsup;
+	}
 
-	Eigen::MatrixXd Atemp;
+	//b.resize(32);
 	b.resize(32+Jsup.rows());
-	b.head(32) = 2 * (R.transpose() * (LdotDes - rbias) + S.transpose() * (HdotDes - sbias) + desAccel);
-	b.tail(Jsup.rows()) = -dJsup * dofVels;
+	b.head(32) = 2*desDofAccel;
+	//b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
+	if(bCalCP)
+	{
+		//b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
+		b.tail(Jsup.rows()) = -dJsup * dofVels;
+	}
+	//std::cout << "b: " << b.transpose() << std::endl;
 
 	Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
 	Eigen::Vector3d rootAcc = ddth.head(3);
 	Eigen::Vector3d rootAngAcc = ddth.segment(3, 3);
 	Eigen::VectorXd otherJointDdth = ddth.segment(6, 26);
+	//std::cout << "ddth: " << ddth.transpose() << std::endl;
+	//std::cout << "real v:" << (M*J*ddth + rs).head(3).transpose() << std::endl;
+	//std::cout << "des  v:" << LdotDes.head(3).transpose() << std::endl;
+
+	//std::cout << (ddth-desDofAccel).norm() << std::endl;
 
 	huboVpBody->applyRootJointDofAccel(rootAcc, rootAngAcc);
 	huboVpBody->applyAllJointDofAccel(otherJointDdth);
