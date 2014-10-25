@@ -100,7 +100,7 @@ void HuboBalanceViewer::setCmaMotion(int frameRate)
 		hubo->huboVpBody->applyAllJointDofAccel(desAccel);
 		//*/
 
-		//std::cout << "balancing " << time << " : " << std::endl;
+		std::cout << "balancing " << time << " : " << std::endl;
 		hubo->balancing(referMotion, time);
 
 		hubo->huboVpBody->solveHybridDynamics();

@@ -420,7 +420,9 @@ void vpWorld::BuildCollisionGraph(void)
 	for ( int i = 0; i < m_sCollisionPair.size(); i++ ) m_sCollisionPair[i].clear();
 	m_sCollisionPair.resize(m_sCollisionPairL.size());
 
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < m_sCollisionPairL.size(); i++ )
 	{
 		m_sCollisionPair[i].resize((int)m_sCollisionPairL[i].size());
@@ -440,8 +442,8 @@ void vpWorld::BuildCollisionGraph(void)
 				
 			if ( !testPairJ.pRightBody->IsGround() )
 				for ( list<pair<int, int> >::iterator ktor = testPairJ.pRightBody->m_sCollisionPairIdx.begin(); ktor != testPairJ.pRightBody->m_sCollisionPairIdx.end(); ktor++ )
-					m_sCollisionPair[i][j].impactSet.insert(ktor->second);
-		}
+		 			m_sCollisionPair[i][j].impactSet.insert(ktor->second);
+		} 
 	}
 	
 	VP_TIMER_ACTION(m_sProfilingTimer[2], Halt);
@@ -471,7 +473,9 @@ void vpWorld::BuildCollisionGraph(void)
 	for ( int i = 0; i < m_sContactPair.size(); i++ ) m_sContactPair[i].clear();
 	m_sContactPair.resize(m_sContactPairL.size());
 
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < m_sContactPair.size(); i++ )
 	{
 		m_sContactPair[i].resize((int)m_sContactPairL[i].size());

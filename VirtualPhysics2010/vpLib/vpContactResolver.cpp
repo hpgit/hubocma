@@ -78,7 +78,9 @@ void vpWorld::ResolveContact(void)
 
 	m_sContactK.resize(m_sContactPair.size());
 
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < n; i++ )
 	{
 		if ( m_sContactPair[i].size() <= 0 ) continue;
@@ -91,7 +93,9 @@ void vpWorld::ResolveContact(void)
 
 		m_sContactK[i].clear((int)m_sContactPair[i].size(), (int)m_sContactPair[i].size());
 
+#ifndef __APPLE__
 		#pragma omp parallel for
+#endif
 		for ( int j = 0; j < m_sContactPair[i].size(); j++ )
 		{
 			vpCollisionDSC &testPairJ = m_pCollisionDetector->m_sCollisionLUT[m_sContactPair[i][j].first];
@@ -198,10 +202,14 @@ void vpWorld::ResolveContact(void)
 	
 	m_sB.resize(m_sContactPair.size());
 	
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < m_pSystem.size(); i++ ) m_pSystem[i]->ForwardDynamics();
 	
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < m_sContactPair.size(); i++ )
 	{
 		if ( m_sContactPair[i].size() <= 0 ) continue;
@@ -228,7 +236,9 @@ void vpWorld::ResolveContact(void)
 		}
 	}
 
+#ifndef __APPLE__
 	#pragma omp parallel for
+#endif
 	for ( int i = 0; i < m_sContactPair.size(); i++ )
 	{
 		if ( m_sContactPair[i].size() <= 0 ) continue;
@@ -254,11 +264,15 @@ void vpWorld::ResolveContact(void)
 
 #ifdef VP_PROFILING_STATISTICS
 		if ( 0 < iter && iter < m_iMaxIterSolver ) 
+#ifndef __APPLE__
 			#pragma omp atomic
+#endif
 			m_iSuccessfulSORSolveLCP++;
 
 		int slot = (int)log10((scalar)m_sB[i].RowSize());
+#ifndef __APPLE__
 		#pragma omp critical
+#endif
 		{
 			if ( (int)m_iContactSizeHistogram.size() < slot + 1 ) m_iContactSizeHistogram.resize(slot+1);
 			m_iContactSizeHistogram[slot]++;
@@ -269,7 +283,9 @@ void vpWorld::ResolveContact(void)
 		//cout << ~f << ~(m_sContactK[i] * f + m_sB[i]);
 		//verifyLCP(convert(m_sContactK[i]), f, m_sB[i]);
 
+#ifndef __APPLE__
 		#pragma omp parallel for
+#endif
 		for ( int j = 0; j < m_sContactPair[i].size(); j++ )
 		{
 			vpCollisionDSC &testPairJ = m_pCollisionDetector->m_sCollisionLUT[m_sContactPair[i][j].first];

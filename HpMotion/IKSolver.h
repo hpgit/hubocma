@@ -17,8 +17,9 @@ class IKSolver
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		IKSolver(MotionData *_obj)
-		: obj(_obj), ikEps(0.001), maxIter(200),
-		weightPos(1), weightAng(10), stepSize(0.01)
+		: maxIter(200), weightPos(1), weightAng(10),
+		  stepSize(0.01), ikEps(0.001), obj(_obj)
+
 	{}
 	
 

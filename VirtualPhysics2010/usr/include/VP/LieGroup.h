@@ -95,13 +95,15 @@ typedef double		 scalar;
 #define SCALAR_1_720 0.00138888888888888888889
 #define SCALAR_1_1260 0.000793650793650793650794
 
+#ifndef M_PI
 #define M_PI		 3.14159265358979323846
+#endif
 #define M_2PI		 6.28318530717958647693		// = 2 * pi
 #define M_PI_SQR	 9.86960440108935861883		// = pi^2
 #define M_RADIAN	 0.0174532925199432957692	// = pi / 180
 #define M_DEGREE	 57.2957795130823208768		// = pi / 180
 #define SCALAR_MAX	 DBL_MAX
-#else if
+#else
 typedef float		 scalar;
 #define LIE_EPS		 0.000001f
 #define SCALAR_0	 0.0f

@@ -26,10 +26,10 @@ HuboMainController::~HuboMainController()
 void HuboMainController::on_loadReferBtn_clicked()
 {
 	QString title("Motion File");
-	QString dir("../motiondata/");
+	QString dir("../../motiondata/");
 	QString filename = QFileDialog::getOpenFileName(this, title, dir);
 	QString title1("Motion Contact Info File");
-	QString dir1("../motiondata/");
+	QString dir1("../../motiondata/");
 	QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
 	if (filename.length() > 0)
 	{

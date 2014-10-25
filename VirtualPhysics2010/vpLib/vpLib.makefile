@@ -1,6 +1,8 @@
 # Compiler flags...
-CPP_COMPILER = g++
-C_COMPILER = gcc
+#CPP_COMPILER = g++
+#C_COMPILER = gcc
+CPP_COMPILER = clang++
+C_COMPILER = clang++
 
 # Include paths...
 Release_Include_Path=-I"../usr/include" 
@@ -18,7 +20,7 @@ Release_Preprocessor_Definitions=-D GCC_BUILD -D NDEBUG -D _LIB -fopenmp
 Release_Implicitly_Linked_Objects=
 
 # Compiler flags...
-Release_Compiler_Flags=-arch=x86_64 -O2 
+Release_Compiler_Flags=-arch=x86_64 -O2 -stdlib=libstdc++
 
 # Builds all configurations for this project...
 .PHONY: build_all_configurations

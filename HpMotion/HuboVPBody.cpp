@@ -1613,18 +1613,25 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 	// 6dof root, 26 joints
 	// 6dof root = 3 dof for position, 3 dof for orientation
 
+	int ii=0;
+	std::cout << "hehehe" << ii++ << std::endl;
+	fflush(stdout);
 	const int bodiessize = bodies.size();
 	const int jointssize = joints.size();
 
 	J.resize(6*bodiessize, jointssize+6); 
 	J.setZero();
 
+	std::cout << "hehehe" << ii++ << std::endl;
+	fflush(stdout);
 	// root translation
 
 	for(int i=0; i<3*bodiessize; i++)
 	{
 		J( i, i%3) = 1;
 	}
+	std::cout << "hehehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	// root orientation
 	
@@ -1671,7 +1678,8 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 		}
 	}
 
-
+	std::cout << "hehehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	// joint part
 

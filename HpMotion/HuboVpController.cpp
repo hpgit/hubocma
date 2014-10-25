@@ -9,7 +9,7 @@ HuboVpController::~HuboVpController()
 
 void HuboVpController::init()
 {
-	importHuboSkeleton("../RobotData/RobotData.dat");
+	importHuboSkeleton("../../RobotData/RobotData.dat");
 	initController();
 }
 
@@ -63,7 +63,9 @@ void HuboVpController::initController(void)
 		);
 
 	
+#ifndef __APPLE__
 	world->SetNumThreads(omp_get_num_threads()-1);
+#endif
 	world->SetIntegrator(VP::IMPLICIT_EULER_FAST);
 	world->SetTimeStep(timestep);
 
@@ -238,28 +240,45 @@ void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotion
 void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 {
 	double kl=100, dl=2*std::sqrt(kl), kh=100, dh=2*std::sqrt(kh);
+	int ii=0;
 
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	//[Macchietto 2009]
 	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
 	huboVpBody->getJacobian(J);
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	huboVpBody->getLinkMatrix(M);
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	huboVpBody->getDifferentialJacobian(dJ);
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	huboVpBody->getDifferentialLinkMatrix(dM);
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	Eigen::VectorXd angles, angVels, angAccels;
 	Eigen::VectorXd dofVels;
 	huboVpBody->getAllAngle(angles);
 	huboVpBody->getAllAngularVelocity(angVels);
 	dofVels.resize(32);
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	Vec3 rootVel, rootAngVel;
 	rootVel = huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0));
 	rootAngVel = huboVpBody->Hip->GetAngVelocity();
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	dofVels.segment(0, 3) = Vec3Tovector(rootVel);
 	dofVels.segment(3, 3) = Vec3Tovector(rootAngVel);
 	dofVels.tail(26) = angVels;
 	//std::cout << "dofVels: " << dofVels.transpose() << std::endl;
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	Eigen::MatrixXd RS = M*J;
 	Eigen::MatrixXd R = RS.block(0, 0, 3, 32);
@@ -268,6 +287,8 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	Eigen::VectorXd rs = (dM*J+M*dJ)*dofVels;
 	//std::cout << "rs: " << rs.transpose() << std::endl;
 
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	Eigen::Vector3d rbias = rs.head(3);
 	Eigen::Vector3d sbias = rs.tail(3);
@@ -279,6 +300,8 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
 	comPlane.y() = 0;
 
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
 		kl * (supCenter - comPlane)	- dl * huboVpBody->getCOMvelocity()
@@ -288,7 +311,9 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	//		  << ",  LdotDes: " << LdotDes.transpose()
 	//		  << std::endl;
 	
-	
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
+
 	//HdotDes
 //        # angular momentum
 //        CP_ref = footCenter
@@ -314,6 +339,8 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 
 	//std::cout << "cp: " <<cp.transpose() << std::endl;
 
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 	//TODO : when cp.y() < 0
 	if (cp.y() < 0)
 	{
@@ -334,6 +361,8 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 		HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
 	}
 	//std::cout << "HdotDes: " << HdotDes.transpose() << std::endl;
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	// tracking term
 	Eigen::VectorXd desDofAccel;
@@ -376,6 +405,8 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 
 		//std::cout << "desAccel :" << desAccel.transpose() << std::endl;
 	}
+	std::cout << "hehe" << ii++ << std::endl;
+	fflush(stdout);
 
 	// constraint
 	// calculate Jsup and dJsup

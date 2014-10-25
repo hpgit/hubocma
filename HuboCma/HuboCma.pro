@@ -47,7 +47,7 @@ INCLUDEPATH += ../usr/include \
         ../CmaOptimizer \
         ../MotionGlWidget
 
-LIBS += -L"../usr/lib" \
+LIBS += -L"../../usr/lib" \
         -fopenmp \
         -lGL \
         -lHpMotion \
@@ -58,7 +58,11 @@ LIBS += -L"../usr/lib" \
         -lGLU \
         -lvpLib
 
-CONFIG += console
+QMAKE_CXXFLAGS_WARN_ON = ""
+QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter
+				-Wno-unused-variable
+
+#CONFIG += console
 win32{
 DEFINES += WIN32
 LIBS -= -lGL
@@ -70,16 +74,16 @@ LIBS += -lglu32
 }
 
 macx {
-INCLUDEPATH += /usr/local/include
+#INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/include/c++/4.2.1
-LIBS -= -L"../usr/lib"
-LIBS += -L"../../usr/lib"
+LIBS -= -fopenmp
 LIBS -= -lGL
 LIBS -= -lGLU
 LIBS += -L/usr/local/lib \
         -L/usr/lib \
         -L/usr/lib/system \
         -framework OpenGL
-QMAKE_MAC_SDK = macosx10.9
-QMAKE_INFO_PLIST = /Users/trif/Qt5.3.1/5.3/clang_64/mkspecs/macx-clang/Info.plist.app
+QMAKE_CXXFLAGS += -stdlib=libstdc++
+QMAKE_MAC_SDK = macosx10.10
+QMAKE_INFO_PLIST = /Users/hwangpil/Qt5.3.1/5.3/clang_64/mkspecs/macx-clang/Info.plist.app
 }

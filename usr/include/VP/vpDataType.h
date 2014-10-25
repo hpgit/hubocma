@@ -38,6 +38,10 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
 
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
+
 #ifndef VP_DATA_TYPE
 #define VP_DATA_TYPE
 
@@ -48,7 +52,9 @@ OF SUCH DAMAGE.
 #include <set>
 #include <vector>
 #include <list>
+#ifndef __APPLE__
 #include <omp.h>
+#endif
 
 // Defining VP_PROTECT_SRC macro will hide all inline functions to protect source codes.
 //#define VP_PROTECT_SRC

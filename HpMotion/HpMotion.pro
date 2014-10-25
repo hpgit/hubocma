@@ -33,6 +33,10 @@ HEADERS += \
     Motion.h \
     MotionData.h
 
+QMAKE_CXXFLAGS_WARN_ON = ""
+QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter
+				-Wno-unused-variable
+
 INCLUDEPATH += ../usr/include
 unix {
     target.path = ../usr/lib
@@ -40,8 +44,9 @@ unix {
 }
 
 macx{
-INCLUDEPATH += /usr/local/include
+#INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/include/c++/4.2.1
-QMAKE_MAC_SDK = macosx10.9
+QMAKE_CXXFLAGS += -stdlib=libstdc++
+QMAKE_MAC_SDK = macosx10.10
 }
 

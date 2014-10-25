@@ -11,7 +11,7 @@ private:
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	HuboVpController() :
-		huboVpBody(NULL), huboMotion(NULL), world(NULL), 
+		huboMotion(NULL),huboVpBody(NULL), world(NULL),
 		ground(NULL), groundGeom(NULL), timestep(0.001),
 		ks(2000), kd(89.44),
 		//grfKs(75000), grfDs(100)
