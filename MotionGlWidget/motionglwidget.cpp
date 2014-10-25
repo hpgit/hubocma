@@ -155,7 +155,7 @@ void MotionGlWidget::mouseMoveEvent(QMouseEvent *event)
     int dx = currPos.x() - lastPos.x();
     int dy = - currPos.y() + lastPos.y();
 
-    if (event->buttons() & Qt::MidButton)
+	if (event->buttons() & Qt::LeftButton)
     {
         camera.setPosOnSphereAfterScreenRotate(dx, dy, width(), height());
         camera.setTransforming();

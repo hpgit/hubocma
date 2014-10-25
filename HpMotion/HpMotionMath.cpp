@@ -13,12 +13,12 @@ Eigen::Matrix3d vectorToSkewMat(const Eigen::Vector3d &v)
 {
 	Eigen::Matrix3d m;
 	m.setZero();
-	m(1, 0) = v(3);
-	m(2, 0) = -v(2);
-	m(2, 1) = v(1);
-	m(0, 1) = -v(3);
-	m(0, 2) = v(2);
-	m(1, 2) = -v(1);
+	m(1, 0) = v(2);
+	m(2, 0) = -v(1);
+	m(2, 1) = v(0);
+	m(0, 1) = -v(2);
+	m(0, 2) = v(1);
+	m(1, 2) = -v(0);
 
 	return m;
 }

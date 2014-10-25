@@ -22,6 +22,7 @@ SOURCES += main.cpp\
     huboikviewer.cpp \
     hubocmamanage.cpp \
     hubocmathread.cpp \
+	huboreferviewer.cpp \
     hubobalanceviewer.cpp
 
 HEADERS  += hubomaincontroller.h \
@@ -33,7 +34,8 @@ HEADERS  += hubomaincontroller.h \
     huboikviewer.h \
     hubocmamanage.h \
     hubocmathread.h \
-    hubobalanceviewer.h
+	huboreferviewer.h \
+	hubobalanceviewer.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \

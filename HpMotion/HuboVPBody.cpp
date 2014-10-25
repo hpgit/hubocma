@@ -1613,25 +1613,18 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 	// 6dof root, 26 joints
 	// 6dof root = 3 dof for position, 3 dof for orientation
 
-	int ii=0;
-	std::cout << "hehehe" << ii++ << std::endl;
-	fflush(stdout);
 	const int bodiessize = bodies.size();
 	const int jointssize = joints.size();
 
 	J.resize(6*bodiessize, jointssize+6); 
 	J.setZero();
 
-	std::cout << "hehehe" << ii++ << std::endl;
-	fflush(stdout);
 	// root translation
 
 	for(int i=0; i<3*bodiessize; i++)
 	{
 		J( i, i%3) = 1;
 	}
-	std::cout << "hehehe" << ii++ << std::endl;
-	fflush(stdout);
 
 	// root orientation
 	
@@ -1677,9 +1670,6 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 			J(i+2, 5) = angz[2];
 		}
 	}
-
-	std::cout << "hehehe" << ii++ << std::endl;
-	fflush(stdout);
 
 	// joint part
 
@@ -1895,15 +1885,12 @@ void HuboVPBody::getLinkMatrix(Eigen::MatrixXd &M)
 
 		M.block(0, i, 3, 3) = inertia.block(3, 3, 3, 3);
 
-
 		M.block(3, 3 * bodiessize + i, 3, 3) = inertia.block(0, 0, 3, 3);
 
 		rComToLink = bodies[i / 3]->GetFrame().GetPosition() - getCOM();
 
 		M.block(3, i, 3, 3) = inertia(3,3) * vectorToSkewMat(Vec3Tovector(rComToLink));
 	}
-
-
 }
 
 void HuboVPBody::getDifferentialLinkMatrix(Eigen::MatrixXd &dM)
