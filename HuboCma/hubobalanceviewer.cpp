@@ -1,22 +1,27 @@
 #include "hubobalanceviewer.h"
 #include <HpMotionMath.h>
+#include "hubobalancemanage.h"
 
-//static HuboVpController *huboCont;
 static HuboMotionData *referMotion;
 
 HuboBalanceViewer::HuboBalanceViewer(QWidget *parent)
 {
+	HuboBalanceManage *manager = new HuboBalanceManage();
+	manager->viewer = this;
+	manager->show();
 }
 
-void HuboBalanceViewer::setCmaMotion(int frameRate)
+void HuboBalanceViewer::setCmaMotion(
+		double kl, double kh,
+		double weightTrack, double weightTrackAnkle, double weightTrackUpper,
+		int frameRate
+)
 {
 	if (referMotion == NULL)
 	{
 		std::cout << "Reference motion is empty. Please set a reference motion.(using setReferMotion())" << std::endl;
 		return;
 	}
-	double Ks = hubo->ks;
-	double Kd = hubo->kd;
 
 	hubo->initController();
 	hubo->huboVpBody->pHuboMotion->init();
@@ -43,64 +48,20 @@ void HuboBalanceViewer::setCmaMotion(int frameRate)
 		hubo->huboVpBody->pHuboMotion->setMotionSize(motionSize);
 	}
 
-	Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer, desAccel;
-	Eigen::VectorXd angle, angleVel, torques;
-
-	Eigen::Vector3d hipPosRefer, hipVelRefer, hipAccelRefer, hipDesAccel;
-	Eigen::Vector3d hipPos, hipVel;
-
-	Eigen::Vector3d hipAngVelRefer, hipAngAccelRefer, hipDesAngAccel;
-	Eigen::Vector3d hipAngVel;
-	Eigen::Quaterniond hipOrienRefer;
-	Eigen::Quaterniond hipOrien;
-
 	hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
 	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
 	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
 	for (int i = 0; i < totalStep; i++)
-	//for (int i = 0; i <= 350; i++)
 	{
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
 
-		/*
-		// get desired acceleration for instance time
-		hipPosRefer = referMotion->getHipJointGlobalPositionInTime(time);
-		hipOrienRefer = referMotion->getHipJointGlobalOrientationInTime(time);
-		hipVelRefer = referMotion->getHipJointVelInHuboMotionInTime(time);
-		hipAngVelRefer = referMotion->getHipJointAngVelInHuboMotionInTime(time);
-		hipAccelRefer = referMotion->getHipJointAccelInHuboMotionInTime(time);
-		hipAngAccelRefer = referMotion->getHipJointAngAccelInHuboMotionInTime(time);
-
-		hipPos = Vec3Tovector(hubo->huboVpBody->Hip->GetFrame().GetPosition());
-		hipVel = Vec3Tovector(hubo->huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0)));
-		hipOrien = hubo->huboVpBody->getOrientation(hubo->huboVpBody->Hip);
-		hipAngVel = Vec3Tovector(hubo->huboVpBody->Hip->GetAngVelocity());
-
-		referMotion->getAllAngleInHuboMotionInTime(time, angleRefer);
-		referMotion->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
-		referMotion->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
-
-		//TODO:
-		//balancing
-
-
-		hubo->huboVpBody->getAllAngle(angle);
-		hubo->huboVpBody->getAllAngularVelocity(angleVel);
-
-		// get desired accelaration
-		hubo->getDesiredDofAccelForRoot(hipPosRefer, hipPos, hipVelRefer, hipVel, hipAccelRefer, hipDesAccel);
-		hubo->getDesiredDofAngAccelForRoot(hipOrienRefer, hipOrien, hipAngVelRefer, hipAngVel, hipAngAccelRefer, hipDesAngAccel);
-
-		hubo->getDesiredDofAccel(angleRefer, angle, angleVelRefer, angleVel, angleAccelRefer, desAccel);
-
-		// set acceleration to joint
-		hubo->huboVpBody->applyRootJointDofAccel(hipDesAccel, hipDesAngAccel);
-		hubo->huboVpBody->applyAllJointDofAccel(desAccel);
-		//*/
-
-		hubo->balancing(referMotion, time);
+		hubo->balancing(
+			referMotion, time,
+			kl, kh,
+			weightTrack, weightTrackAnkle, weightTrackUpper
+		);
 
 		hubo->huboVpBody->solveHybridDynamics();
 
@@ -119,6 +80,7 @@ void HuboBalanceViewer::setCmaMotion(int frameRate)
 
 	}
 	adjustHuboMotionToViewer();
+	hubo->huboVpBody->pHuboMotion->setCurrentFrame(0);
 }
 
 void HuboBalanceViewer::setReferMotion(HuboMotionData *refer)

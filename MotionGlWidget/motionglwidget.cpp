@@ -143,7 +143,7 @@ void MotionGlWidget::resizeGL(int width, int height)
 
 void MotionGlWidget::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::MidButton || event->button() == Qt::RightButton)
+	if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton)
     {
         lastPos = event->pos();
     }

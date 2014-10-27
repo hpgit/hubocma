@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     hubocmamanage.cpp \
     hubocmathread.cpp \
 	huboreferviewer.cpp \
-    hubobalanceviewer.cpp
+    hubobalanceviewer.cpp \
+    hubobalancemanage.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -35,14 +36,15 @@ HEADERS  += hubomaincontroller.h \
     hubocmamanage.h \
     hubocmathread.h \
 	huboreferviewer.h \
-	hubobalanceviewer.h
+	hubobalanceviewer.h \
+    hubobalancemanage.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
     hubotrackingmanage.ui \
     huboikmanage.ui \
     hubocmamanage.ui \
-    hubobalanceviewer.ui
+    hubobalancemanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \

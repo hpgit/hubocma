@@ -9,7 +9,7 @@ HuboVpController::~HuboVpController()
 
 void HuboVpController::init()
 {
-	importHuboSkeleton("../../RobotData/RobotData.dat");
+	importHuboSkeleton("../../dat/RobotData/RobotData.dat");
 	initController();
 }
 
@@ -237,9 +237,13 @@ void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotion
 
 }
 
-void HuboVpController::balancing(HuboMotionData *referMotion, double time)
+void HuboVpController::balancing(
+		HuboMotionData *referMotion, double time,
+		double kl, double kh,
+		double weightTrack, double weightTrackAnkle, double weightTrackUpper
+)
 {
-	double kl=100, dl=2*std::sqrt(kl), kh=100, dh=2*std::sqrt(kh);
+	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
 
 	//[Macchietto 2009]
 	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
@@ -391,10 +395,28 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
 	A.setZero();
 	A.block(0, 0, 32, 32).setIdentity();
-	A.block(0, 0, 32, 32) *= 120;
-	A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
+	A.block(0, 0, 32, 32) *= weightTrack;
+
+	A(6+HuboVPBody::eRAR, 6+HuboVPBody::eRAR) = weightTrackAnkle;
+	A(6+HuboVPBody::eRAP, 6+HuboVPBody::eRAP) = weightTrackAnkle;
+	A(6+HuboVPBody::eLAR, 6+HuboVPBody::eLAR) = weightTrackAnkle;
+	A(6+HuboVPBody::eLAP, 6+HuboVPBody::eLAP) = weightTrackAnkle;
+
+	A(6+HuboVPBody::eRSP, 6+HuboVPBody::eRSP) = weightTrackUpper;
+	A(6+HuboVPBody::eRSR, 6+HuboVPBody::eRSR) = weightTrackUpper;
+	A(6+HuboVPBody::eRSY, 6+HuboVPBody::eRSY) = weightTrackUpper;
+	A(6+HuboVPBody::eREB, 6+HuboVPBody::eREB) = weightTrackUpper;
+	A(6+HuboVPBody::eRWP, 6+HuboVPBody::eRWP) = weightTrackUpper;
+	A(6+HuboVPBody::eRWY, 6+HuboVPBody::eRWY) = weightTrackUpper;
+	A(6+HuboVPBody::eLSP, 6+HuboVPBody::eLSP) = weightTrackUpper;
+	A(6+HuboVPBody::eLSR, 6+HuboVPBody::eLSR) = weightTrackUpper;
+	A(6+HuboVPBody::eLSY, 6+HuboVPBody::eLSY) = weightTrackUpper;
+	A(6+HuboVPBody::eLEB, 6+HuboVPBody::eLEB) = weightTrackUpper;
+	A(6+HuboVPBody::eLWP, 6+HuboVPBody::eLWP) = weightTrackUpper;
+	A(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = weightTrackUpper;
 	if(bCalCP)
 	{
+		A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
 		A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
 		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
 		A.block(32, 0, Jsup.rows(), 32) = Jsup;
@@ -402,10 +424,10 @@ void HuboVpController::balancing(HuboMotionData *referMotion, double time)
 
 	//b.resize(32);
 	b.resize(32+Jsup.rows());
-	b.head(32) = 120*desDofAccel;
-	b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
+	b.head(32) = A.block(0,0,32,32)*desDofAccel;
 	if(bCalCP)
 	{
+		b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
 		b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
 		b.tail(Jsup.rows()) = -dJsup * dofVels;
 	}

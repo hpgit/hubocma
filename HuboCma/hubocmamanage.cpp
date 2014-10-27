@@ -70,14 +70,14 @@ void HuboCmaManage::on_runCmaWithResBtn_clicked()
 
 void HuboCmaManage::on_loadBtn_clicked()
 {
-	viewer->cma.loadSolution("../CmaData/trackingCmaSolution.txt");
+	viewer->cma.loadSolution("../../dat/CmaData/trackingCmaSolution.txt");
 	//ui->simulateBtn->setEnabled(true);
 	//ui->runCmaWithResBtn->setEnabled(true);
 }
 
 void HuboCmaManage::on_saveBtn_clicked()
 {
-	viewer->cma.saveSolution("../CmaData/trackingCmaSolution.txt");
+	viewer->cma.saveSolution("../../dat/CmaData/trackingCmaSolution.txt");
 }
 
 void HuboCmaManage::on_pauseBtn_clicked()

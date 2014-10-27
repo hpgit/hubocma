@@ -26,10 +26,10 @@ HuboMainController::~HuboMainController()
 void HuboMainController::on_loadReferBtn_clicked()
 {
 	QString title("Motion File");
-	QString dir("../../motiondata/");
+	QString dir("../../dat/motiondata/");
 	QString filename = QFileDialog::getOpenFileName(this, title, dir);
 	QString title1("Motion Contact Info File");
-	QString dir1("../../motiondata/");
+	QString dir1("../../dat/motiondata/");
 	QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
 	if (filename.length() > 0)
 	{
@@ -84,7 +84,6 @@ void HuboMainController::on_balanceDlgBtn_clicked()
 		win->setWindowTitle(QString("Hubo Balance Viewer"));
 		win->initCont(huboBalance);
 		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
-		win->setCmaMotion(30);
 		win->show();
 	}
 }

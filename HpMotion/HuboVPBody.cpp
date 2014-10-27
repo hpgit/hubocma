@@ -428,17 +428,23 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 
 void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 {
-//	std::vector<vpBody*>checkBodies;
-//	checkBodies.push_back(Foot[0]);
-//	checkBodies.push_back(Foot[1]);
+	std::vector<vpBody*>checkBodies;
+	checkBodies.push_back(Foot[0]);
+	checkBodies.push_back(Foot[1]);
 
 	std::vector<vpBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
 
+	/*
 	calcPenaltyForce(
 		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
+		grfKs, grfDs, mu
+		);
+	//	*/
+	calcPenaltyForce(
+		pWorld, pGround, checkBodies, collideBodies, positions, positionsLocal, forces,
 		grfKs, grfDs, mu
 		);
 	applyPenaltyForce(collideBodies,positionsLocal, forces);

@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
 		hubo->initController();
 
-		huboRefer->huboVpBody->pHuboMotion->import("../CmaData/n_kick.txt", 35, 100);
+		huboRefer->huboVpBody->pHuboMotion->import("../../dat/CmaData/n_kick.txt", 35, 100);
 		HuboGlViewer *win = new HuboGlViewer;
 		win->setWindowTitle(QString("HuboReference Motion"));
 		win->initCont(huboRefer);
