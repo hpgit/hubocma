@@ -6,11 +6,17 @@ HuboBalanceManage::HuboBalanceManage(QWidget *parent) :
 	ui(new Ui::HuboBalanceManage)
 {
 	ui->setupUi(this);
-	ui->textEdit  ->setText(QString("100"));
-	ui->textEdit_2->setText(QString("100"));
-	ui->textEdit_3->setText(QString("200"));
-	ui->textEdit_4->setText(QString("50"));
-	ui->textEdit_5->setText(QString("50"));
+	//ui->textEdit  ->setText(QString("100"));
+	//ui->textEdit_2->setText(QString("100"));
+	//ui->textEdit_3->setText(QString("200"));
+	//ui->textEdit_4->setText(QString("50"));
+	//ui->textEdit_5->setText(QString("50"));
+	//ui->textEdit_6->setText(QString("30"));
+	ui->textEdit  ->setText(QString("1"));
+	ui->textEdit_2->setText(QString("1"));
+	ui->textEdit_3->setText(QString("1"));
+	ui->textEdit_4->setText(QString("1"));
+	ui->textEdit_5->setText(QString("1"));
 	ui->textEdit_6->setText(QString("30"));
 }
 

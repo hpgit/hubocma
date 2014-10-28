@@ -694,7 +694,7 @@ void HuboVPBody::applyAllJointTorque(
 
 void HuboVPBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 {
-	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.04, 0);
+	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.03, 0);
 	Eigen::Quaterniond ori = refer->getHipJointGlobalOrientationInTime(0);
 	Eigen::Affine3d m;
 	m.setIdentity();
@@ -943,7 +943,7 @@ Quaterniond HuboVPBody::getOrientation(vpBody *pBody)
 	Eigen::Affine3d m;
 	SE3 frame = pBody->GetFrame();
 	for (int i = 0; i < 16; i++)
-		m.matrix()(i/4, i%4) = frame[i];
+		m(i%4, i/4) = frame[i];
 
 	return Quaterniond(m.rotation());
 }

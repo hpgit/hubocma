@@ -52,7 +52,13 @@ void HuboBalanceViewer::setCmaMotion(
 	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
 	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
-	for (int i = 0; i < totalStep; i++)
+	//TOOD:
+	//for debug
+
+
+	//for (int i = 0; i < totalStep; i++)
+	for (int i = 0; i < 400; i++)
+	//for (int i = 0; i < 1; i++)
 	{
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
@@ -76,11 +82,24 @@ void HuboBalanceViewer::setCmaMotion(
 			if (hubo->huboVpBody->pHuboMotion->canGoOneFrame())
 				hubo->huboVpBody->pHuboMotion->setCurrentFrame(hubo->huboVpBody->pHuboMotion->getCurrentFrame() + 1);
 		}
+		if(i == 0)
+		{
+			Eigen::Vector3d velR, angVelR;
+			Eigen::Quaterniond oriR;
+			Eigen::Vector3d posR = referMotion->getHipJointGlobalPositionInTime(time);
+			Eigen::Quaterniond referOri = referMotion->getHipJointGlobalOrientationInTime(time);
+			std::cout << referOri.w() << " " << referOri.x() << " " << referOri.y() << " " << referOri.z() << std::endl;
+			Eigen::Vector3d posV, velV, angVelV;
+			Eigen::Quaterniond oriV;
+			hubo->huboVpBody->getHuboHipState(posV, oriV, velV, angVelV);
+			std::cout << oriV.w() << " " << oriV.x() << " " << oriV.y() << " " << oriV.z() <<std::endl;
+		}
 
 
 	}
 	adjustHuboMotionToViewer();
 	hubo->huboVpBody->pHuboMotion->setCurrentFrame(0);
+	this->glWidget->repaint();
 }
 
 void HuboBalanceViewer::setReferMotion(HuboMotionData *refer)

@@ -383,8 +383,8 @@ Vector3d HuboMotionData::getHipJointGlobalPositionInTime(double t)
 	double time = tt - _frame;
 	if (_frame >= frameTotal-1)
 		return hip->getGlobalBoundingBoxPosition(frameTotal-1);
-	Vector3d q1 = hip->getGlobalBoundingBoxPosition(frame);
-	Vector3d q2 = hip->getGlobalBoundingBoxPosition(frame+1);
+	Vector3d q1 = hip->getGlobalBoundingBoxPosition(_frame);
+	Vector3d q2 = hip->getGlobalBoundingBoxPosition(_frame+1);
 	return q1*(1-time) + q2*time;
 }
 
@@ -400,8 +400,8 @@ Quaterniond HuboMotionData::getHipJointGlobalOrientationInTime(double t)
 		_frame--;
 		time = 1.0;
 	}
-	Quaterniond q1 = hip->getGlobalOrientation(frame);
-	Quaterniond q2 = hip->getGlobalOrientation(frame+1);
+	Quaterniond q1 = hip->getGlobalOrientation(_frame);
+	Quaterniond q2 = hip->getGlobalOrientation(_frame+1);
 	return q1.slerp(time, q2);
 }
 
@@ -706,10 +706,10 @@ Eigen::Vector3d HuboMotionData::getFootCenterInTime(double t)
 	}
 	else
 	{
-		Vector3d qr1 = footr->getGlobalBoundingBoxPosition(frame);
-		Vector3d qr2 = footl->getGlobalBoundingBoxPosition(frame+1);
-		Vector3d ql1 = footr->getGlobalBoundingBoxPosition(frame);
-		Vector3d ql2 = footl->getGlobalBoundingBoxPosition(frame+1);
+		Vector3d qr1 = footr->getGlobalBoundingBoxPosition(_frame);
+		Vector3d qr2 = footl->getGlobalBoundingBoxPosition(_frame+1);
+		Vector3d ql1 = footr->getGlobalBoundingBoxPosition(_frame);
+		Vector3d ql2 = footl->getGlobalBoundingBoxPosition(_frame+1);
 		qr = qr1*(1-time) + qr2*time;
 		ql = ql1*(1-time) + ql2*time;
 	}

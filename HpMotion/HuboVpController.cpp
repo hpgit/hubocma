@@ -286,10 +286,12 @@ void HuboVpController::balancing(
 
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
-		kl * (supCenter - comPlane)	- dl * huboVpBody->getCOMvelocity()
+		kl * (supCenter - comPlane)
+		- dl * huboVpBody->getCOMvelocity()
 			);
 	LdotDes.y() = 0;
 	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
+	//		  << "com velocity : " << huboVpBody->getCOMvelocity().transpose()
 	//		  << ",  LdotDes: " << LdotDes.transpose()
 	//		  << std::endl;
 	
@@ -395,29 +397,29 @@ void HuboVpController::balancing(
 	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
 	A.setZero();
 	A.block(0, 0, 32, 32).setIdentity();
-	A.block(0, 0, 32, 32) *= weightTrack;
+	A.block(0, 0, 32, 32) *= 2*weightTrack;
 
-	A(6+HuboVPBody::eRAR, 6+HuboVPBody::eRAR) = weightTrackAnkle;
-	A(6+HuboVPBody::eRAP, 6+HuboVPBody::eRAP) = weightTrackAnkle;
-	A(6+HuboVPBody::eLAR, 6+HuboVPBody::eLAR) = weightTrackAnkle;
-	A(6+HuboVPBody::eLAP, 6+HuboVPBody::eLAP) = weightTrackAnkle;
+	A(6+HuboVPBody::eRAR, 6+HuboVPBody::eRAR) = 2*weightTrackAnkle;
+	A(6+HuboVPBody::eRAP, 6+HuboVPBody::eRAP) = 2*weightTrackAnkle;
+	A(6+HuboVPBody::eLAR, 6+HuboVPBody::eLAR) = 2*weightTrackAnkle;
+	A(6+HuboVPBody::eLAP, 6+HuboVPBody::eLAP) = 2*weightTrackAnkle;
 
-	A(6+HuboVPBody::eRSP, 6+HuboVPBody::eRSP) = weightTrackUpper;
-	A(6+HuboVPBody::eRSR, 6+HuboVPBody::eRSR) = weightTrackUpper;
-	A(6+HuboVPBody::eRSY, 6+HuboVPBody::eRSY) = weightTrackUpper;
-	A(6+HuboVPBody::eREB, 6+HuboVPBody::eREB) = weightTrackUpper;
-	A(6+HuboVPBody::eRWP, 6+HuboVPBody::eRWP) = weightTrackUpper;
-	A(6+HuboVPBody::eRWY, 6+HuboVPBody::eRWY) = weightTrackUpper;
-	A(6+HuboVPBody::eLSP, 6+HuboVPBody::eLSP) = weightTrackUpper;
-	A(6+HuboVPBody::eLSR, 6+HuboVPBody::eLSR) = weightTrackUpper;
-	A(6+HuboVPBody::eLSY, 6+HuboVPBody::eLSY) = weightTrackUpper;
-	A(6+HuboVPBody::eLEB, 6+HuboVPBody::eLEB) = weightTrackUpper;
-	A(6+HuboVPBody::eLWP, 6+HuboVPBody::eLWP) = weightTrackUpper;
-	A(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = weightTrackUpper;
+	A(6+HuboVPBody::eRSP, 6+HuboVPBody::eRSP) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eRSR, 6+HuboVPBody::eRSR) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eRSY, 6+HuboVPBody::eRSY) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eREB, 6+HuboVPBody::eREB) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eRWP, 6+HuboVPBody::eRWP) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eRWY, 6+HuboVPBody::eRWY) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLSP, 6+HuboVPBody::eLSP) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLSR, 6+HuboVPBody::eLSR) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLSY, 6+HuboVPBody::eLSY) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLEB, 6+HuboVPBody::eLEB) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLWP, 6+HuboVPBody::eLWP) = 2*weightTrackUpper;
+	A(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = 2*weightTrackUpper;
 	if(bCalCP)
 	{
 		A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
-		A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
+		//A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
 		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
 		A.block(32, 0, Jsup.rows(), 32) = Jsup;
 	}
@@ -428,7 +430,7 @@ void HuboVpController::balancing(
 	if(bCalCP)
 	{
 		b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
-		b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
+		//b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
 		b.tail(Jsup.rows()) = -dJsup * dofVels;
 	}
 	//std::cout << "b: " << b.transpose() << std::endl;
