@@ -7,9 +7,6 @@ class HuboReferViewer : public HuboGlViewer
 {
 public:
     HuboReferViewer(QWidget *parent = 0);
-
-	void setReferMotion(HuboMotionData *_refer);
-	HuboMotionData *refer;
 };
 
 #endif // HUBOREFERVIEWER_H

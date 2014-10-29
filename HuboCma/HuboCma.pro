@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = HuboCma
 TEMPLATE = app
+CONFIG += console
 
 SOURCES += main.cpp\
         hubomaincontroller.cpp \
@@ -24,7 +25,8 @@ SOURCES += main.cpp\
     hubocmathread.cpp \
 	huboreferviewer.cpp \
     hubobalanceviewer.cpp \
-    hubobalancemanage.cpp
+    hubobalancemanage.cpp \
+    huborefermanage.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -37,14 +39,16 @@ HEADERS  += hubomaincontroller.h \
     hubocmathread.h \
 	huboreferviewer.h \
 	hubobalanceviewer.h \
-    hubobalancemanage.h
+    hubobalancemanage.h \
+    huborefermanage.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
     hubotrackingmanage.ui \
     huboikmanage.ui \
     hubocmamanage.ui \
-    hubobalancemanage.ui
+    hubobalancemanage.ui \
+    huborefermanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \

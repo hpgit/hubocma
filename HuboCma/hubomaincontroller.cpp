@@ -1,7 +1,7 @@
 #include <QtWidgets>
 #include "hubomaincontroller.h"
 #include "ui_hubomaincontroller.h"
-#include "huboglviewer.h"
+#include "huboreferviewer.h"
 #include "hubotrackingviewer.h"
 #include "huboikviewer.h"
 #include "hubobalanceviewer.h"
@@ -28,17 +28,17 @@ void HuboMainController::on_loadReferBtn_clicked()
 	QString title("Motion File");
 	QString dir("../../dat/motiondata/");
 	QString filename = QFileDialog::getOpenFileName(this, title, dir);
-	QString title1("Motion Contact Info File");
-	QString dir1("../../dat/motiondata/");
-	QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
+	//QString title1("Motion Contact Info File");
+	//QString dir1("../../dat/motiondata/");
+	//QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
 	if (filename.length() > 0)
 	{
 		huboRefer = new HuboVpController;
 		huboRefer->initController();
-		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 33);
-		if(filename1.length() > 0)
-			huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation(filename1.toStdString().data(), 0);
-		HuboGlViewer *win = new HuboGlViewer;
+		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 0);
+		//if(filename1.length() > 0)
+		//	huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation(filename1.toStdString().data(), 0);
+		HuboReferViewer *win = new HuboReferViewer;
 		win->setWindowTitle(QString("Hubo Reference Motion"));
 		win->initCont(huboRefer);
 		win->show();

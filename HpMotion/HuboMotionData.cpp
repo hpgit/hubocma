@@ -916,7 +916,6 @@ void HuboMotionData::save(const char *_filename, int firstFrame, int lastFrame)
 	}
 
 	const int numFrame = lastFrame - firstFrame + 1;
-	//TODO:
 	std::ofstream fout;
 	fout.open(_filename);
 
@@ -943,6 +942,7 @@ void HuboMotionData::save(const char *_filename, int firstFrame, int lastFrame)
 				<< std::endl;
 		}
 	}
+	std::cout << "motionSize:" << rootJoint->motions.size() <<std::endl;
 
 	fout.close();
 }

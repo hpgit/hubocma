@@ -694,7 +694,7 @@ void HuboVPBody::applyAllJointTorque(
 
 void HuboVPBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 {
-	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.03, 0);
+	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.04, 0);
 	Eigen::Quaterniond ori = refer->getHipJointGlobalOrientationInTime(0);
 	Eigen::Affine3d m;
 	m.setIdentity();
@@ -1363,92 +1363,6 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 		J.block(0, 0, 3, 32) = fullJ.block(eLFoot * 3, 0, 3, 32);
 		J.block(3, 0, 3, 32) = fullJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
 	}
-
-	/*
-	// root translation
-
-	for(int i=0; i<3*contactFootSize; i++)
-	{
-		J( i, i%3) = 1;
-	}
-
-	// root orientation
-	
-	{
-		Vec3 x(1,0,0);
-		Vec3 y(0,1,0);
-		Vec3 z(0,0,1);
-		Vec3 angx, angy, angz;
-
-		Vec3 r, valongx, valongy, valongz;
-		
-		angx = x;
-		angy = y;
-		angz = z;
-
-		for(int i=0; i < 3*contactFootSize; i+=3)
-		{
-			r = Foot[i/3]->GetFrame().GetPosition()-vectorToVec3(getVpHipRotationalJointPosition());
-			valongx = Cross(angx, r);
-			valongy = Cross(angy, r);
-			valongz = Cross(angz, r);
-			J(i  , 3) = valongx[0];
-			J(i+1, 3) = valongx[1];
-			J(i+2, 3) = valongx[2];
-			J(i  , 4) = valongy[0];
-			J(i+1, 4) = valongy[1];
-			J(i+2, 4) = valongy[2];
-			J(i  , 5) = valongz[0];
-			J(i+1, 5) = valongz[1];
-			J(i+2, 5) = valongz[2];
-		}
-		
-		for(int i=3*contactFootSize; i < 6*contactFootSize; i+=3)
-		{
-			J(i  , 3) = angx[0];
-			J(i+1, 3) = angx[1];
-			J(i+2, 3) = angx[2];
-			J(i  , 4) = angy[0];
-			J(i+1, 4) = angy[1];
-			J(i+2, 4) = angy[2];
-			J(i  , 5) = angz[0];
-			J(i+1, 5) = angz[1];
-			J(i+2, 5) = angz[2];
-		}
-	}
-
-
-
-	// joint part
-
-	Vec3 rcom, rk, w, v; 
-	// rcom : com of link
-	// rk : position of joint which is considered
-	// w : an axis of the joint 
-
-	for(int j=0; j<jointssize; j++)
-	{
-		// linear velocity part
-		for(int i=0; i < 3*contactFootSize; i+=3)	
-		{
-			if( vpBodytohuboParentJointmap[Foot[i/3]]->isDescendant(vptohuboJointmap[joints[j]]) 
-				|| vpBodytoJointmap[Foot[i/3]] == joints[j] )
-			{
-				rcom = Foot[i/3]->GetFrame().GetPosition();
-				rk = vectorToVec3(getVpJointPosition(joints[j]));
-				w = vectorToVec3(getVpJointAxis(joints[j]));
-				v = Cross(w, rcom-rk);
-
-				J(i  , j+6) = v[0];
-				J(i+1, j+6) = v[1];
-				J(i+2, j+6) = v[2];
-				J(i  +3*contactFootSize, j+6) = w[0];
-				J(i+1+3*contactFootSize, j+6) = w[1];
-				J(i+2+3*contactFootSize, j+6) = w[2];
-			}
-		}
-	}
-	*/
 }
 
 void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJ)
@@ -1485,134 +1399,6 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eLFoot * 3, 0, 3, 32);
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
 	}
-	
-	/*
-
-	// root translation
-	{
-
-	}
-
-	// root orientation
-	for(int i=0; i < 3*contactFootSize; i+=3)	
-	{
-		vpRJoint *parentJoint = NULL, *joint  = NULL;
-		Vec3 rcom, rk, wb, v, wp, w, sumWcrossRk, rKpforSum, rKcforSum, wKforSum;
-		for (int j = 0; j < 3; j++)
-		{
-			wb = Vec3(0, 0, 0);
-			wb[j] = 1;
-
-			rcom = Foot[i / 3+footOffset]->GetFrame().GetPosition();
-			rk = vectorToVec3(getVpHipRotationalJointPosition());
-			sumWcrossRk = Vec3(0, 0, 0);
-			
-			if (Foot[i / 3+footOffset] != Hip)
-			{
-				joint = vpBodytoJointmap[Foot[i / 3+footOffset]];
-
-				sumWcrossRk += Cross(
-					joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
-					rcom - vectorToVec3(getVpJointPosition(joint))
-					);
-
-				for (joint = vpBodytoJointmap[Foot[i / 3+footOffset]], parentJoint = getParentJoint(joint);
-					parentJoint != NULL;
-					joint = parentJoint, parentJoint = getParentJoint(parentJoint)
-					)
-				{
-					// <sum k=j to n> { w(k+1)<cross>P(k+1, k) }
-					rKcforSum = vectorToVec3(getVpJointPosition(joint));
-					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
-					sumWcrossRk += Cross(
-						parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
-						rKcforSum - rKpforSum);
-					rKpforSum = rKcforSum;
-				}
-
-				sumWcrossRk += Cross(
-					Hip->GetAngVelocity()[j] * wb,
-					vectorToVec3(getVpJointPosition(joint) - getVpHipRotationalJointPosition())
-					);
-				
-			}
-			else
-			{
-				sumWcrossRk += Cross(
-					Hip->GetAngVelocity()[j] * wb,
-					Hip->GetFrame().GetPosition() - vectorToVec3(getVpHipRotationalJointPosition())
-					);
-			}
-			//	# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
-			//w(j) == 0 for root
-			v = Cross(wb, sumWcrossRk);
-
-			dJ(i, 3+j) = v[0];
-			dJ(i + 1, 3 + j) = v[1];
-			dJ(i + 2, 3 + j) = v[2];
-//			# dZ(j) = w(j)<cross>Z(j)
-			// w(j) == 0 for root
-		}
-	}
-
-	// other joint part
-	for(int j=0; j<jointssize; j++)
-	{
-		Vec3 rcom, rk, wb, v, wp, w, sumWcrossRk, rKpforSum, rKcforSum, wKforSum;
-		vpRJoint *parentJoint = NULL, *joint  = NULL;
-
-		// linear acceleration part
-		for(int i=0; i < 3*contactFootSize; i+=3)	
-		{
-
-			if( vpBodytohuboParentJointmap[Foot[i/3+footOffset]]->isDescendant(vptohuboJointmap[joints[j]]) 
-				|| vpBodytoJointmap[Foot[i/3+footOffset]] == joints[j] )
-			{
-				
-				wb = vectorToVec3(getVpJointAxis(joints[j]));
-				wb.Normalize();
-				wp = joints[j]->GetVelocity() * vectorToVec3(getVpJointAxis(joints[j]));
-				w = Cross(wp, wb);
-
-				rcom = Foot[i / 3 +footOffset]->GetFrame().GetPosition(); 
-				rk = vectorToVec3(getVpJointPosition(joints[j]));
-				sumWcrossRk = Vec3(0,0,0);
-
-				joint = vpBodytoJointmap[Foot[i / 3 +footOffset]];
-
-				sumWcrossRk += Cross(
-					joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
-					rcom - vectorToVec3(getVpJointPosition(joint))
-					);
-
-				for (joint = vpBodytoJointmap[Foot[i / 3 +footOffset]], parentJoint = getParentJoint(joint);
-					joint != joints[j];
-					joint = parentJoint, parentJoint = getParentJoint(parentJoint)
-					)
-				{
-					// <sum k=j to n> { w(k+1)<cross>P(k+1, k) }
-					rKcforSum = vectorToVec3(getVpJointPosition(joint));
-					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
-					sumWcrossRk += Cross(
-						parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
-						rKcforSum - rKpforSum);
-					rKpforSum = rKcforSum;
-				}
-				
-//				# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
-				v = Cross(wb, sumWcrossRk) + Cross(w, rcom-rk);
-
-				dJ(i  , j+6) = v[0];
-				dJ(i+1, j+6) = v[1];
-				dJ(i+2, j+6) = v[2];
-
-				dJ(i    +3*contactFootSize, j+6) = w[0];
-				dJ(i + 1+3*contactFootSize, j+6) = w[1];
-				dJ(i + 2+3*contactFootSize, j+6) = w[2];
-			}
-		}
-	}
-	*/
 }
 void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 {
@@ -1732,6 +1518,9 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 			wb = Vec3(0, 0, 0);
 			wb[j] = 1;
 
+			wp = Hip->GetAngVelocity();
+			w = Cross(wp, wb);
+
 			rcom = bodies[i / 3]->GetFrame().GetPosition();
 			rk = vectorToVec3(getVpHipRotationalJointPosition());
 			sumWcrossRk = Vec3(0, 0, 0);
@@ -1773,14 +1562,27 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 					);
 			}
 			//	# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
+
+			int aaa=0;
+			//TODO:
 			//w(j) == 0 for root
+			if(aaa)
 			v = Cross(wb, sumWcrossRk);
+			else
+			v = Cross(wb, sumWcrossRk)
+				+ Cross(w, Hip->GetFrame().GetPosition() - vectorToVec3(getVpHipRotationalJointPosition()));
 
 			dJ(i, 3+j) = v[0];
 			dJ(i + 1, 3 + j) = v[1];
 			dJ(i + 2, 3 + j) = v[2];
-//			# dZ(j) = w(j)<cross>Z(j)
+
+			// # dZ(j) = w(j)<cross>Z(j)
 			// w(j) == 0 for root
+			if(!aaa){
+			dJ(i    +3*bodiessize, j+6) = w[0];
+			dJ(i + 1+3*bodiessize, j+6) = w[1];
+			dJ(i + 2+3*bodiessize, j+6) = w[2];
+			}
 		}
 	}
 
@@ -1822,9 +1624,11 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 //				    return dP 
 
 //				# dZ(j) = w(j)<cross>Z(j)
+				//TODO : change wp
 				wb = vectorToVec3(getVpJointAxis(joints[j]));
 				wb.Normalize();
-				wp = joints[j]->GetVelocity() * vectorToVec3(getVpJointAxis(joints[j]));
+				//wp = joints[j]->GetVelocity() * vectorToVec3(getVpJointAxis(joints[j]));
+				wp = vpBodytoParentBody[vpJointtoBodymap[joints[j]]]->GetAngVelocity();
 				w = Cross(wp, wb);
 
 				rcom = bodies[i / 3]->GetFrame().GetPosition(); 
@@ -1833,8 +1637,10 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 
 				joint = vpBodytoJointmap[bodies[i / 3]];
 
+
 				sumWcrossRk += Cross(
-					joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
+					//joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
+					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
 					rcom - vectorToVec3(getVpJointPosition(joint))
 					);
 
@@ -1847,7 +1653,8 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 					rKcforSum = vectorToVec3(getVpJointPosition(joint));
 					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
 					sumWcrossRk += Cross(
-						parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
+						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
+						//parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
 						rKcforSum - rKpforSum);
 					rKpforSum = rKcforSum;
 				}

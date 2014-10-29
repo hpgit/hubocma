@@ -35,7 +35,7 @@ void HuboBalanceViewer::setCmaMotion(
 	int totalStep = (int)
 		(
 		referMotion->getFrameTime()
-		* referMotion->getMotionSize()
+		* (referMotion->getMotionSize()-1)
 		/hubo->timestep
 		);
 	double time;
@@ -57,8 +57,8 @@ void HuboBalanceViewer::setCmaMotion(
 
 
 	//for (int i = 0; i < totalStep; i++)
-	for (int i = 0; i < 400; i++)
-	//for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 1000; i++)
+	//for (int i = 0; i < 2; i++)
 	{
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
@@ -82,7 +82,7 @@ void HuboBalanceViewer::setCmaMotion(
 			if (hubo->huboVpBody->pHuboMotion->canGoOneFrame())
 				hubo->huboVpBody->pHuboMotion->setCurrentFrame(hubo->huboVpBody->pHuboMotion->getCurrentFrame() + 1);
 		}
-		if(i == 0)
+		if(i == -1)
 		{
 			Eigen::Vector3d velR, angVelR;
 			Eigen::Quaterniond oriR;

@@ -12,7 +12,7 @@ class MotionData
 public:
 	MotionData() 
 		:frame(0), frameRate(100), frameTotal(1), rootJoint(NULL)
-	{};
+	{}
 	~MotionData();
 
 protected:
@@ -60,6 +60,7 @@ public:
 	void backUpMotionForIk(int _frame);
 	void restoreMotionForIk(int _frame);
 
+	void cutMotion(int firstFrame, int lastFrame = 0 );
 	void copyOneMotion(MotionData *src, int srcFrame, int dstFrame);
 	void copyAllMotion(MotionData *src);
 	//TODO:

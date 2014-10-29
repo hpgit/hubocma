@@ -78,7 +78,7 @@ void MotionData::setMotionSize(int num)
 		{
 			for(std::vector<Motion*>::iterator it=joints.at(i)->motions.begin(); it!=joints.at(i)->motions.end(); it++)
 			{
-					delete (*it);
+				delete (*it);
 			}
 		}
 	}
@@ -97,8 +97,6 @@ void MotionData::setMotionSize(int num)
 			(*it)->motions.push_back(new Motion());
 		}
 	}
-
-	
 
 	frameTotal = num;
 	if( frame >= frameTotal )
@@ -127,7 +125,6 @@ void MotionData::addMotionSize(int num)
 	}
 
 	frameTotal += num;
-
 }
 
 void MotionData::resetMotion(int _frame)
@@ -212,6 +209,40 @@ void MotionData::copyOneMotion(MotionData *src, int srcFrame, int dstFrame)
 		*(joints.at(i)->motions.at(dstFrame)) = *(src->joints.at(i)->motions.at(srcFrame));
 }
 
+void MotionData::cutMotion(int firstFrame, int lastFrame)
+{
+	if (lastFrame == 0)
+		lastFrame = frameTotal - 1;
+	if (firstFrame > lastFrame || firstFrame <0 || lastFrame > frameTotal - 1)
+	{
+		printf("cut error: invalid frame setting");
+		return;
+	}
+
+	if(firstFrame != 0)
+		for (int i = 0; i < joints.size(); i++)
+			for(int j=0; j<lastFrame-firstFrame+1; j++)
+				*(joints.at(i)->motions.at(j)) = *(joints.at(i)->motions.at(j+firstFrame));
+
+
+	for(int i=0; i<joints.size(); i++)
+	{
+		for(int j=lastFrame-firstFrame+1; j<frameTotal; j++)
+		{
+			delete joints.at(i)->motions.back();
+			joints.at(i)->motions.pop_back();
+		}
+	}
+	frameTotal = lastFrame-firstFrame+1;
+	frame = frame-firstFrame;
+}
+
+//TODO:
+//void MotionData::copyMotions(MotionData *src, int srcBeginFrame, int srcEndFrame, MotionData *dst)
+//{
+//
+//}
+
 void MotionData::copyAllMotion(MotionData *src)
 {
 	const int motionSize = src->getMotionSize();
@@ -219,7 +250,6 @@ void MotionData::copyAllMotion(MotionData *src)
 	for (int j = 0; j < motionSize; j++)
 		for (int i = 0; i < joints.size(); i++)
 			*(joints.at(i)->motions.at(j)) = *(src->joints.at(i)->motions.at(j));
-
 }
 
 void MotionData::propagateDiffer(int beginFrame, int endFrame)

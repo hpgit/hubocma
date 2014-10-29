@@ -34,6 +34,8 @@ private slots:
 
 	void on_applyBtn_clicked();
 
+	void on_solveAllBtn_clicked();
+
 
 private:
 	Ui::HuboIkManage *ui;

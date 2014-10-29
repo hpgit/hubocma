@@ -50,6 +50,33 @@ void HuboIkManage::on_solveBtn_clicked()
 		);
 }
 
+void HuboIkManage::on_solveAllBtn_clicked()
+{
+	int _frame = viewer->refer->getCurrentFrame();
+
+	Eigen::Vector3d v;
+	v.x() = ui->dxEdit->toPlainText().toDouble();
+	v.y() = ui->dyEdit->toPlainText().toDouble();
+	v.z() = ui->dzEdit->toPlainText().toDouble();
+	for(int i=0; i<viewer->refer->getMotionSize(); i++)
+	{
+		viewer->solve(
+					ui->textEdit->toPlainText().toStdString(),
+					v,
+					ui->parallelCheck->isChecked(),
+					ui->maxIterEdit->toPlainText().toInt(),
+					ui->ikEpsEdit->toPlainText().toDouble(),
+					ui->weightPosEdit->toPlainText().toDouble(),
+					ui->weightAngEdit->toPlainText().toDouble(),
+					ui->stepSizeEdit->toPlainText().toDouble()
+					);
+		if (viewer->refer->canGoOneFrame())
+			viewer->refer->setCurrentFrame(viewer->refer->getCurrentFrame() + 1);
+	}
+
+	viewer->refer->setCurrentFrame(_frame);
+}
+
 
 void HuboIkManage::on_backupBtn_clicked()
 {

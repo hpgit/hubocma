@@ -381,7 +381,7 @@ void HuboVpController::balancing(
 		desDofAccel.segment(3,3) = hipDesAngAccel;
 		desDofAccel.tail(26) = desAccel;
 
-		//std::cout << "desAccel :" << desAccel.transpose() << std::endl;
+		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
 	}
 
 	// constraint
@@ -418,7 +418,7 @@ void HuboVpController::balancing(
 	A(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = 2*weightTrackUpper;
 	if(bCalCP)
 	{
-		A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
+		//A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
 		//A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
 		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
 		A.block(32, 0, Jsup.rows(), 32) = Jsup;
@@ -429,7 +429,7 @@ void HuboVpController::balancing(
 	b.head(32) = A.block(0,0,32,32)*desDofAccel;
 	if(bCalCP)
 	{
-		b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
+		//b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
 		//b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
 		b.tail(Jsup.rows()) = -dJsup * dofVels;
 	}
@@ -442,6 +442,7 @@ void HuboVpController::balancing(
 	//std::cout << "ddth: " << ddth.transpose() << std::endl;
 	//std::cout << "real v:" << (M*J*ddth + rs).head(3).transpose() << std::endl;
 	//std::cout << "des  v:" << LdotDes.head(3).transpose() << std::endl;
+	//std::cout << ddth(6+HuboVPBody::eRHR) <<std::endl;
 
 	//std::cout << (ddth-desDofAccel).norm() << std::endl;
 
