@@ -1563,10 +1563,10 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 			}
 			//	# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
 
-			int aaa=0;
+			int internal=1;
 			//TODO:
 			//w(j) == 0 for root
-			if(aaa)
+			if(internal)
 			v = Cross(wb, sumWcrossRk);
 			else
 			v = Cross(wb, sumWcrossRk)
@@ -1578,7 +1578,7 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 
 			// # dZ(j) = w(j)<cross>Z(j)
 			// w(j) == 0 for root
-			if(!aaa){
+			if(!internal){
 			dJ(i    +3*bodiessize, j+6) = w[0];
 			dJ(i + 1+3*bodiessize, j+6) = w[1];
 			dJ(i + 2+3*bodiessize, j+6) = w[2];

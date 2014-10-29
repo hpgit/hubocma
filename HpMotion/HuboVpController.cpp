@@ -290,8 +290,10 @@ void HuboVpController::balancing(
 		- dl * huboVpBody->getCOMvelocity()
 			);
 	LdotDes.y() = 0;
+	LdotDes.x() = 0;
+	//std::cout << supCenter.transpose() << std::endl;
 	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
-	//		  << "com velocity : " << huboVpBody->getCOMvelocity().transpose()
+	//		  << ", com velocity : " << huboVpBody->getCOMvelocity().transpose()
 	//		  << ",  LdotDes: " << LdotDes.transpose()
 	//		  << std::endl;
 	
@@ -322,7 +324,7 @@ void HuboVpController::balancing(
 	//std::cout << "cp: " <<cp.transpose() << std::endl;
 
 	//TODO : when cp.y() < 0
-	if (cp.y() < 0)
+	if (cp.y() < 0 || cpOld.y() < 0)
 	{
 		HdotDes = Vector3d(0, 0, 0);
 		bCalCP = 0;
@@ -418,7 +420,7 @@ void HuboVpController::balancing(
 	A(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = 2*weightTrackUpper;
 	if(bCalCP)
 	{
-		//A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
+		A.block(0, 0, 32, 32) += 2 * (R.transpose()*R);
 		//A.block(0, 0, 32, 32) += 2 * (S.transpose() * S);
 		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
 		A.block(32, 0, Jsup.rows(), 32) = Jsup;
@@ -429,7 +431,7 @@ void HuboVpController::balancing(
 	b.head(32) = A.block(0,0,32,32)*desDofAccel;
 	if(bCalCP)
 	{
-		//b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
+		b.head(32) += 2 * (R.transpose() * (LdotDes - rbias));
 		//b.head(32) += 2 * (S.transpose() * (HdotDes - sbias));
 		b.tail(Jsup.rows()) = -dJsup * dofVels;
 	}
