@@ -8,6 +8,7 @@ HuboBalanceViewer::HuboBalanceViewer(QWidget *parent)
 {
 	HuboBalanceManage *manager = new HuboBalanceManage();
 	manager->viewer = this;
+	manager->move(200+width()+20, 200);
 	manager->show();
 }
 
@@ -56,11 +57,11 @@ void HuboBalanceViewer::setCmaMotion(
 	//for debug
 
 
-	for (int i = 0; i < totalStep; i++)
-	//for (int i = 0; i < 100; i++)
-	//for (int i = 0; i < 2; i++)
+	//for (int i = 0; i < totalStep; i++)
+	for (int i = 0; i < 100; i++)
+	//for (int i = 0; i < 1; i++)
 	{
-		std::cout << i << "th supCenter : ";
+		//std::cout << i << "th supCenter : ";
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
 
