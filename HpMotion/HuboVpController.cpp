@@ -280,9 +280,13 @@ void HuboVpController::balancing(
 	//calculate LdotDes, HdotDes
 	Eigen::Vector3d LdotDes, HdotDes;
 	
-	Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+	//TODO :
+	//using real VP value
+	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+	Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
 	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
 	comPlane.y() = 0;
+	std::cout << supCenter.transpose() <<std::endl;
 
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
@@ -290,7 +294,6 @@ void HuboVpController::balancing(
 		- dl * huboVpBody->getCOMvelocity()
 			);
 	LdotDes.y() = 0;
-	LdotDes.x() = 0;
 	//std::cout << supCenter.transpose() << std::endl;
 	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
 	//		  << ", com velocity : " << huboVpBody->getCOMvelocity().transpose()
@@ -323,6 +326,7 @@ void HuboVpController::balancing(
 
 	//std::cout << "cp: " <<cp.transpose() << std::endl;
 
+	cpOld = this->cpBeforeOneStep;
 	//TODO : when cp.y() < 0
 	if (cp.y() < 0 || cpOld.y() < 0)
 	{
@@ -331,10 +335,9 @@ void HuboVpController::balancing(
 	}
 	else
 	{
-		cpOld = this->cpBeforeOneStep;
 		Eigen::Vector3d pdes, dp, ddpdes;
 		Eigen::Vector3d refSupCenter =
-				huboVpBody->pHuboMotion->getFootCenterInTime(time);
+				referMotion->getFootCenterInTime(time);
 
 		dp = cp - cpOld;
 
@@ -435,7 +438,7 @@ void HuboVpController::balancing(
 
 	b.resize(32);
 	//b.resize(32+Jsup.rows());
-	b.head(32) = A.block(0,0,32,32)*desDofAccel;
+	b.head(32) = Wt*desDofAccel;
 	if(bCalCP)
 	{
 		b.head(32) += (R.transpose() * (LdotDes - rbias));
@@ -458,8 +461,8 @@ void HuboVpController::balancing(
 
 	huboVpBody->applyRootJointDofAccel(rootAcc, rootAngAcc);
 	huboVpBody->applyAllJointDofAccel(otherJointDdth);
-	fout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).transpose() <<std::endl;
-	std::cout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).transpose() <<std::endl;
+	fout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).squaredNorm() <<std::endl;
+	//std::cout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).transpose() <<std::endl;
 	fout.close();
 }
 

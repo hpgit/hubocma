@@ -1,6 +1,6 @@
 { 
 	name Hip
-	file ../../RobotObj/Hip.obj
+	file ../../dat/RobotObj/Hip.obj
 	translation 0  0  0 
 
 	com 0 -0.0351 -0.0119
@@ -9,7 +9,7 @@
 { 
 	name WST
 	id 27
-	file ../../RobotObj/Torso.obj
+	file ../../dat/RobotObj/Torso.obj
 	translation  0  0.023  0.065
 	RotateAxis Y
 	Constraint -3.14  3.14 
@@ -21,7 +21,7 @@
 {
 	name RSP
 	id 12
-	file ../../RobotObj/RShoulderY.obj
+	file ../../dat/RobotObj/RShoulderY.obj
 	translation  -0.125  0.1785  -0.065
 	RotateAxis X 
 	Constraint -3.14  +3.14 
@@ -33,7 +33,7 @@
 {
 	name RSR
 	id 13
-	file ../../RobotObj/RShoulderX.obj
+	file ../../dat/RobotObj/RShoulderX.obj
 	translation  -0.0895  0  0.043
 	RotateAxis Z 
 	Constraint -3.14  0 
@@ -45,7 +45,7 @@
 {
 	name RSY
 	id 14
-	file ../../RobotObj/RUpperArm.obj
+	file ../../dat/RobotObj/RUpperArm.obj
 	translation  0  -0.0245  -0.0444
 	RotateAxis Y 
 	Constraint -1.57  +1.57 
@@ -57,7 +57,7 @@
 {
 	name REB
 	id 15
-	file ../../RobotObj/RElbow.obj
+	file ../../dat/RobotObj/RElbow.obj
 	translation  -0.0115  -0.1545  0.0224
 	RotateAxis X 
 	Constraint -1.57 0
@@ -69,7 +69,7 @@
 {
 	name RWY
 	id 16
-	file ../../RobotObj/RWrist.obj
+	file ../../dat/RobotObj/RWrist.obj
 	translation   0.0115  -0.0425 -0.022
 	RotateAxis Y 
 	Constraint -1.57  1.57 
@@ -81,7 +81,7 @@
 { 
 	name RWP
 	id 17
-	file ../../RobotObj/RHand.obj
+	file ../../dat/RobotObj/RHand.obj
 	translation  0  -0.1201  0
 	RotateAxis X 
 	Constraint -0.5236  0.5236 
@@ -93,7 +93,7 @@
 {
 	name NKY
 	id 24
-	file ../../RobotObj/Head.obj
+	file ../../dat/RobotObj/Head.obj
 	translation  0  0.3278 -0.065
 	RotateAxis Y 
 	Constraint -3.14  3.14 
@@ -105,7 +105,7 @@
 { 
 	name RHY
 	id 0
-	file ../../RobotObj/RPelvisZ.obj
+	file ../../dat/RobotObj/RPelvisZ.obj
 	translation  -0.0885  -0.0765 0 
 	RotateAxis Y
 	Constraint  -0.5236	0.5236
@@ -117,7 +117,7 @@
 {
 	name RHR
 	id 1
-	file ../../RobotObj/RPelvisX.obj
+	file ../../dat/RobotObj/RPelvisX.obj
 	translation  0  -0.091 0.072 
 	RotateAxis Z
 	Constraint	-0.5236  0.0873
@@ -129,7 +129,7 @@
 { 
 	name RHP
 	id 2
-	file ../../RobotObj/RUpperLeg.obj
+	file ../../dat/RobotObj/RUpperLeg.obj
 	translation  -0.0525  -8.60423e-16 -0.073 
 	RotateAxis X
 	Constraint -1.0472  0 
@@ -141,8 +141,8 @@
 { 
 	name RKN
 	id 3
-	file ../../RobotObj/RLowerLeg.obj
-	translation  0.03  -0.3 0 
+	file ../../dat/RobotObj/RLowerLeg.obj
+	translation  0.03  -0.4 0 
 	RotateAxis X 
 	Constraint 0  1.0472 
 	parent RHP
@@ -153,8 +153,8 @@
 { 
 	name RAP
 	id 4
-	file ../../RobotObj/RAnkleY.obj
-	translation  -0.0234  -0.3 0 
+	file ../../dat/RobotObj/RAnkleY.obj
+	translation  -0.0234  -0.4 0 
 	RotateAxis X 
 	Constraint -0.5236  0.5236 
 	parent RKN
@@ -165,7 +165,7 @@
 { 
 	name RAR
 	id 5
-	file ../../RobotObj/RFoot.obj
+	file ../../dat/RobotObj/RFoot.obj
 	translation  0.0465  -0.052 0 
 	RotateAxis Z 
 	Constraint -0.5236  0.5236 
@@ -177,7 +177,7 @@
 { 
 	name LHY
 	id 6
-	file ../../RobotObj/LPelvisZ.obj
+	file ../../dat/RobotObj/LPelvisZ.obj
 	translation 0.0885  -0.0765  0 
 	RotateAxis Y
 	Constraint  -0.5236	0.5236
@@ -189,7 +189,7 @@
 { 
 	name LHR
 	id 7
-	file ../../RobotObj/LPelvisX.obj
+	file ../../dat/RobotObj/LPelvisX.obj
 	translation 0  -0.091  0.072 
 	RotateAxis Z
 	Constraint -0.0873  0.5236 
@@ -201,7 +201,7 @@
 { 
 	name LHP
 	id 8
-	file ../../RobotObj/LUpperLeg.obj
+	file ../../dat/RobotObj/LUpperLeg.obj
 	translation 0.0525  -8.60423e-16  -0.073 
 	RotateAxis X
 	Constraint -1.0472  0 
@@ -213,8 +213,8 @@
 { 
 	name LKN
 	id 9
-	file ../../RobotObj/LLowerLeg.obj
-	translation -0.03  -0.3  0 
+	file ../../dat/RobotObj/LLowerLeg.obj
+	translation -0.03  -0.4  0 
 	RotateAxis X
 	Constraint 0  1.0472 
 	parent LHP
@@ -224,8 +224,8 @@
 { 
 	name LAP
 	id 10
-	file ../../RobotObj/LAnkleY.obj
-	translation 0.0234  -0.3  0 
+	file ../../dat/RobotObj/LAnkleY.obj
+	translation 0.0234  -0.4  0 
 	RotateAxis X
 	Constraint -0.5236  0.5236 
 	parent LKN
@@ -236,7 +236,7 @@
 { 
 	name LAR
 	id 11
-	file ../../RobotObj/LFoot.obj
+	file ../../dat/RobotObj/LFoot.obj
 	translation -0.0465  -0.052  0
 	RotateAxis Z 
 	Constraint -0.5236  0.5236 
@@ -248,7 +248,7 @@
 { 
 	name LSP
 	id 18
-	file ../../RobotObj/LShoulderY.obj
+	file ../../dat/RobotObj/LShoulderY.obj
 	translation  0.125  0.1785 -0.065 
 	RotateAxis X
 	Constraint -3.14  3.14 
@@ -260,7 +260,7 @@
 { 
 	name LSR
 	id 19
-	file ../../RobotObj/LShoulderX.obj
+	file ../../dat/RobotObj/LShoulderX.obj
 	translation  0.0895  0 0.043 
 	RotateAxis Z
 	Constraint 0  3.14 
@@ -272,7 +272,7 @@
 { 
 	name LSY
 	id 20
-	file ../../RobotObj/LUpperArm.obj
+	file ../../dat/RobotObj/LUpperArm.obj
 	translation  0  -0.0245 -0.0444 
 	RotateAxis Y
 	Constraint -1.57  +1.57 
@@ -284,7 +284,7 @@
 { 
 	name LEB
 	id 21
-	file ../../RobotObj/LElbow.obj
+	file ../../dat/RobotObj/LElbow.obj
 	translation  0.0115  -0.1545 0.0224 
 	RotateAxis X
 	Constraint -1.57 0
@@ -296,7 +296,7 @@
 {
 	name LWY
 	id 22
-	file ../../RobotObj/LWrist.obj
+	file ../../dat/RobotObj/LWrist.obj
 	translation  -0.0115  -0.0425 -0.022 
 	RotateAxis Y
 	Constraint -1.57  1.57 
@@ -308,7 +308,7 @@
 { 
 	name LWP
 	id 23
-	file ../../RobotObj/LHand.obj
+	file ../../dat/RobotObj/LHand.obj
 	translation  0  -0.1201 0 
 	RotateAxis X
 	Constraint -0.5236  0.5236 

@@ -694,7 +694,7 @@ void HuboVPBody::applyAllJointTorque(
 
 void HuboVPBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 {
-	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.04, 0);
+	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.03, 0);
 	Eigen::Quaterniond ori = refer->getHipJointGlobalOrientationInTime(0);
 	Eigen::Affine3d m;
 	m.setIdentity();
@@ -1530,7 +1530,7 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 				joint = vpBodytoJointmap[bodies[i / 3]];
 
 				sumWcrossRk += Cross(
-					joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
+					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
 					rcom - vectorToVec3(getVpJointPosition(joint))
 					);
 
@@ -1543,7 +1543,8 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 					rKcforSum = vectorToVec3(getVpJointPosition(joint));
 					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
 					sumWcrossRk += Cross(
-						parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
+						//parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
+						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
 						rKcforSum - rKpforSum);
 					rKpforSum = rKcforSum;
 				}
@@ -1624,10 +1625,8 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 //				    return dP 
 
 //				# dZ(j) = w(j)<cross>Z(j)
-				//TODO : change wp
 				wb = vectorToVec3(getVpJointAxis(joints[j]));
 				wb.Normalize();
-				//wp = joints[j]->GetVelocity() * vectorToVec3(getVpJointAxis(joints[j]));
 				wp = vpBodytoParentBody[vpJointtoBodymap[joints[j]]]->GetAngVelocity();
 				w = Cross(wp, wb);
 
@@ -1639,7 +1638,6 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 
 
 				sumWcrossRk += Cross(
-					//joint->GetVelocity() * vectorToVec3(getVpJointAxis(joint)),
 					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
 					rcom - vectorToVec3(getVpJointPosition(joint))
 					);
@@ -1654,7 +1652,6 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
 					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
 					sumWcrossRk += Cross(
 						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
-						//parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
 						rKcforSum - rKpforSum);
 					rKpforSum = rKcforSum;
 				}

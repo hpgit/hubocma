@@ -58,7 +58,7 @@ void HuboBalanceViewer::setCmaMotion(
 
 
 	//for (int i = 0; i < totalStep; i++)
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 1000; i++)
 	//for (int i = 0; i < 1; i++)
 	{
 		//std::cout << i << "th supCenter : ";
