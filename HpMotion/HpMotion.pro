@@ -20,7 +20,8 @@ SOURCES += \
     IKSolver.cpp \
     Joint.cpp \
     Motion.cpp \
-    MotionData.cpp
+    MotionData.cpp \
+    jointbase.cpp
 
 HEADERS += \
     BVHMotionData.h \
@@ -31,7 +32,8 @@ HEADERS += \
     IKSolver.h \
     Joint.h \
     Motion.h \
-    MotionData.h
+    MotionData.h \
+    jointbase.h
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter

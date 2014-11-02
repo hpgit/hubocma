@@ -7,6 +7,7 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+#include "jointbase.h"
 
 //#define NOOBJ
 #ifndef NOOBJ
@@ -22,10 +23,7 @@
 
 enum DOF {Xt, Yt, Zt, Xr, Yr, Zr};
 
-class Joint{
-protected:
-	//static int frame;
-
+class Joint : public JointBase{
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Joint()	: name("")
