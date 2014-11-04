@@ -21,6 +21,20 @@ void HuboVpController::importHuboSkeleton(char* filename)
 	huboMotion->importSkeleton(filename);
 }
 
+void HuboVpController::getConstants(char *filename)
+{
+	timestep= 0.001;
+	//ks(2000), kd(89.44),
+	//ks(8000), kd(178.88),
+	ks = 32000; kd = 357.76;
+	ksTorque = 500; kdTorque = 44.72;
+	grfKs = 75000; grfDs = 100;
+	//grfKs(7500), grfDs(100)
+
+	ksTorqueVector.resize(26);
+	kdTorqueVector.resize(26);
+}
+
 void HuboVpController::initController(void)
 {
 	int frame = huboMotion->getCurrentFrame();
@@ -45,6 +59,9 @@ void HuboVpController::initController(void)
 	if(huboVpBody)
 		delete huboVpBody;
 	huboVpBody = new HuboVPBody;
+
+	getConstants("../../dat/SimulData/Constants.txt");
+
 	huboMotion->resetMotion();
 	Vector3d y1(0,1,0);
 	huboMotion->jointMap["Hip"]->setTranslation(frame, y1);
@@ -152,6 +169,24 @@ void HuboVpController::getDesiredDofAccel(
 
 }
 
+void HuboVpController::getDesiredDofTorque(
+	Eigen::VectorXd &angleRefer,
+	Eigen::VectorXd &angleVp,
+	Eigen::VectorXd &angleRateRefer,
+	Eigen::VectorXd &angleRateVp,
+	Eigen::VectorXd &angleAccelRefer,
+	Eigen::VectorXd &torque
+	)
+{
+	torque.resize(26);
+	std::cout << (angleRateRefer - angleRateVp).head(7).transpose() <<std::endl;
+	torque = ksTorque*(angleRefer - angleVp)
+		+ kdTorque*(angleRateRefer - angleRateVp)
+		//+ angleAccelRefer
+			;
+
+}
+
 void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotionData *referMotion)
 {
 	cont->huboVpBody->pHuboMotion->setMotionSize(referMotion->getMotionSize());
@@ -236,6 +271,61 @@ void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotion
 	//cont->huboVpBody->pHuboMotion->setCurrentFrame(0);
 
 }
+
+void HuboVpController::balance(
+		HuboMotionData *referMotion, double time,
+		double kl, double kh,
+		double weightTrack, double weightTrackAnkle, double weightTrackUpper
+		)
+{
+	ksTorque = weightTrackAnkle;
+	//kdTorque = 2*sqrt(ksTorque);
+	kdTorque = weightTrackUpper;
+	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
+	Eigen::VectorXd angles, angVels;
+	huboVpBody->getAllAngle(angles);
+	huboVpBody->getAllAngularVelocity(angVels);
+
+	//TODO :
+	//using real VP value
+	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+	Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
+	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
+	comPlane.y() = 0;
+
+	//LdotDes
+	Eigen::Vector3d LdotDes = huboVpBody->mass *(
+		kl * (supCenter - comPlane)
+		- dl * huboVpBody->getCOMvelocity()
+		//- dl * comVel
+			);
+	LdotDes.y() = 0;
+
+	// tracking term
+	Eigen::VectorXd desDofTorque;
+	desDofTorque.resize(26);
+	{
+		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
+		Eigen::VectorXd desTorque;
+
+		// get desired acceleration for instance time
+		referMotion->getAllAngleInHuboMotionInTime(time, angleRefer);
+		referMotion->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
+		referMotion->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
+
+		//TODO:
+		//set Kp, Kd
+		getDesiredDofTorque(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desTorque);
+
+		desDofTorque = desTorque;
+
+		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
+		//std::cout << "desHipAccel :" << hipDesAccel.transpose() << std::endl;
+	}
+
+	huboVpBody->applyAllJointTorque(desDofTorque);
+}
+
 
 void HuboVpController::balancing(
 		HuboMotionData *referMotion, double time,

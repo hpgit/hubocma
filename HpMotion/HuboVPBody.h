@@ -18,7 +18,7 @@ public:
 		eNKY,
 		eRHY, eRHR, eRHP, eRKN, eRAP, eRAR,
 		eLHY, eLHR, eLHP, eLKN, eLAP, eLAR,
-		eLSP, eLSR, eLSY, eLEB, eLWY, eLWP, 
+		eLSP, eLSR, eLSY, eLEB, eLWY, eLWP
 		};
 	enum BODYNUM{
 		eHip = 0, eTorso, eHead,

@@ -12,12 +12,7 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	HuboVpController() :
 		huboMotion(NULL),huboVpBody(NULL), world(NULL),
-		ground(NULL), groundGeom(NULL), timestep(0.001),
-		//ks(2000), kd(89.44),
-		//ks(8000), kd(178.88),
-		ks(32000), kd(357.76),
-		grfKs(75000), grfDs(100)
-		//grfKs(7500), grfDs(100)
+		ground(NULL), groundGeom(NULL)
 	{
 		init();
 	}
@@ -35,6 +30,12 @@ public:
 	//PD contol parameters
 	double ks;
 	double kd;
+
+	//PD control parameters for torque
+	double ksTorque;
+	double kdTorque;
+	Eigen::VectorXd ksTorqueVector;
+	Eigen::VectorXd kdTorqueVector;
 
 	//Ground parameters
 	double grfKs;
@@ -61,6 +62,7 @@ public:
 	void importHuboSkeleton(char* filename);
 	void init();
 	void initController();
+	void getConstants(char* filename);
 
 	void setTimeStep(double _timestep);
 	double getTimeStep();
@@ -101,9 +103,23 @@ public:
 			Eigen::VectorXd &angleAccelRefer,
 			Eigen::VectorXd &acc
 			);
+	void getDesiredDofTorque(
+			Eigen::VectorXd &angleRefer,
+			Eigen::VectorXd &angleVp,
+			Eigen::VectorXd &angleRateRefer,
+			Eigen::VectorXd &angleRateVp,
+			Eigen::VectorXd &angleAccelRefer,
+			Eigen::VectorXd &torque
+			);
+
 	static void motionPdTrackingThread(HuboVpController *cont, HuboMotionData *referMotion);
 
-	//void balancing(HuboMotionData *refer, double time);
+	void balance(
+			HuboMotionData *refer,
+			double time,
+			double kl, double kh,
+			double weightTrack, double weightTrackAnkle, double weightTrackUpper
+			);
 	void balancing(
 			HuboMotionData *refer,
 			double time,

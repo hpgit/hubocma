@@ -34,5 +34,6 @@ void HuboBalanceManage::on_goBtn_clicked()
 	wTraAnkle = ui->textEdit_4->toPlainText().toDouble();
 	wTraUpper = ui->textEdit_5->toPlainText().toDouble();
 	frameRate = ui->textEdit_6->toPlainText().toInt();
-	viewer->setCmaMotion(kl, kh, wTra, wTraAnkle, wTraUpper, frameRate);
+	//viewer->setCmaMotion(kl, kh, wTra, wTraAnkle, wTraUpper, frameRate);
+	viewer->setBalanceMotion(kl, kh, wTra, wTraAnkle, wTraUpper, frameRate);
 }

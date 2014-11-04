@@ -13,6 +13,11 @@ public:
 		double weightTrack, double weightTrackAnkle, double weightTrackUpper,
 		int frameRate = 0
 			);
+	void setBalanceMotion(
+		double kl, double kh,
+		double weightTrack, double weightTrackAnkle, double weightTrackUpper,
+		int frameRate = 0
+			);
 	void setReferMotion(HuboMotionData *refer);
 
 };
