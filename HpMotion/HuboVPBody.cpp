@@ -429,13 +429,15 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 {
 	std::vector<vpBody*>checkBodies;
-	checkBodies.push_back(Foot[0]);
-	checkBodies.push_back(Foot[1]);
 
 	std::vector<vpBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
+
+	//TODO:
+	//checkBodies.push_back(Foot[0]);
+	checkBodies.push_back(Foot[1]);
 
 	/*
 	calcPenaltyForce(
@@ -646,8 +648,6 @@ void HuboVPBody::applyRootJointDofAccel(Vector3d &accHip, Vector3d &angAccHip)
 
 	genAccBodyLocal = Ad(Inv(hipJointToBody), genAccJointLocal);
 	Hip->SetGenAccelerationLocal(genAccBodyLocal);
-
-	
 }
 
 void HuboVPBody::applyAllJointDofAccel(Eigen::VectorXd &acc)
@@ -1336,7 +1336,9 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 	std::vector<Vec3>verticesGlobal;
 	int contactRightFoot = getFootSupVertices((vpBox*)Foot[RIGHT]->GetGeometry(0), verticesLocal, verticesGlobal);
 	int contactLeftFoot = getFootSupVertices((vpBox*)Foot[LEFT]->GetGeometry(0), verticesLocal, verticesGlobal);
-	int contactFootSize = contactRightFoot + contactLeftFoot;
+	//TODO:
+	//int contactFootSize = contactRightFoot + contactLeftFoot;
+	int contactFootSize = contactLeftFoot;
 
 	// 6dof root, 26 joints
 	// 6dof root = 3 dof for position, 3 dof for orientation
@@ -1346,6 +1348,8 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 	J.resize(6*contactFootSize, jointssize+6); 
 	J.setZero();
 
+	//TODO:
+	/*
 	if (contactFootSize == 2)
 	{
 		J.block(0, 0, 3, 32) = fullJ.block(eRFoot * 3, 0, 3, 32);
@@ -1358,7 +1362,7 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 		J.block(0, 0, 3, 32) = fullJ.block(eRFoot * 3, 0, 3, 32);
 		J.block(3, 0, 3, 32) = fullJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
 	}
-	else if (contactLeftFoot)
+	else*/ if (contactLeftFoot)
 	{
 		J.block(0, 0, 3, 32) = fullJ.block(eLFoot * 3, 0, 3, 32);
 		J.block(3, 0, 3, 32) = fullJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
@@ -1371,7 +1375,9 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 	std::vector<Vec3>verticesGlobal;
 	int contactRightFoot = getFootSupVertices((vpBox*)Foot[RIGHT]->GetGeometry(0), verticesLocal, verticesGlobal);
 	int contactLeftFoot = getFootSupVertices((vpBox*)Foot[LEFT]->GetGeometry(0), verticesLocal, verticesGlobal);
-	int contactFootSize = contactRightFoot + contactLeftFoot;
+	//TODO:
+	//int contactFootSize = contactRightFoot + contactLeftFoot;
+	int contactFootSize = contactLeftFoot;
 	int footOffset = 0;
 	if (contactLeftFoot == 1 && contactRightFoot == 0)
 		footOffset = 1;
@@ -1382,6 +1388,8 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 	dJ.resize(6*contactFootSize, 32);
 	dJ.setZero();
 
+	//TODO:
+	/*
 	if (contactFootSize == 2)
 	{
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eRFoot * 3, 0, 3, 32);
@@ -1394,7 +1402,7 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eRFoot * 3, 0, 3, 32);
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
 	}
-	else if (contactLeftFoot)
+	else*/ if (contactLeftFoot)
 	{
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eLFoot * 3, 0, 3, 32);
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);

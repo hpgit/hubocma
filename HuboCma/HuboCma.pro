@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = HuboCma
 TEMPLATE = app
-CONFIG += console
 
 SOURCES += main.cpp\
         hubomaincontroller.cpp \
@@ -70,7 +69,7 @@ QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter
 				-Wno-unused-variable
 
-#CONFIG += console
+CONFIG += console
 win32{
 DEFINES += WIN32
 LIBS -= -lGL
@@ -87,11 +86,11 @@ INCLUDEPATH += /usr/include/c++/4.2.1
 LIBS -= -fopenmp
 LIBS -= -lGL
 LIBS -= -lGLU
-LIBS += -L/usr/local/lib \
-        -L/usr/lib \
+#LIBS += -L/usr/local/lib \
+LIBS += -L/usr/lib \
         -L/usr/lib/system \
         -framework OpenGL
 QMAKE_CXXFLAGS += -stdlib=libstdc++
 QMAKE_MAC_SDK = macosx10.10
-QMAKE_INFO_PLIST = /Users/hwangpil/Qt5.3.1/5.3/clang_64/mkspecs/macx-clang/Info.plist.app
+QMAKE_INFO_PLIST = /Users/trif/Qt5.3.1/5.3/clang_64/mkspecs/macx-clang/Info.plist.app
 }

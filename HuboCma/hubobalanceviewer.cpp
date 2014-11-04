@@ -67,6 +67,7 @@ void HuboBalanceViewer::setCmaMotion(
 
 		hubo->balancing(
 			referMotion, time,
+			//referMotion, 0,
 			kl, kh,
 			weightTrack, weightTrackAnkle, weightTrackUpper
 		);

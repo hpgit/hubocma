@@ -13,10 +13,11 @@ public:
 	HuboVpController() :
 		huboMotion(NULL),huboVpBody(NULL), world(NULL),
 		ground(NULL), groundGeom(NULL), timestep(0.001),
-		ks(2000), kd(89.44),
+		//ks(2000), kd(89.44),
 		//ks(8000), kd(178.88),
-		//grfKs(75000), grfDs(100)
-		grfKs(7500), grfDs(100)
+		ks(32000), kd(357.76),
+		grfKs(75000), grfDs(100)
+		//grfKs(7500), grfDs(100)
 	{
 		init();
 	}

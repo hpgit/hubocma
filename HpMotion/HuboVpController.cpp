@@ -286,12 +286,15 @@ void HuboVpController::balancing(
 	Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
 	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
 	comPlane.y() = 0;
-	std::cout << supCenter.transpose() <<std::endl;
+	//std::cout << supCenter.transpose() <<std::endl;
+
+	Eigen::Vector3d comVel = (M*J*dofVels).head(3);
 
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
 		kl * (supCenter - comPlane)
-		- dl * huboVpBody->getCOMvelocity()
+		//- dl * huboVpBody->getCOMvelocity()
+		- dl * comVel
 			);
 	LdotDes.y() = 0;
 	//std::cout << supCenter.transpose() << std::endl;
@@ -299,7 +302,6 @@ void HuboVpController::balancing(
 	//		  << ", com velocity : " << huboVpBody->getCOMvelocity().transpose()
 	//		  << ",  LdotDes: " << LdotDes.transpose()
 	//		  << std::endl;
-	
 
 	//HdotDes
 //        # angular momentum
@@ -321,7 +323,7 @@ void HuboVpController::balancing(
 
 	//cpBeforeOneStep is calculated in stepAheadWithPenaltyForces()
 	Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
-	Eigen::Vector3d cpOld, pdes, dp, ddpdes;
+	Eigen::Vector3d cpOld = this->cpBeforeOneStep;
 	int bCalCP = 1;
 
 	//std::cout << "cp: " <<cp.transpose() << std::endl;
@@ -387,6 +389,7 @@ void HuboVpController::balancing(
 		desDofAccel.tail(26) = desAccel;
 
 		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
+		//std::cout << "desHipAccel :" << hipDesAccel.transpose() << std::endl;
 	}
 
 	// constraint
@@ -399,13 +402,16 @@ void HuboVpController::balancing(
 	Eigen::MatrixXd Wt;
 	Eigen::VectorXd b;
 
-	A.resize(32, 32);
-	//A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
+	//A.resize(32, 32);
+	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
 	A.setZero();
 
 	Wt.resize(32,32);
 	Wt.setIdentity();
 	Wt *= weightTrack;
+
+	for(int i=0; i<3; i++) Wt(i, i) = 1;
+
 	Wt(6+HuboVPBody::eRAR, 6+HuboVPBody::eRAR) = weightTrackAnkle;
 	Wt(6+HuboVPBody::eRAP, 6+HuboVPBody::eRAP) = weightTrackAnkle;
 	Wt(6+HuboVPBody::eLAR, 6+HuboVPBody::eLAR) = weightTrackAnkle;
@@ -422,28 +428,28 @@ void HuboVpController::balancing(
 	Wt(6+HuboVPBody::eLEB, 6+HuboVPBody::eLEB) = weightTrackUpper;
 	Wt(6+HuboVPBody::eLWP, 6+HuboVPBody::eLWP) = weightTrackUpper;
 	Wt(6+HuboVPBody::eLWY, 6+HuboVPBody::eLWY) = weightTrackUpper;
-	A.block(0,0,32,32) = Wt;
-	std::ofstream fout;
-	fout.open("R.txt");
-	fout << R << std::endl;
-	fout << R.transpose() * R <<std::endl;
+	A.block(0,0,32,32) = Wt.transpose()*Wt;
+	//std::ofstream fout;
+	//fout.open("R.txt");
+	//fout << R << std::endl;
+	//fout << R.transpose() * R <<std::endl;
 	//std::cout << R.transpose() * R <<std::endl;
 	if(bCalCP)
 	{
 		A.block(0, 0, 32, 32) += (R.transpose()*R);
 		//A.block(0, 0, 32, 32) += (S.transpose() * S);
-		//A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
-		//A.block(32, 0, Jsup.rows(), 32) = Jsup;
+		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
+		A.block(32, 0, Jsup.rows(), 32) = Jsup;
 	}
 
-	b.resize(32);
-	//b.resize(32+Jsup.rows());
+	//b.resize(32);
+	b.resize(32+Jsup.rows());
 	b.head(32) = Wt*desDofAccel;
 	if(bCalCP)
 	{
 		b.head(32) += (R.transpose() * (LdotDes - rbias));
 		//b.head(32) += (S.transpose() * (HdotDes - sbias));
-		//b.tail(Jsup.rows()) = -dJsup * dofVels;
+		b.tail(Jsup.rows()) = -dJsup * dofVels;
 	}
 	//std::cout << "b: " << b.transpose() << std::endl;
 
@@ -453,17 +459,18 @@ void HuboVpController::balancing(
 	Eigen::Vector3d rootAngAcc = ddth.segment(3, 3);
 	Eigen::VectorXd otherJointDdth = ddth.segment(6, 26);
 	//std::cout << "ddth: " << ddth.transpose() << std::endl;
+	//std::cout << "desDof: " << desDofAccel.transpose() << std::endl;
 	//std::cout << "real v:" << (M*J*ddth + rs).head(3).transpose() << std::endl;
 	//std::cout << "des  v:" << LdotDes.head(3).transpose() << std::endl;
 	//std::cout << ddth(6+HuboVPBody::eRHR) <<std::endl;
 
-	//std::cout << (ddth-desDofAccel).norm() << std::endl;
+	//std::cout << (ddth.head(6)-desDofAccel.head(6)).transpose() << std::endl;
 
 	huboVpBody->applyRootJointDofAccel(rootAcc, rootAngAcc);
 	huboVpBody->applyAllJointDofAccel(otherJointDdth);
-	fout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).squaredNorm() <<std::endl;
+	//fout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).squaredNorm() <<std::endl;
 	//std::cout << (ddth-desDofAccel).squaredNorm() << ", " << (R*ddth+rbias-LdotDes).transpose() <<std::endl;
-	fout.close();
+	//fout.close();
 }
 
 void HuboVpController::comTrackingWithoutPhysics(
