@@ -205,7 +205,7 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 		
 	vpMaterial::GetDefaultMaterial()->SetRestitution(0.01);
 	vpMaterial::GetDefaultMaterial()->SetDynamicFriction(1);
-	vpMaterial::GetDefaultMaterial()->SetStaticFriction(1.2);
+	vpMaterial::GetDefaultMaterial()->SetStaticFriction(1);
 
 	initJoint();
 	initBody();
@@ -306,7 +306,7 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 	vpHuboJointToVpmap[huboJointMap["LAR"]]=LAR;
 	
 	vpBodytohuboParentJointmap.clear();
-	vpBodytohuboParentJointmap[Hip] = huboJointMap["WST"];
+	vpBodytohuboParentJointmap[Hip] = huboJointMap["Hip"];
 	vpBodytohuboParentJointmap[Torso] = huboJointMap["WST"];
 	vpBodytohuboParentJointmap[Head] = huboJointMap["NKY"];
 
@@ -435,18 +435,15 @@ void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
 
-	//TODO:
-	checkBodies.push_back(Foot[0]);
-	checkBodies.push_back(Foot[1]);
+	//checkBodies.push_back(Foot[0]);
+	//checkBodies.push_back(Foot[1]);
+	//calcPenaltyForce(
+	//	pWorld, pGround, checkBodies, collideBodies, positions, positionsLocal, forces,
+	//	grfKs, grfDs, mu
+	//	);
 
-	/*
 	calcPenaltyForce(
 		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
-		grfKs, grfDs, mu
-		);
-	//	*/
-	calcPenaltyForce(
-		pWorld, pGround, checkBodies, collideBodies, positions, positionsLocal, forces,
 		grfKs, grfDs, mu
 		);
 	applyPenaltyForce(collideBodies,positionsLocal, forces);
@@ -901,13 +898,49 @@ Vec3 HuboVPBody::getCOMLinvel()
 
 Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 {
+	//TODO:
+	//calc correct COP
+	//temporally, only two foot are considered
+	//std::vector<vpBody*>collideBodies;
+	//std::vector<Vec3>positions;
+	//std::vector<Vec3>positionsLocal;
+	//std::vector<Vec3>forces;
+
+	//std::vector <vpBody*> bodies;
+	//bodies.push_back(Foot[0]);
+	//bodies.push_back(Foot[1]);
+
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
+	//	grfKs, grfDs, mu
+	//	);
+
+	//double sumForce = 0;
+
+	//for (int j = 0; j < forces.size(); j++)
+	//	sumForce += forces.at(j)[1];
+
+	//Vec3 cop(0, 0, 0);
+
+	//for (int j = 0; j < forces.size(); j++)
+	//	cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
+
+	//if (sumForce < DBL_EPSILON)
+	//	return Vec3(0, -1, 0);
+	//return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
+
+
+	//temporally, only two foot are considered
 	std::vector<vpBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
+	std::vector <vpBody*> bodies;
+	bodies.push_back(Foot[0]);
+	bodies.push_back(Foot[1]);
 
 	calcPenaltyForce(
-		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
+		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
 		grfKs, grfDs, mu
 		);
 
@@ -917,13 +950,14 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 		sumForce += forces.at(j)[1];
 
 	Vec3 cop(0, 0, 0);
-	
+
 	for (int j = 0; j < positions.size(); j++)
 		cop += forces.at(j)[1] * positions.at(j);
 
 	if (sumForce < DBL_EPSILON)
 		return Vec3(0, -1, 0);
 	return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
+
 }
 
 Vector3d HuboVPBody::getHipDirection()
@@ -1175,8 +1209,10 @@ bool HuboVPBody::_calcPenaltyForce(
 		// tangential reaction force
 		frictionForce = mu * normalForce;
 
+		/*
 		if (tangentialRelVel < _lockingVel)
 			frictionForce *= tangentialRelVel / _lockingVel;
+			*/
 
 		vFrictionForce = frictionForce * -Normalize(vTangentialRelVel);
 
@@ -1736,5 +1772,78 @@ void HuboVPBody::getDifferentialLinkMatrix(Eigen::MatrixXd &dM)
 
 		dM.block(3, i, 3, 3) = inertia(3,3)*vectorToSkewMat(Vec3Tovector(vComToLink));
 
+	}
+}
+
+void HuboVPBody::getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT)
+{
+	// TODO:
+	// assume that root Foot does not move
+	// 26 joints
+	// root = single foot
+	// joint order of dof is same
+
+	const int bodiessize = bodies.size();
+	const int jointssize = joints.size();
+
+	J.resize(6*bodiessize, jointssize);
+	J.setZero();
+
+	int junctionJoint = isLEFT ? eLHY : eRHY;
+
+	Vec3 rcom, rk, w, v;
+	// rcom : CoM of link
+	// rk : position of joint which is considered
+	// w : an axis of the joint
+
+	for(int j=0; j<jointssize; j++)
+	{
+		// linear velocity part
+		for(int i=0; i < 3*bodiessize; i+=3)
+		{
+			if(vptohuboJointmap[joints.at(j)]
+			   ->isDescendant( vptohuboJointmap[joints.at(junctionJoint)])
+				|| joints.at(junctionJoint) == joints.at(j)
+			   )
+			{
+				// if joint is contained in that leg
+				// order of hierarchy changes
+				if( !(vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]])
+					|| vpBodytoJointmap[bodies[i/3]] == joints[j]) )
+				{
+					rcom = bodies[i/3]->GetFrame().GetPosition();
+					rk = vectorToVec3(getVpJointPosition(joints[j]));
+					w = vectorToVec3(getVpJointAxis(joints[j]));
+					v = Cross(w, rcom-rk);
+
+					J(i  , j) = v[0];
+					J(i+1, j) = v[1];
+					J(i+2, j) = v[2];
+					J(i  +3*bodiessize, j) = w[0];
+					J(i+1+3*bodiessize, j) = w[1];
+					J(i+2+3*bodiessize, j) = w[2];
+				}
+			}
+			else
+			{
+				// otherwise
+				// order of hierarchy does not change
+				if( vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]])
+					|| vpBodytoJointmap[bodies[i/3]] == joints[j] )
+				{
+					rcom = bodies[i/3]->GetFrame().GetPosition();
+					rk = vectorToVec3(getVpJointPosition(joints[j]));
+					w = vectorToVec3(getVpJointAxis(joints[j]));
+					v = Cross(w, rcom-rk);
+
+					J(i  , j) = v[0];
+					J(i+1, j) = v[1];
+					J(i+2, j) = v[2];
+					J(i  +3*bodiessize, j) = w[0];
+					J(i+1+3*bodiessize, j) = w[1];
+					J(i+2+3*bodiessize, j) = w[2];
+				}
+			}
+		}
 	}
 }

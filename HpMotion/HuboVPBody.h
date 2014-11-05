@@ -164,6 +164,9 @@ public:
 	void getDifferentialJacobian(Eigen::MatrixXd &dJ);
 	void getLinkMatrix(Eigen::MatrixXd &M);
 	void getDifferentialLinkMatrix(Eigen::MatrixXd &dM);
+
+	void getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT);
+	void getSingleFootRootLinkMatrix(Eigen::MatrixXd &M, int isLEFT);
 	
 };
 #endif

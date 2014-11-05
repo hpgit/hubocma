@@ -24,15 +24,209 @@ void HuboVpController::importHuboSkeleton(char* filename)
 void HuboVpController::getConstants(char *filename)
 {
 	timestep= 0.001;
-	//ks(2000), kd(89.44),
-	//ks(8000), kd(178.88),
 	ks = 32000; kd = 357.76;
-	ksTorque = 500; kdTorque = 44.72;
 	grfKs = 75000; grfDs = 100;
-	//grfKs(7500), grfDs(100)
-
 	ksTorqueVector.resize(26);
 	kdTorqueVector.resize(26);
+	mu = 1.;
+	for(int i=0; i<kdTorqueVector.size(); i++)
+		ksTorqueVector(i) = 20;
+	for(int i=0; i<kdTorqueVector.size(); i++)
+		kdTorqueVector(i) = 2*sqrt(ksTorqueVector(i));
+	std::ifstream fin;
+	fin.open(filename);
+
+	std::string str;
+	double input;
+	int intInput;
+
+	while(!fin.eof())
+	{
+		fin >> str;
+		if(!str.compare("timestep"))
+		{
+			fin >> input;
+			timestep = input;
+		}
+		else if(!str.compare("ks"))
+		{
+			fin >> input;
+			ks = input;
+		}
+		else if(!str.compare("kd"))
+		{
+			fin >> input;
+			kd = input;
+		}
+		else if(!str.compare("grfKs"))
+		{
+			fin >> input;
+			grfKs = input;
+		}
+		else if(!str.compare("grfDs"))
+		{
+			fin >> input;
+			grfDs = input;
+		}
+		else if(!str.compare("manCF"))
+		{
+			fin >> intInput;
+			manualContactForces = intInput;
+		}
+		else if(!str.compare("mu"))
+		{
+			fin >> input;
+			mu = input;
+		}
+		else if(!str.compare("ksTorque"))
+		{
+			fin >> str;
+			while(str.compare("END"))
+			{
+				if(!str.compare("DEFAULT"))
+				{
+					fin >> input;
+					for(int i=0; i<huboVpBody->joints.size(); i++) ksTorqueVector(i) = input;
+				}
+				else if(!str.compare("WST"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eWST) = input;
+				}
+				else if(!str.compare("RSP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRSP) = input;
+				}
+				else if(!str.compare("RSR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRSR) = input;
+				}
+				else if(!str.compare("RSY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRSY) = input;
+				}
+				else if(!str.compare("REB"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eREB) = input;
+				}
+				else if(!str.compare("RWY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRWY) = input;
+				}
+				else if(!str.compare("RWP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRWP) = input;
+				}
+				else if(!str.compare("NKY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eNKY) = input;
+				}
+				else if(!str.compare("RHY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRHY) = input;
+				}
+				else if(!str.compare("RHR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRHR) = input;
+				}
+				else if(!str.compare("RHP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRHP) = input;
+				}
+				else if(!str.compare("RKN"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRKN) = input;
+				}
+				else if(!str.compare("RAP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRAP) = input;
+				}
+				else if(!str.compare("RAR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eRAR) = input;
+				}
+				else if(!str.compare("LHY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLHY) = input;
+				}
+				else if(!str.compare("LHR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLHR) = input;
+				}
+				else if(!str.compare("LHP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLHP) = input;
+				}
+				else if(!str.compare("LKN"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLKN) = input;
+				}
+				else if(!str.compare("LAP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLAP) = input;
+				}
+				else if(!str.compare("LAR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLAR) = input;
+				}
+				else if(!str.compare("LSP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLSP) = input;
+				}
+				else if(!str.compare("LSR"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLSR) = input;
+				}
+				else if(!str.compare("LSY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLSY) = input;
+				}
+				else if(!str.compare("LEB"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLEB) = input;
+				}
+				else if(!str.compare("LWY"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLWY) = input;
+				}
+				else if(!str.compare("LWP"))
+				{
+					fin >> input;
+					ksTorqueVector(HuboVPBody::eLWP) = input;
+				}
+				fin >> str;
+			}
+		}
+	}
+
+	for(int i=0; i<kdTorqueVector.size(); i++)
+		kdTorqueVector(i) = 2*sqrt(ksTorqueVector(i));
+
+	fin.close();
 }
 
 void HuboVpController::initController(void)
@@ -67,10 +261,13 @@ void HuboVpController::initController(void)
 	huboMotion->jointMap["Hip"]->setTranslation(frame, y1);
 	huboMotion->makeGroundContact();
 	huboVpBody->create(world, huboMotion);
+
+	huboVpBody->mu = mu;
 	huboVpBody->grfDs = grfDs;
 	huboVpBody->grfKs = grfKs;
 	huboVpBody->ignoreVpHuboBodyCollision(world);
-	huboVpBody->ignoreVpGroundBodyCollision(world, ground);
+	if(manualContactForces)
+		huboVpBody->ignoreVpGroundBodyCollision(world, ground);
 
 	huboVpBody->Hip->SetFrame(
 		Vec3(huboMotion->jointMap["Hip"]->getGlobalPosition(frame).data())
@@ -102,8 +299,11 @@ double HuboVpController::getTimeStep()
 void HuboVpController::stepAheadWithPenaltyForces()
 {
 	cpBeforeOneStep = huboVpBody->getCOPposition(world, ground);
-	huboVpBody->stepAhead(world, ground);
-	//cp = huboVpBody->getCOPposition(world, ground);
+
+	if(manualContactForces)
+		huboVpBody->stepAhead(world, ground);
+	else
+		world->StepAhead();
 }
 
 void HuboVpController::applyPdControlTorque(
@@ -179,10 +379,10 @@ void HuboVpController::getDesiredDofTorque(
 	)
 {
 	torque.resize(26);
-	std::cout << (angleRateRefer - angleRateVp).head(7).transpose() <<std::endl;
-	torque = ksTorque*(angleRefer - angleVp)
-		+ kdTorque*(angleRateRefer - angleRateVp)
-		//+ angleAccelRefer
+	for(int i=0; i<torque.size(); i++)
+		torque(i) = ksTorqueVector(i)*(angleRefer(i) - angleVp(i))
+			+ kdTorqueVector(i)*(angleRateRefer(i) - angleRateVp(i))
+			//+ angleAccelRefer
 			;
 
 }
@@ -275,35 +475,18 @@ void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotion
 void HuboVpController::balance(
 		HuboMotionData *referMotion, double time,
 		double kl, double kh,
-		double weightTrack, double weightTrackAnkle, double weightTrackUpper
+		double weightTrack, double weightTrackUpper
 		)
 {
-	ksTorque = weightTrackAnkle;
-	//kdTorque = 2*sqrt(ksTorque);
-	kdTorque = weightTrackUpper;
 	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
 	Eigen::VectorXd angles, angVels;
 	huboVpBody->getAllAngle(angles);
 	huboVpBody->getAllAngularVelocity(angVels);
 
-	//TODO :
-	//using real VP value
-	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
-	Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
-	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
-	comPlane.y() = 0;
-
-	//LdotDes
-	Eigen::Vector3d LdotDes = huboVpBody->mass *(
-		kl * (supCenter - comPlane)
-		- dl * huboVpBody->getCOMvelocity()
-		//- dl * comVel
-			);
-	LdotDes.y() = 0;
-
 	// tracking term
 	Eigen::VectorXd desDofTorque;
 	desDofTorque.resize(26);
+	desDofTorque.setZero();
 	{
 		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
 		Eigen::VectorXd desTorque;
@@ -313,14 +496,71 @@ void HuboVpController::balance(
 		referMotion->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
 		referMotion->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
 
-		//TODO:
-		//set Kp, Kd
 		getDesiredDofTorque(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desTorque);
 
 		desDofTorque = desTorque;
+	}
 
-		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
-		//std::cout << "desHipAccel :" << hipDesAccel.transpose() << std::endl;
+	// Jacobian Transpose term
+	{
+		//TODO :
+		//using real VP value
+		//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+		Eigen::Vector3d supCenter = huboVpBody->getCOPposition(world, ground);
+		//Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
+		Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
+		comPlane.y() = 0;
+
+		//LdotDes
+		Eigen::Vector3d LdotDes =
+			//	huboVpBody->mass *
+				(
+					kl * (supCenter - comPlane)
+					- dl * huboVpBody->getCOMvelocity()
+					//- dl * comVel
+					);
+		LdotDes.y() = 0;
+
+		//HdotDes
+		Eigen::Vector3d HdotDes;
+		Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
+		Eigen::Vector3d cpOld = this->cpBeforeOneStep;
+		int bCalCP = 1;
+
+		cpOld = this->cpBeforeOneStep;
+		if (cp.y() < 0 || cpOld.y() < 0)
+		{
+			HdotDes = Vector3d(0, 0, 0);
+			bCalCP = 0;
+		}
+		else
+		{
+			Eigen::Vector3d pdes, dp, ddpdes;
+			Eigen::Vector3d refSupCenter =
+					//huboVpBody->getSupportRegionCenter();
+					referMotion->getFootCenterInTime(time);
+
+			dp = (cp - cpOld)/timestep;
+
+			ddpdes = kh*(refSupCenter - cp) - dh*dp;
+			pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
+			HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
+		}
+
+		Eigen::VectorXd controlTorque;
+		controlTorque.resize(6);
+		controlTorque.setZero();
+		controlTorque.head(3) = LdotDes;
+		controlTorque.tail(3) = HdotDes;
+
+		Eigen::MatrixXd J, M;
+		huboVpBody->getSingleFootRootJacobian(J, 1);
+		huboVpBody->getLinkMatrix(M);
+
+		if(bCalCP == 1)
+			desDofTorque += (M*J).transpose() * controlTorque;
+		else
+			desDofTorque += (M.block(0,0,3,6*huboVpBody->bodies.size())*J).transpose() * LdotDes;
 	}
 
 	huboVpBody->applyAllJointTorque(desDofTorque);

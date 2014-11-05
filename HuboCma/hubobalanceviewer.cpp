@@ -13,7 +13,7 @@ HuboBalanceViewer::HuboBalanceViewer(QWidget *parent)
 }
 void HuboBalanceViewer::setBalanceMotion(
 	double kl, double kh,
-	double weightTrack, double weightTrackAnkle, double weightTrackUpper,
+	double weightTrack, double stepNum, double weightTrackUpper,
 	int frameRate
 		)
 {
@@ -25,7 +25,6 @@ void HuboBalanceViewer::setBalanceMotion(
 
 	hubo->initController();
 	hubo->huboVpBody->pHuboMotion->init();
-	hubo->huboVpBody->pHuboMotion->setMotionSize(referMotion->getMotionSize());
 	hubo->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
 
 	// set hybrid dynamics with floating base
@@ -44,31 +43,30 @@ void HuboBalanceViewer::setBalanceMotion(
 	if(frameRate != 0 )
 	{
 		frameTime = 1.0/frameRate;
-		int motionSize = (referMotion->getFrameTime() * referMotion->getMotionSize()/frameTime);
-		hubo->huboVpBody->pHuboMotion->setMotionSize(motionSize);
 	}
 
 	hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
 	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
 	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
-	//TOOD:
-	//for debug
+	if(stepNum == 0)
+		stepNum = totalStep;
 
+	int motionSize = stepNum*hubo->timestep/frameTime;
+	hubo->huboVpBody->pHuboMotion->setMotionSize(motionSize);
 
 	//for (int i = 0; i < totalStep; i++)
-	for (int i = 0; i < 100; i++)
-	//for (int i = 0; i < 1; i++)
+	for (int i = 0; i < stepNum; i++)
 	{
 		//std::cout << i << "th supCenter : ";
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
 
 		hubo->balance(
-			referMotion, time,
-			//referMotion, 0,
+			//referMotion, time,
+			referMotion, 0,
 			kl, kh,
-			weightTrack, weightTrackAnkle, weightTrackUpper
+			weightTrack, weightTrackUpper
 		);
 
 		// go one time step
@@ -82,20 +80,6 @@ void HuboBalanceViewer::setBalanceMotion(
 			if (hubo->huboVpBody->pHuboMotion->canGoOneFrame())
 				hubo->huboVpBody->pHuboMotion->setCurrentFrame(hubo->huboVpBody->pHuboMotion->getCurrentFrame() + 1);
 		}
-		if(i == -1)
-		{
-			Eigen::Vector3d velR, angVelR;
-			Eigen::Quaterniond oriR;
-			Eigen::Vector3d posR = referMotion->getHipJointGlobalPositionInTime(time);
-			Eigen::Quaterniond referOri = referMotion->getHipJointGlobalOrientationInTime(time);
-			std::cout << referOri.w() << " " << referOri.x() << " " << referOri.y() << " " << referOri.z() << std::endl;
-			Eigen::Vector3d posV, velV, angVelV;
-			Eigen::Quaterniond oriV;
-			hubo->huboVpBody->getHuboHipState(posV, oriV, velV, angVelV);
-			std::cout << oriV.w() << " " << oriV.x() << " " << oriV.y() << " " << oriV.z() <<std::endl;
-		}
-
-
 	}
 	adjustHuboMotionToViewer();
 	hubo->huboVpBody->pHuboMotion->setCurrentFrame(0);

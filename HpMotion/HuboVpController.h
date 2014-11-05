@@ -26,29 +26,29 @@ public:
 
 	//Simulator parameters
 	double timestep;
+	int manualContactForces;
 
 	//PD contol parameters
 	double ks;
 	double kd;
 
 	//PD control parameters for torque
-	double ksTorque;
-	double kdTorque;
 	Eigen::VectorXd ksTorqueVector;
 	Eigen::VectorXd kdTorqueVector;
 
 	//Ground parameters
 	double grfKs;
 	double grfDs;
+	double mu;
 
 	//Center of Pressure
-	Vector3d cp;
-	Vector3d cpBeforeOneStep;
+	Eigen::Vector3d cp;
+	Eigen::Vector3d cpBeforeOneStep;
 
 	//TODO:
 	//deperecated
 	//com tracking
-	Vector3d comTrackPoint;
+	Eigen::Vector3d comTrackPoint;
 
 	std::vector<Joint*>constraints;
 	std::vector<Vector3d, aligned_allocator<Vector3d> > constraintPosition;
@@ -118,7 +118,7 @@ public:
 			HuboMotionData *refer,
 			double time,
 			double kl, double kh,
-			double weightTrack, double weightTrackAnkle, double weightTrackUpper
+			double weightTrack, double weightTrackUpper
 			);
 	void balancing(
 			HuboMotionData *refer,
@@ -145,7 +145,5 @@ public:
 	static unsigned int sendupdatedstate_test(void* aParam);
 	static unsigned int sendupdatedstate(void* aParam);
 
-	//TODO:
-	//timestep, Ks, Kd, elasticity,
 };
 #endif
