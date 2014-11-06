@@ -528,7 +528,7 @@ void HuboVpController::balance(
 		int bCalCP = 1;
 
 		cpOld = this->cpBeforeOneStep;
-		if (cp.y() < 0 || cpOld.y() < 0)
+		if (cp.y() < 0 || cpOld.y() < 0 || kh < DBL_EPSILON)
 		{
 			HdotDes = Vector3d(0, 0, 0);
 			bCalCP = 0;
