@@ -901,40 +901,11 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 	//TODO:
 	//calc correct COP
 	//temporally, only two foot are considered
-	//std::vector<vpBody*>collideBodies;
-	//std::vector<Vec3>positions;
-	//std::vector<Vec3>positionsLocal;
-	//std::vector<Vec3>forces;
-
-	//std::vector <vpBody*> bodies;
-	//bodies.push_back(Foot[0]);
-	//bodies.push_back(Foot[1]);
-
-	//calcPenaltyForce(
-	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-	//	grfKs, grfDs, mu
-	//	);
-
-	//double sumForce = 0;
-
-	//for (int j = 0; j < forces.size(); j++)
-	//	sumForce += forces.at(j)[1];
-
-	//Vec3 cop(0, 0, 0);
-
-	//for (int j = 0; j < forces.size(); j++)
-	//	cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
-
-	//if (sumForce < DBL_EPSILON)
-	//	return Vec3(0, -1, 0);
-	//return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
-
-
-	//temporally, only two foot are considered
 	std::vector<vpBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
+
 	std::vector <vpBody*> bodies;
 	bodies.push_back(Foot[0]);
 	bodies.push_back(Foot[1]);
@@ -951,12 +922,41 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 
 	Vec3 cop(0, 0, 0);
 
-	for (int j = 0; j < positions.size(); j++)
-		cop += forces.at(j)[1] * positions.at(j);
+	for (int j = 0; j < forces.size(); j++)
+		cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
 
 	if (sumForce < DBL_EPSILON)
 		return Vec3(0, -1, 0);
 	return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
+
+
+	//temporally, only two foot are considered
+	//std::vector<vpBody*>collideBodies;
+	//std::vector<Vec3>positions;
+	//std::vector<Vec3>positionsLocal;
+	//std::vector<Vec3>forces;
+	//std::vector <vpBody*> bodies;
+	//bodies.push_back(Foot[0]);
+	//bodies.push_back(Foot[1]);
+
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
+	//	grfKs, grfDs, mu
+	//	);
+
+	//double sumForce = 0;
+
+	//for (int j = 0; j < forces.size(); j++)
+	//	sumForce += forces.at(j)[1];
+
+	//Vec3 cop(0, 0, 0);
+
+	//for (int j = 0; j < positions.size(); j++)
+	//	cop += forces.at(j)[1] * positions.at(j);
+
+	//if (sumForce < DBL_EPSILON)
+	//	return Vec3(0, -1, 0);
+	//return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
 
 }
 

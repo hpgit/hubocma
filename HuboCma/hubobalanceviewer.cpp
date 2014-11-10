@@ -63,8 +63,8 @@ void HuboBalanceViewer::setBalanceMotion(
 		framestep += hubo->timestep;
 
 		hubo->balance(
-			//referMotion, time,
-			referMotion, 0,
+			referMotion, time,
+			//referMotion, 0,
 			kl, kh,
 			weightTrack, weightTrackUpper
 		);

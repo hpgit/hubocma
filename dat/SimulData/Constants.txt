@@ -1,4 +1,4 @@
-timestep	0.001
+timestep	0.00025
 ks 32000 
 kd 357.76
 ksTorque
@@ -16,7 +16,7 @@ RHP 400
 RKN 400
 RAP 200
 RAR 50
-LHY 400
+LHY 400
 LHR 400
 LHP 400
 LKN 400
@@ -29,7 +29,7 @@ LEB 2
 LWY 2
 LWP 2
 END
-grfKs 75000
-grfDs 100
+grfKs 16000
+grfDs 252.9822128
 manCF 1
 mu 1

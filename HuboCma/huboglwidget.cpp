@@ -28,8 +28,8 @@ void HuboGlWidget::paintGL()
 	{
 		int frame = pHuboMotion->getCurrentFrame();
 		double frameTime = pHuboMotion->getFrameTime();
-		//pHuboMotion->draw(frame);
-		pHuboMotion->drawBox(frame);
+		pHuboMotion->draw(frame);
+		//pHuboMotion->drawBox(frame);
 
 		glDisable(GL_LIGHTING);
 		glPointSize(5.0);

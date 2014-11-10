@@ -537,8 +537,9 @@ void HuboVpController::balance(
 		{
 			Eigen::Vector3d pdes, dp, ddpdes;
 			Eigen::Vector3d refSupCenter =
+					huboVpBody->getCOPposition(world, ground);
 					//huboVpBody->getSupportRegionCenter();
-					referMotion->getFootCenterInTime(time);
+					//referMotion->getFootCenterInTime(time);
 
 			dp = (cp - cpOld)/timestep;
 
@@ -557,10 +558,23 @@ void HuboVpController::balance(
 		huboVpBody->getSingleFootRootJacobian(J, 1);
 		huboVpBody->getLinkMatrix(M);
 
+		Eigen::MatrixXd Wt;
+		Wt.resize(26, 26);
+		Wt.setIdentity();
+		Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
+		Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0.5;
+		Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0.5;
+		Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0.5;
+		//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 2;
+		//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 2;
+
 		if(bCalCP == 1)
-			desDofTorque += (M*J).transpose() * controlTorque;
+			desDofTorque += Wt*((M*J).transpose() * controlTorque);
+		//std::cout << (M*J).transpose() << std::endl;
+		/*
 		else
 			desDofTorque += (M.block(0,0,3,6*huboVpBody->bodies.size())*J).transpose() * LdotDes;
+			*/
 	}
 
 	huboVpBody->applyAllJointTorque(desDofTorque);
