@@ -745,28 +745,29 @@ static int getFootSupVertices(
 {
 	Vec3 size = pBox->GetHalfSize();
 	SE3 frame = pBox->GetGlobalFrame();
+	const double groundHeight = 0.00;
 	Vec3 temp;
 	{
 		temp = Vec3(size[0], -size[1], size[2]);
-		if ((frame*temp)[1] < 0)
+		if ((frame*temp)[1] < groundHeight)
 		{
 			verticesLocal.push_back(temp);
 			verticesGlobal.push_back(frame * temp);
 		}
 		temp = Vec3(size[0], -size[1], -size[2]);
-		if ((frame*temp)[1] < 0)
+		if ((frame*temp)[1] < groundHeight)
 		{
 			verticesLocal.push_back(temp);
 			verticesGlobal.push_back(frame * temp);
 		}
 		temp = Vec3(-size[0], -size[1], size[2]);
-		if ((frame*temp)[1] < 0)
+		if ((frame*temp)[1] < groundHeight)
 		{
 			verticesLocal.push_back(temp);
 			verticesGlobal.push_back(frame * temp);
 		}
 		temp = Vec3(-size[0], -size[1], -size[2]);
-		if ((frame*temp)[1] < 0)
+		if ((frame*temp)[1] < groundHeight)
 		{
 			verticesLocal.push_back(temp);
 			verticesGlobal.push_back(frame * temp);
@@ -959,6 +960,48 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 	//return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
 
 }
+int HuboVPBody::getMainContactFoot(vpWorld *pWorld, vpBody *pGround)
+{
+	//TODO:
+	//calc correct COP
+	//temporally, only two foot are considered
+	std::vector<vpBody*>collideBodies;
+	std::vector<Vec3>positions;
+	std::vector<Vec3>positionsLocal;
+	std::vector<Vec3>forces;
+
+	std::vector <vpBody*> bodies;
+	bodies.push_back(Foot[0]);
+	bodies.push_back(Foot[1]);
+
+	calcPenaltyForce(
+		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
+		grfKs, grfDs, mu
+		);
+
+	int sumForce[2] = {0, 0};
+
+	//TODO:
+	//number of contact points or sum of force?
+	for(int i=0; i<collideBodies.size(); i++)
+	{
+		if(collideBodies.at(i) == Foot[RIGHT])
+			//sumForce[RIGHT] += forces.at(i)[1];
+			sumForce[RIGHT] += 1;
+		else if(collideBodies.at(i) == Foot[LEFT])
+			//sumForce[LEFT] += forces.at(i)[1];
+			sumForce[LEFT] += 1;
+	}
+	if (sumForce[0] >0 && sumForce[1] >0 )
+		return -1;
+
+	if (sumForce[0] <sumForce[1])
+		return LEFT;
+	else if (sumForce[0] > sumForce[1])
+		return RIGHT;
+	return -1;
+}
+
 
 Vector3d HuboVPBody::getHipDirection()
 {
@@ -1440,7 +1483,7 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
 	}
 }
-void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
+void HuboVPBody::getJacobian(Eigen::MatrixXd &J, int includeRoot)
 {
 	// 6dof root, 26 joints
 	// 6dof root = 3 dof for position, 3 dof for orientation
@@ -1448,58 +1491,63 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 	const int bodiessize = bodies.size();
 	const int jointssize = joints.size();
 
-	J.resize(6*bodiessize, jointssize+6); 
+	int rootOffset = 0;
+	if(includeRoot == 1) rootOffset = 6;
+	J.resize(6*bodiessize, jointssize+rootOffset);
 	J.setZero();
 
 	// root translation
-
-	for(int i=0; i<3*bodiessize; i++)
+	if(includeRoot == 1)
 	{
-		J( i, i%3) = 1;
-	}
 
-	// root orientation
-	
-	{
-		Vec3 x(1,0,0);
-		Vec3 y(0,1,0);
-		Vec3 z(0,0,1);
-		Vec3 angx, angy, angz;
-
-		Vec3 r, valongx, valongy, valongz;
-		
-		angx = x;
-		angy = y;
-		angz = z;
-
-		for(int i=0; i < 3*bodiessize; i+=3)
+		for(int i=0; i<3*bodiessize; i++)
 		{
-			r = bodies.at(i/3)->GetFrame().GetPosition()-vectorToVec3(getVpHipRotationalJointPosition());
-			valongx = Cross(angx, r);
-			valongy = Cross(angy, r);
-			valongz = Cross(angz, r);
-			J(i  , 3) = valongx[0];
-			J(i+1, 3) = valongx[1];
-			J(i+2, 3) = valongx[2];
-			J(i  , 4) = valongy[0];
-			J(i+1, 4) = valongy[1];
-			J(i+2, 4) = valongy[2];
-			J(i  , 5) = valongz[0];
-			J(i+1, 5) = valongz[1];
-			J(i+2, 5) = valongz[2];
+			J( i, i%3) = 1;
 		}
-		
-		for(int i=3*bodiessize; i < 6*bodiessize; i+=3)
+
+		// root orientation
+
 		{
-			J(i  , 3) = angx[0];
-			J(i+1, 3) = angx[1];
-			J(i+2, 3) = angx[2];
-			J(i  , 4) = angy[0];
-			J(i+1, 4) = angy[1];
-			J(i+2, 4) = angy[2];
-			J(i  , 5) = angz[0];
-			J(i+1, 5) = angz[1];
-			J(i+2, 5) = angz[2];
+			Vec3 x(1,0,0);
+			Vec3 y(0,1,0);
+			Vec3 z(0,0,1);
+			Vec3 angx, angy, angz;
+
+			Vec3 r, valongx, valongy, valongz;
+
+			angx = x;
+			angy = y;
+			angz = z;
+
+			for(int i=0; i < 3*bodiessize; i+=3)
+			{
+				r = bodies.at(i/3)->GetFrame().GetPosition()-vectorToVec3(getVpHipRotationalJointPosition());
+				valongx = Cross(angx, r);
+				valongy = Cross(angy, r);
+				valongz = Cross(angz, r);
+				J(i  , 3) = valongx[0];
+				J(i+1, 3) = valongx[1];
+				J(i+2, 3) = valongx[2];
+				J(i  , 4) = valongy[0];
+				J(i+1, 4) = valongy[1];
+				J(i+2, 4) = valongy[2];
+				J(i  , 5) = valongz[0];
+				J(i+1, 5) = valongz[1];
+				J(i+2, 5) = valongz[2];
+			}
+
+			for(int i=3*bodiessize; i < 6*bodiessize; i+=3)
+			{
+				J(i  , 3) = angx[0];
+				J(i+1, 3) = angx[1];
+				J(i+2, 3) = angx[2];
+				J(i  , 4) = angy[0];
+				J(i+1, 4) = angy[1];
+				J(i+2, 4) = angy[2];
+				J(i  , 5) = angz[0];
+				J(i+1, 5) = angz[1];
+				J(i+2, 5) = angz[2];
+			}
 		}
 	}
 
@@ -1523,18 +1571,18 @@ void HuboVPBody::getJacobian(Eigen::MatrixXd &J)
 				w = vectorToVec3(getVpJointAxis(joints[j]));
 				v = Cross(w, rcom-rk);
 
-				J(i  , j+6) = v[0];
-				J(i+1, j+6) = v[1];
-				J(i+2, j+6) = v[2];
-				J(i  +3*bodiessize, j+6) = w[0];
-				J(i+1+3*bodiessize, j+6) = w[1];
-				J(i+2+3*bodiessize, j+6) = w[2];
+				J(i  , j+rootOffset) = v[0];
+				J(i+1, j+rootOffset) = v[1];
+				J(i+2, j+rootOffset) = v[2];
+				J(i  +3*bodiessize, j+rootOffset) = w[0];
+				J(i+1+3*bodiessize, j+rootOffset) = w[1];
+				J(i+2+3*bodiessize, j+rootOffset) = w[2];
 			}
 		}
 	}
 }
 
-void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ)
+void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 {
 
 	const int bodiessize = bodies.size();

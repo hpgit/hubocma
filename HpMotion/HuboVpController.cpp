@@ -298,8 +298,9 @@ double HuboVpController::getTimeStep()
 }
 void HuboVpController::stepAheadWithPenaltyForces()
 {
+	//TODO:
 	cpBeforeOneStep = huboVpBody->getCOPposition(world, ground);
-
+	//cpBeforeOneStep = huboVpBody->getSupportRegionCenter();
 	if(manualContactForces)
 		huboVpBody->stepAhead(world, ground);
 	else
@@ -524,6 +525,7 @@ void HuboVpController::balance(
 		//HdotDes
 		Eigen::Vector3d HdotDes;
 		Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
+		//Eigen::Vector3d cp = huboVpBody->getSupportRegionCenter();
 		Eigen::Vector3d cpOld = this->cpBeforeOneStep;
 		int bCalCP = 1;
 
@@ -548,6 +550,8 @@ void HuboVpController::balance(
 			HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
 		}
 
+		int mainFoot = huboVpBody->getMainContactFoot(world, ground);
+
 		Eigen::VectorXd controlTorque;
 		controlTorque.resize(6);
 		controlTorque.setZero();
@@ -555,20 +559,31 @@ void HuboVpController::balance(
 		controlTorque.tail(3) = HdotDes;
 
 		Eigen::MatrixXd J, M;
-		huboVpBody->getSingleFootRootJacobian(J, 1);
+		huboVpBody->getSingleFootRootJacobian(J, mainFoot);
+		//huboVpBody->getJacobian(J);
 		huboVpBody->getLinkMatrix(M);
 
 		Eigen::MatrixXd Wt;
 		Wt.resize(26, 26);
 		Wt.setIdentity();
-		Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
-		Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0.5;
-		Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0.5;
-		Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0.5;
-		//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 2;
-		//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 2;
+		if(mainFoot == HuboVPBody::LEFT)
+		{
+			Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
+			Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0.5;
+			Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0.5;
+			Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0.5;
+			//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 2;
+			//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 2;
+		}
+		else
+		{
+			Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0.3;
+			Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0.5;
+			Wt(HuboVPBody::eRKN, HuboVPBody::eRKN) = 0.5;
+			Wt(HuboVPBody::eRHP, HuboVPBody::eRHP) = 0.5;
+		}
 
-		if(bCalCP == 1)
+		if(bCalCP == 1 || mainFoot == -1)
 			desDofTorque += Wt*((M*J).transpose() * controlTorque);
 		//std::cout << (M*J).transpose() << std::endl;
 		/*
