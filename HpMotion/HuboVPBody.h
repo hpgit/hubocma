@@ -169,5 +169,6 @@ public:
 	void getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT);
 	void getSingleFootRootLinkMatrix(Eigen::MatrixXd &M, int isLEFT);
 	
+	void getSingleFootRootToHipJacobian(Eigen::MatrixXd &J, int isLEFT);
 };
 #endif

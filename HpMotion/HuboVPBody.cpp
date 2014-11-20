@@ -1895,3 +1895,56 @@ void HuboVPBody::getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT)
 		}
 	}
 }
+
+void HuboVPBody::getSingleFootRootToHipJacobian(Eigen::MatrixXd &J, int isLEFT)
+{
+	// TODO:
+	// assume that root Foot does not move
+	// 26 joints
+	// root = single foot
+	// joint order of dof is same
+
+	const int bodiessize = bodies.size();
+	const int jointssize = joints.size();
+
+	J.resize(6, jointssize);
+	J.setZero();
+
+	int junctionJoint = isLEFT ? eLHY : eRHY;
+
+	Vec3 rcom, rk, w, v;
+	// rcom : CoM of hip link
+	// rk : position of joint which is considered
+	// w : an axis of the joint
+	rcom = Hip->GetFrame().GetPosition();
+
+	for(int j=0; j<jointssize; j++)
+	{
+		// linear velocity part
+		for(int i=0; i < 3; i+=3)
+		{
+			if(vptohuboJointmap[joints.at(j)]
+			   ->isDescendant( vptohuboJointmap[joints.at(junctionJoint)])
+				|| joints.at(junctionJoint) == joints.at(j)
+			   )
+			{
+				// if joint is contained in that leg
+				// order of hierarchy changes
+				if( !(vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]])
+					|| vpBodytoJointmap[bodies[i/3]] == joints[j]) )
+				{
+					rk = vectorToVec3(getVpJointPosition(joints[j]));
+					w = vectorToVec3(getVpJointAxis(joints[j]));
+					v = Cross(w, rcom-rk);
+
+					J(i  , j) = v[0];
+					J(i+1, j) = v[1];
+					J(i+2, j) = v[2];
+					J(i  +3, j) = w[0];
+					J(i+1+3, j) = w[1];
+					J(i+2+3, j) = w[2];
+				}
+			}
+		}
+	}
+}

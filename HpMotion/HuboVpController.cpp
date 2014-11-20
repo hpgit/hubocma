@@ -552,44 +552,78 @@ void HuboVpController::balance(
 
 		int mainFoot = huboVpBody->getMainContactFoot(world, ground);
 
-		Eigen::VectorXd controlTorque;
-		controlTorque.resize(6);
-		controlTorque.setZero();
-		controlTorque.head(3) = LdotDes;
-		controlTorque.tail(3) = HdotDes;
+		int footRootJacobian = 0;
 
-		Eigen::MatrixXd J, M;
-		huboVpBody->getSingleFootRootJacobian(J, mainFoot);
-		//huboVpBody->getJacobian(J);
-		huboVpBody->getLinkMatrix(M);
-
-		Eigen::MatrixXd Wt;
-		Wt.resize(26, 26);
-		Wt.setIdentity();
-		if(mainFoot == HuboVPBody::LEFT)
+		if(footRootJacobian)
 		{
-			Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
-			Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0.5;
-			Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0.5;
-			Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0.5;
-			//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 2;
-			//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 2;
+			Eigen::VectorXd controlTorque;
+			controlTorque.resize(6);
+			controlTorque.setZero();
+			controlTorque.head(3) = LdotDes;
+			controlTorque.tail(3) = HdotDes;
+
+			Eigen::MatrixXd J, M;
+			huboVpBody->getSingleFootRootJacobian(J, mainFoot);
+			//huboVpBody->getJacobian(J);
+			huboVpBody->getLinkMatrix(M);
+
+			Eigen::MatrixXd Wt;
+			Wt.resize(26, 26);
+			Wt.setIdentity();
+			if(mainFoot == HuboVPBody::LEFT)
+			{
+				Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
+				Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0.5;
+				Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0.5;
+				Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0.5;
+				//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 2;
+				//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 2;
+			}
+			else
+			{
+				Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0.3;
+				Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0.5;
+				Wt(HuboVPBody::eRKN, HuboVPBody::eRKN) = 0.5;
+				Wt(HuboVPBody::eRHP, HuboVPBody::eRHP) = 0.5;
+			}
+
+			if(bCalCP == 1 || mainFoot == -1)
+				desDofTorque += Wt*((M*J).transpose() * controlTorque);
 		}
 		else
 		{
-			Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0.3;
-			Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0.5;
-			Wt(HuboVPBody::eRKN, HuboVPBody::eRKN) = 0.5;
-			Wt(HuboVPBody::eRHP, HuboVPBody::eRHP) = 0.5;
-		}
+			Eigen::VectorXd controlTorque;
+			controlTorque.resize(6);
+			controlTorque.setZero();
+			controlTorque.head(3) = LdotDes;
+			controlTorque.tail(3) = HdotDes;
 
-		if(bCalCP == 1 || mainFoot == -1)
-			desDofTorque += Wt*((M*J).transpose() * controlTorque);
-		//std::cout << (M*J).transpose() << std::endl;
-		/*
-		else
-			desDofTorque += (M.block(0,0,3,6*huboVpBody->bodies.size())*J).transpose() * LdotDes;
-			*/
+			Eigen::MatrixXd J, M;
+			huboVpBody->getJacobian(J, 1);
+			huboVpBody->getLinkMatrix(M);
+
+			Eigen::MatrixXd Jsup;
+			huboVpBody->getSingleFootRootToHipJacobian(Jsup, mainFoot);
+
+			Eigen::MatrixXd Wt;
+			Wt.resize(26, 26);
+			Wt.setIdentity();
+
+			Eigen::VectorXd k;
+			k.resize(32);
+
+			if(bCalCP == 1 || mainFoot == -1)
+				k = (M*J).transpose() * controlTorque;
+			desDofTorque += k.tail(26);
+			//std::cout << k.head(6).transpose() <<std::endl;
+			desDofTorque += weightTrack* (Jsup.transpose() * k.head(6));
+			//desDofTorque += Wt*((M*J).transpose() * controlTorque).tail(26);
+			//dse3 f;
+			//f[0] = k(3); f[1] = k(4); f[2] = k(5); f[3] = k(0); f[4] = k(1); f[5] = k(2);
+			//f *= weightTrack;
+			//huboVpBody->Hip->ApplyGlobalForce(f, Vec3(0,0,0));
+
+		}
 	}
 
 	huboVpBody->applyAllJointTorque(desDofTorque);
