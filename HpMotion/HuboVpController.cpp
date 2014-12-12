@@ -539,8 +539,8 @@ void HuboVpController::balance(
 		{
 			Eigen::Vector3d pdes, dp, ddpdes;
 			Eigen::Vector3d refSupCenter =
-					huboVpBody->getCOPposition(world, ground);
-					//huboVpBody->getSupportRegionCenter();
+					//huboVpBody->getCOPposition(world, ground);
+					huboVpBody->getSupportRegionCenter();
 					//referMotion->getFootCenterInTime(time);
 
 			dp = (cp - cpOld)/timestep;
@@ -549,8 +549,9 @@ void HuboVpController::balance(
 			pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
 			HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
 		}
+		double leftFootRate, rightFootRate;
 
-		int mainFoot = huboVpBody->getMainContactFoot(world, ground);
+		int mainFoot = huboVpBody->getMainContactFoot(world, ground, leftFootRate, rightFootRate);
 
 		int footRootJacobian = 0;
 
@@ -570,6 +571,7 @@ void HuboVpController::balance(
 			Eigen::MatrixXd Wt;
 			Wt.resize(26, 26);
 			Wt.setIdentity();
+			
 			if(mainFoot == HuboVPBody::LEFT)
 			{
 				Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0.3;
@@ -602,8 +604,43 @@ void HuboVpController::balance(
 			huboVpBody->getJacobian(J, 1);
 			huboVpBody->getLinkMatrix(M);
 
-			Eigen::MatrixXd Jsup;
-			huboVpBody->getSingleFootRootToHipJacobian(Jsup, mainFoot);
+			Eigen::MatrixXd JsupRHipRoot, JsupLHipRoot;
+			Eigen::Vector3d RfootPos, LfootPos;
+			Eigen::Quaterniond RfootOri, LfootOri;
+			huboVpBody->getFootSupJacobian(J, JsupRHipRoot, HuboVPBody::RIGHT);
+			huboVpBody->getFootSupJacobian(J, JsupLHipRoot, HuboVPBody::LEFT);
+			huboVpBody->getFootSole(HuboVPBody::RIGHT, RfootPos, RfootOri);
+			huboVpBody->getFootSole(HuboVPBody::LEFT, LfootPos, LfootOri);
+			RfootPos.x() = 0;
+			RfootPos.z() = 0;
+			LfootPos.x() = 0;
+			LfootPos.z() = 0;
+			Eigen::Quaterniond q0(1,0,0,0);
+			Eigen::Vector3d RfootDesAngVel = diffQuat(q0, RfootOri);
+			Eigen::Vector3d LfootDesAngVel = diffQuat(q0, LfootOri);
+			Eigen::VectorXd RfootControlTorque, LfootControlTorque;
+			RfootControlTorque.resize(6);
+			LfootControlTorque.resize(6);
+			RfootControlTorque.setZero();
+			LfootControlTorque.setZero();
+			RfootControlTorque.head(3) = -RfootPos;
+			RfootControlTorque.tail(3) = RfootDesAngVel;
+			LfootControlTorque.head(3) = -LfootPos;
+			LfootControlTorque.tail(3) = LfootDesAngVel;
+
+			//std::cout 
+			//	<< (cp-huboVpBody->getCOMposition()).transpose()
+			//	<<	  std::endl;
+
+			if (RfootPos.y() < 0.005 && LfootPos.y() < 0.005)
+				mainFoot = 2;
+
+
+			
+
+			Eigen::MatrixXd JsupR, JsupL;
+			huboVpBody->getSingleFootRootToHipJacobian(JsupR, HuboVPBody::RIGHT);
+			huboVpBody->getSingleFootRootToHipJacobian(JsupL, HuboVPBody::LEFT);
 
 			Eigen::MatrixXd Wt;
 			Wt.resize(26, 26);
@@ -612,11 +649,56 @@ void HuboVpController::balance(
 			Eigen::VectorXd k;
 			k.resize(32);
 
-			if(bCalCP == 1 || mainFoot == -1)
+			if(bCalCP == 1)
 				k = (M*J).transpose() * controlTorque;
+
+			if(mainFoot == 2)
+				k+= (JsupRHipRoot.transpose() * RfootControlTorque + JsupLHipRoot.transpose() * LfootControlTorque);
+			if(mainFoot == HuboVPBody::LEFT)
+				k+= JsupLHipRoot.transpose() * LfootControlTorque;
+			if(mainFoot == HuboVPBody::RIGHT)
+				k+= JsupRHipRoot.transpose() * RfootControlTorque;
+
 			desDofTorque += k.tail(26);
-			//std::cout << k.head(6).transpose() <<std::endl;
-			desDofTorque += weightTrack* (Jsup.transpose() * k.head(6));
+
+			//TODO:
+			//not position, but orientation
+			if (RfootPos.y() > 0.05)
+			{
+				Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0;
+				Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0;
+			}
+			if (RfootPos.y() > 0.05)
+			{
+				Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
+				Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0;
+			}
+
+			
+			if(mainFoot == 2)
+			{
+				//Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
+				//Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 3;
+				//Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0;
+				//Wt(HuboVPBody::eLHP, HuboVPBody::eLHP) = 1;
+				//Wt(HuboVPBody::eLHR, HuboVPBody::eLHR) = 0;
+				//Wt(HuboVPBody::eLHY, HuboVPBody::eLHY) = 0;
+				//Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0;
+				//Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 3;
+				//Wt(HuboVPBody::eRKN, HuboVPBody::eRKN) = 0;
+				//Wt(HuboVPBody::eRHP, HuboVPBody::eRHP) = 1;
+				//Wt(HuboVPBody::eRHR, HuboVPBody::eRHR) = 0;
+				//Wt(HuboVPBody::eRHY, HuboVPBody::eRHY) = 0;
+
+				//desDofTorque += 0.25*weightTrack*Wt* (leftFootRate * (JsupL.transpose() * k.head(6)) + rightFootRate * (JsupR.transpose() * k.head(6)));
+				desDofTorque += 0.125*Wt*weightTrack*((JsupL.transpose() * k.head(6)) + (JsupR.transpose() * k.head(6)));
+			}
+			else if(mainFoot == HuboVPBody::RIGHT)
+				desDofTorque += 0.25* (JsupR.transpose() * k.head(6) );
+			else if(mainFoot == HuboVPBody::LEFT)
+				desDofTorque += 0.25* (JsupL.transpose() * k.head(6));
+
+
 			//desDofTorque += Wt*((M*J).transpose() * controlTorque).tail(26);
 			//dse3 f;
 			//f[0] = k(3); f[1] = k(4); f[2] = k(5); f[3] = k(0); f[4] = k(1); f[5] = k(2);
@@ -629,6 +711,199 @@ void HuboVpController::balance(
 	huboVpBody->applyAllJointTorque(desDofTorque);
 }
 
+void HuboVpController::balanceQP(
+	HuboMotionData *referMotion, double time,
+	double kl, double kh,
+	double weightTrack, double weightTrackUpper
+	)
+{
+	// TODO:
+	// get M, C, g matrices
+
+	Eigen::MatrixXd M;
+	Eigen::VectorXd C, g;
+
+	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
+
+	//[Macchietto 2009]
+	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
+	huboVpBody->getJacobian(J, 1);
+	huboVpBody->getLinkMatrix(M);
+	huboVpBody->getDifferentialJacobian(dJ, 1);
+	huboVpBody->getDifferentialLinkMatrix(dM);
+
+	Eigen::VectorXd angles, angVels, angAccels;
+	Eigen::VectorXd dofVels;
+	huboVpBody->getAllAngle(angles);
+	huboVpBody->getAllAngularVelocity(angVels);
+	dofVels.resize(32);
+
+	Vec3 rootVel, rootAngVel;
+	rootVel = huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0));
+	rootAngVel = huboVpBody->Hip->GetAngVelocity();
+
+	dofVels.segment(0, 3) = Vec3Tovector(rootVel);
+	dofVels.segment(3, 3) = Vec3Tovector(rootAngVel);
+	dofVels.tail(26) = angVels;
+	//std::cout << "dofVels: " << dofVels.transpose() << std::endl;
+
+	Eigen::MatrixXd RS = M*J;
+	Eigen::MatrixXd R = RS.block(0, 0, 3, 32);
+	Eigen::MatrixXd S = RS.block(3, 0, 3, 32);
+
+	Eigen::VectorXd rs = (dM*J+M*dJ)*dofVels;
+	//std::cout << "rs: " << rs.transpose() << std::endl;
+
+	Eigen::Vector3d rbias = rs.head(3);
+	Eigen::Vector3d sbias = rs.tail(3);
+
+	//calculate LdotDes, HdotDes
+	Eigen::Vector3d LdotDes, HdotDes;
+	
+	//TODO :
+	//using real VP value
+	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+	Eigen::Vector3d supCenter = referMotion->getFootCenterInTime(time);
+	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
+	comPlane.y() = 0;
+	//std::cout << supCenter.transpose() <<std::endl;
+
+	Eigen::Vector3d comVel = (M*J*dofVels).head(3);
+
+	//LdotDes
+	LdotDes = huboVpBody->mass *(
+		kl * (supCenter - comPlane)
+		//- dl * huboVpBody->getCOMvelocity()
+		- dl * comVel
+			);
+	LdotDes.y() = 0;
+	//std::cout << supCenter.transpose() << std::endl;
+	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
+	//		  << ", com velocity : " << huboVpBody->getCOMvelocity().transpose()
+	//		  << ",  LdotDes: " << LdotDes.transpose()
+	//		  << std::endl;
+
+	//HdotDes
+	//cpBeforeOneStep is calculated in stepAheadWithPenaltyForces()
+	Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
+	Eigen::Vector3d cpOld = this->cpBeforeOneStep;
+	int bCalCP = 1;
+
+	//std::cout << "cp: " <<cp.transpose() << std::endl;
+
+	cpOld = this->cpBeforeOneStep;
+	//TODO : when cp.y() < 0
+	if (cp.y() < 0 || cpOld.y() < 0)
+	{
+		HdotDes = Vector3d(0, 0, 0);
+		bCalCP = 0;
+	}
+	else
+	{
+		Eigen::Vector3d pdes, dp, ddpdes;
+		Eigen::Vector3d refSupCenter =
+				referMotion->getFootCenterInTime(time);
+
+		dp = cp - cpOld;
+
+		ddpdes = kh*(refSupCenter - cp) - dh*dp;
+		pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
+		HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
+	}
+	//std::cout << "HdotDes: " << HdotDes.transpose() << std::endl;
+
+	// tracking term
+	Eigen::VectorXd desDofAccel;
+	desDofAccel.resize(32);
+	{
+		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
+		Eigen::VectorXd desAccel;
+
+		Eigen::Vector3d hipPosRefer, hipVelRefer, hipAccelRefer, hipDesAccel;
+		Eigen::Vector3d hipPos, hipVel;
+		Eigen::Vector3d hipAngVelRefer, hipAngAccelRefer, hipDesAngAccel;
+		Eigen::Vector3d hipAngVel;
+		Eigen::Quaterniond hipOrienRefer;
+		Eigen::Quaterniond hipOrien;
+		 
+		// get desired acceleration for instance time
+		hipPosRefer = referMotion->getHipJointGlobalPositionInTime(time);
+		hipOrienRefer = referMotion->getHipJointGlobalOrientationInTime(time);
+		hipVelRefer = referMotion->getHipJointVelInHuboMotionInTime(time);
+		hipAngVelRefer = referMotion->getHipJointAngVelInHuboMotionInTime(time);
+		hipAccelRefer = referMotion->getHipJointAccelInHuboMotionInTime(time);
+		hipAngAccelRefer = referMotion->getHipJointAngAccelInHuboMotionInTime(time);
+
+		hipPos = Vec3Tovector(huboVpBody->Hip->GetFrame().GetPosition());
+		hipVel = Vec3Tovector(huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0)));
+		hipOrien = huboVpBody->getOrientation(huboVpBody->Hip);
+		hipAngVel = Vec3Tovector(huboVpBody->Hip->GetAngVelocity());
+
+		referMotion->getAllAngleInHuboMotionInTime(time, angleRefer);
+		referMotion->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
+		referMotion->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
+
+		getDesiredDofAccelForRoot(hipPosRefer, hipPos, hipVelRefer, hipVel, hipAccelRefer, hipDesAccel);
+		getDesiredDofAngAccelForRoot(hipOrienRefer, hipOrien, hipAngVelRefer, hipAngVel, hipAngAccelRefer, hipDesAngAccel);
+		getDesiredDofAccel(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desAccel);
+
+		desDofAccel.head(3) = hipDesAccel;
+		desDofAccel.segment(3,3) = hipDesAngAccel;
+		desDofAccel.tail(26) = desAccel;
+
+		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
+		//std::cout << "desHipAccel :" << hipDesAccel.transpose() << std::endl;
+	}
+
+	// constraint
+	// calculate Jsup and dJsup
+	huboVpBody->getFootSupJacobian(J, Jsup, HuboVPBody::LEFT);
+	huboVpBody->getDifferentialFootSupJacobian(dJ, dJsup, HuboVPBody::LEFT);
+
+	// linear equation
+	Eigen::MatrixXd A;
+	Eigen::MatrixXd Wt;
+	Eigen::VectorXd b;
+
+	//A.resize(32, 32);
+	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
+	A.setZero();
+
+	Wt.resize(32,32);
+	Wt.setIdentity();
+	Wt *= weightTrack;
+
+	for(int i=0; i<3; i++) Wt(i, i) = 1;
+
+	A.block(0,0,32,32) = Wt.transpose()*Wt;
+	if(bCalCP)
+	{
+		A.block(0, 0, 32, 32) += (R.transpose()*R);
+		A.block(0, 0, 32, 32) += (S.transpose() * S);
+		A.block(0, 32, 32, Jsup.rows()) = Jsup.transpose();
+		A.block(32, 0, Jsup.rows(), 32) = Jsup;
+	}
+
+	//b.resize(32);
+	b.resize(32+Jsup.rows());
+	b.head(32) = Wt*desDofAccel;
+	if(bCalCP)
+	{
+		b.head(32) += (R.transpose() * (LdotDes - rbias));
+		b.head(32) += (S.transpose() * (HdotDes - sbias));
+		b.tail(Jsup.rows()) = -dJsup * dofVels;
+	}
+	//std::cout << "b: " << b.transpose() << std::endl;
+
+	//Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+	Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(b);
+	Eigen::Vector3d rootAcc = ddth.head(3);
+	Eigen::Vector3d rootAngAcc = ddth.segment(3, 3);
+	Eigen::VectorXd otherJointDdth = ddth.segment(6, 26);
+
+	huboVpBody->applyRootJointDofAccel(rootAcc, rootAngAcc);
+	huboVpBody->applyAllJointDofAccel(otherJointDdth);
+}
 
 void HuboVpController::balancing(
 		HuboMotionData *referMotion, double time,
@@ -640,9 +915,9 @@ void HuboVpController::balancing(
 
 	//[Macchietto 2009]
 	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
-	huboVpBody->getJacobian(J);
+	huboVpBody->getJacobian(J, 1);
 	huboVpBody->getLinkMatrix(M);
-	huboVpBody->getDifferentialJacobian(dJ);
+	huboVpBody->getDifferentialJacobian(dJ, 1);
 	huboVpBody->getDifferentialLinkMatrix(dM);
 
 	Eigen::VectorXd angles, angVels, angAccels;
@@ -787,8 +1062,8 @@ void HuboVpController::balancing(
 
 	// constraint
 	// calculate Jsup and dJsup
-	huboVpBody->getFootSupJacobian(J, Jsup);
-	huboVpBody->getDifferentialFootSupJacobian(dJ, dJsup);
+	huboVpBody->getFootSupJacobian(J, Jsup, HuboVPBody::LEFT);
+	huboVpBody->getDifferentialFootSupJacobian(dJ, dJsup, HuboVPBody::LEFT);
 
 	// linear equation
 	Eigen::MatrixXd A;

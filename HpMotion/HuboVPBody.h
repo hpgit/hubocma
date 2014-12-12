@@ -113,10 +113,13 @@ public:
 	Vec3 getCOM();
 	Vec3 getCOMLinvel();
 	Vec3 getCOP(vpWorld *pWorld, vpBody *pGround);
-	int getMainContactFoot(vpWorld *pWorld, vpBody *pGround);
+	int getMainContactFoot(vpWorld *pWorld, vpBody *pGround, double &leftRate, double &rightRate);
 	Vector3d getHipDirection();
 	void getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, Eigen::Vector3d &Vel, Eigen::Vector3d &AngVel);
 	Quaterniond getOrientation(vpBody *pBody);
+
+	void getBodyState(vpBody *pBody, Eigen::Vector3d &pos, Eigen::Quaterniond &ori, Eigen::Vector3d &vel, Eigen::Vector3d &angVel);
+	void getFootSole(int LEFTorRIGHT, Eigen::Vector3d &pos, Eigen::Quaterniond &ori);
 
 	void getAllAngle(Eigen::VectorXd &angles); // radian
 	void getAllAngularVelocity(Eigen::VectorXd &angVel);
@@ -159,8 +162,8 @@ public:
 		const std::vector<Vec3> &forces
 		);
 
-	void getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &Jsup);
-	void getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJsup);
+	void getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &Jsup, int RIGHTorLEFT);
+	void getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJsup, int RIGHTorLEFT);
 	void getJacobian(Eigen::MatrixXd &J, int inlucdeRoot = 0);
 	void getDifferentialJacobian(Eigen::MatrixXd &dJ, int inlucdeRoot = 0);
 	void getLinkMatrix(Eigen::MatrixXd &M);

@@ -960,7 +960,7 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 	//return Vec3(cop[0]/sumForce, 0, cop[2]/sumForce);
 
 }
-int HuboVPBody::getMainContactFoot(vpWorld *pWorld, vpBody *pGround)
+int HuboVPBody::getMainContactFoot(vpWorld *pWorld, vpBody *pGround, double &leftRate, double &rightRate)
 {
 	//TODO:
 	//calc correct COP
@@ -992,12 +992,19 @@ int HuboVPBody::getMainContactFoot(vpWorld *pWorld, vpBody *pGround)
 			//sumForce[LEFT] += forces.at(i)[1];
 			sumForce[LEFT] += 1;
 	}
-	if (sumForce[0] >0 && sumForce[1] >0 )
-		return -1;
+	leftRate = 0;
+	rightRate = 0;
+	if(sumForce[LEFT]+sumForce[RIGHT] > 0)
+	{
+		leftRate = (double)sumForce[LEFT]/(sumForce[LEFT]+sumForce[RIGHT]);
+		rightRate = (double)sumForce[RIGHT]/(sumForce[LEFT]+sumForce[RIGHT]);
+	}
+	if (sumForce[LEFT] >0 && sumForce[RIGHT] >0 )
+		return 2;
 
-	if (sumForce[0] <sumForce[1])
+	else if (sumForce[LEFT] > 0)
 		return LEFT;
-	else if (sumForce[0] > sumForce[1])
+	else if (sumForce[RIGHT] > 0)
 		return RIGHT;
 	return -1;
 }
@@ -1017,12 +1024,26 @@ void HuboVPBody::getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, 
 
 Quaterniond HuboVPBody::getOrientation(vpBody *pBody)
 {
+	double mat[16];
 	Eigen::Affine3d m;
-	SE3 frame = pBody->GetFrame();
+	pBody->GetFrame().ToArray(mat);
 	for (int i = 0; i < 16; i++)
-		m(i%4, i/4) = frame[i];
+		m(i%4, i/4) = mat[i];
 
 	return Quaterniond(m.rotation());
+}
+void HuboVPBody::getBodyState(vpBody *pBody, Eigen::Vector3d &pos, Eigen::Quaterniond &ori, Eigen::Vector3d &vel, Eigen::Vector3d &angVel)
+{
+	//TODO:
+}
+void HuboVPBody::getFootSole(int LEFTorRIGHT, Eigen::Vector3d &pos, Eigen::Quaterniond &ori)
+{
+	const int lr = LEFTorRIGHT;
+	vpRJoint *ankleJoint = (lr == RIGHT) ? RAR : LAR;
+	ori = getOrientation(Foot[lr]);
+	pos = getVpJointPosition(ankleJoint)
+			+ (ori*Eigen::Quaterniond(0, 0, -0.046, 0)*ori.inverse()).vec()
+			;
 }
 
 void HuboVPBody::getAllAngle(Eigen::VectorXd &angles)
@@ -1409,8 +1430,9 @@ void HuboVPBody::applyPenaltyForce(
 	}
 }
 
-void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
+void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J, int RIGHTorLEFT)
 {
+	/*
 	std::vector<Vec3>verticesLocal;
 	std::vector<Vec3>verticesGlobal;
 	int contactRightFoot = getFootSupVertices((vpBox*)Foot[RIGHT]->GetGeometry(0), verticesLocal, verticesGlobal);
@@ -1434,22 +1456,28 @@ void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J)
 		J.block(6, 0, 3, 32) = fullJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
 		J.block(9, 0, 3, 32) = fullJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
 	}
-	else if (contactRightFoot)
+	else
+	*/
+	J.resize(6, 32);
+	J.setZero();
+	if (RIGHTorLEFT == RIGHT)
 	{
 		J.block(0, 0, 3, 32) = fullJ.block(eRFoot * 3, 0, 3, 32);
 		J.block(3, 0, 3, 32) = fullJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
 	}
-	else if (contactLeftFoot)
+	else if (RIGHTorLEFT == LEFT)
 	{
 		J.block(0, 0, 3, 32) = fullJ.block(eLFoot * 3, 0, 3, 32);
 		J.block(3, 0, 3, 32) = fullJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
 	}
 }
 
-void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJ)
+void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJ, int RIGHTorLEFT)
 {
+	/*
 	std::vector<Vec3>verticesLocal;
 	std::vector<Vec3>verticesGlobal;
+
 	int contactRightFoot = getFootSupVertices((vpBox*)Foot[RIGHT]->GetGeometry(0), verticesLocal, verticesGlobal);
 	int contactLeftFoot = getFootSupVertices((vpBox*)Foot[LEFT]->GetGeometry(0), verticesLocal, verticesGlobal);
 	//TODO:
@@ -1457,27 +1485,21 @@ void HuboVPBody::getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::
 	int footOffset = 0;
 	if (contactLeftFoot == 1 && contactRightFoot == 0)
 		footOffset = 1;
+		*/
 
 	//const int bodiessize = bodies.size();
 	const int jointssize = joints.size();
 
-	dJ.resize(6*contactFootSize, 32);
+	dJ.resize(6, 32);
 	dJ.setZero();
 
 	//TODO:
-	if (contactFootSize == 2)
-	{
-		dJ.block(0, 0, 3, 32) = fulldJ.block(eRFoot * 3, 0, 3, 32);
-		dJ.block(3, 0, 3, 32) = fulldJ.block(eLFoot * 3, 0, 3, 32);
-		dJ.block(6, 0, 3, 32) = fulldJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
-		dJ.block(9, 0, 3, 32) = fulldJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);
-	}
-	else if (contactRightFoot)
+	if (RIGHTorLEFT == RIGHT)
 	{
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eRFoot * 3, 0, 3, 32);
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eRFoot * 3, 0, 3, 32);
 	}
-	else if (contactLeftFoot)
+	else if (RIGHTorLEFT == LEFT)
 	{
 		dJ.block(0, 0, 3, 32) = fulldJ.block(eLFoot * 3, 0, 3, 32);
 		dJ.block(3, 0, 3, 32) = fulldJ.block(3*bodies.size() + eLFoot * 3, 0, 3, 32);

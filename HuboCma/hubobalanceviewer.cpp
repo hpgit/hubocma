@@ -28,7 +28,7 @@ void HuboBalanceViewer::setBalanceMotion(
 	hubo->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
 
 	// set hybrid dynamics with floating base
-	//hubo->huboVpBody->initHybridDynamics(true);
+	hubo->huboVpBody->initHybridDynamics(false);
 
 	// loop for entire time
 	int totalStep = (int)
@@ -55,12 +55,17 @@ void HuboBalanceViewer::setBalanceMotion(
 	int motionSize = stepNum*hubo->timestep/frameTime;
 	hubo->huboVpBody->pHuboMotion->setMotionSize(motionSize);
 
+	int j = 0;
 	//for (int i = 0; i < totalStep; i++)
 	for (int i = 0; i < stepNum; i++)
 	{
-		//std::cout << i << "th supCenter : ";
+		//std::cout << j << "th : ";
 		time = i * hubo->timestep;
 		framestep += hubo->timestep;
+		/*
+		hubo->balancing(referMotion, time,
+						1, 2, 100, 100, 1);
+*/
 
 		hubo->balance(
 			referMotion, time,
@@ -75,6 +80,7 @@ void HuboBalanceViewer::setBalanceMotion(
 		// set pose
 		if (framestep >= frameTime)
 		{
+			j++;
 			framestep -= frameTime;
 			hubo->huboVpBody->applyAllJointValueVptoHubo();
 			if (hubo->huboVpBody->pHuboMotion->canGoOneFrame())

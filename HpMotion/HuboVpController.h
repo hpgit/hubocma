@@ -120,6 +120,12 @@ public:
 			double kl, double kh,
 			double weightTrack, double weightTrackUpper
 			);
+	void balanceQP(
+			HuboMotionData *refer,
+			double time,
+			double kl, double kh,
+			double weightTrack, double weightTrackUpper
+			);
 	void balancing(
 			HuboMotionData *refer,
 			double time,

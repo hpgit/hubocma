@@ -21,6 +21,8 @@ void matrixStackUptoDown(Eigen::MatrixXd &a, Eigen::MatrixXd &b);
 
 //IKSolver.cpp
 Eigen::Vector3d ln(Eigen::Quaterniond &q);
+
+// q1 - q2
 Eigen::Vector3d diffQuat(Eigen::Quaterniond &q1, Eigen::Quaterniond &q2);
 
 //vector contain (zangle, yangle, xangle)
