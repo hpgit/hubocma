@@ -663,20 +663,59 @@ void HuboVpController::balance(
 
 			//TODO:
 			//not position, but orientation
-			if (RfootPos.y() > 0.05)
+			/*
+			//if (mainFoot == 2 && RfootPos.y() > 0.05)
+			
+			if (mainFoot == 2 
+				&& Vec3Tovector(huboVpBody->Foot[HuboVPBody::RIGHT]->GetAngVelocity()).norm() > 0.05)
 			{
 				Wt(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0;
 				Wt(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0;
 			}
-			if (RfootPos.y() > 0.05)
+
+			//if (mainFoot == 2 && RfootPos.y() > 0.05)
+			if (mainFoot == 2 
+				&& Vec3Tovector(huboVpBody->Foot[HuboVPBody::LEFT]->GetAngVelocity()).norm() > 0.05)
 			{
 				Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
 				Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0;
 			}
-
+			*/
 			
 			if(mainFoot == 2)
 			{
+				Eigen::MatrixXd leftFootJacobianWeight, rightFootJacobianWeight;
+				leftFootJacobianWeight.resize(26, 26);
+				rightFootJacobianWeight.resize(26, 26);
+				leftFootJacobianWeight.setIdentity();
+				rightFootJacobianWeight.setIdentity();
+
+				leftFootJacobianWeight
+					(HuboVPBody::eRAR, HuboVPBody::eRAR) = 0;
+				leftFootJacobianWeight
+					(HuboVPBody::eRAP, HuboVPBody::eRAP) = 0;
+				leftFootJacobianWeight
+					(HuboVPBody::eRKN, HuboVPBody::eRKN) = 0;
+				leftFootJacobianWeight
+					(HuboVPBody::eRHP, HuboVPBody::eRHP) = 0;
+				leftFootJacobianWeight
+					(HuboVPBody::eRHR, HuboVPBody::eRHR) = 0;
+				leftFootJacobianWeight
+					(HuboVPBody::eRHY, HuboVPBody::eRHY) = 0;
+
+				rightFootJacobianWeight
+					(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
+				rightFootJacobianWeight
+					(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0;
+				rightFootJacobianWeight
+					(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0;
+				rightFootJacobianWeight
+					(HuboVPBody::eLHP, HuboVPBody::eLHP) = 0;
+				rightFootJacobianWeight
+					(HuboVPBody::eLHR, HuboVPBody::eLHR) = 0;
+				rightFootJacobianWeight
+					(HuboVPBody::eLHY, HuboVPBody::eLHY) = 0;
+				
 				//Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
 				//Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 3;
 				//Wt(HuboVPBody::eLKN, HuboVPBody::eLKN) = 0;
@@ -691,7 +730,10 @@ void HuboVpController::balance(
 				//Wt(HuboVPBody::eRHY, HuboVPBody::eRHY) = 0;
 
 				//desDofTorque += 0.25*weightTrack*Wt* (leftFootRate * (JsupL.transpose() * k.head(6)) + rightFootRate * (JsupR.transpose() * k.head(6)));
-				desDofTorque += 0.125*Wt*weightTrack*((JsupL.transpose() * k.head(6)) + (JsupR.transpose() * k.head(6)));
+				desDofTorque += 0.125*Wt*weightTrack
+					*( (leftFootJacobianWeight*(JsupL.transpose()*k.head(6))) 
+						+ (rightFootJacobianWeight*(JsupR.transpose() * k.head(6)))
+					);
 			}
 			else if(mainFoot == HuboVPBody::RIGHT)
 				desDofTorque += 0.25* (JsupR.transpose() * k.head(6) );
@@ -720,7 +762,7 @@ void HuboVpController::balanceQP(
 	// TODO:
 	// get M, C, g matrices
 
-	Eigen::MatrixXd M;
+	//Eigen::MatrixXd M;
 	Eigen::VectorXd C, g;
 
 	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
