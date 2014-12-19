@@ -28,7 +28,7 @@ void HuboBalanceViewer::setBalanceMotion(
 	hubo->huboVpBody->pHuboMotion->setFrameRate(referMotion->getFrameRate());
 
 	// set hybrid dynamics with floating base
-	hubo->huboVpBody->initHybridDynamics(false);
+	//hubo->huboVpBody->initHybridDynamics(false);
 
 	// loop for entire time
 	int totalStep = (int)

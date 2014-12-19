@@ -55,17 +55,19 @@ void MotionGlWidget::setupFloor()
 
 void MotionGlWidget::draw_axis()
 {
-        glBegin(GL_LINES);
-        glColor3f(1,0,0);
-        glVertex3f(1.0,0,0);
-        glVertex3f(0,0,0);
-        glColor3f(0,1,0);
-        glVertex3f(0,1.0,0);
-        glVertex3f(0,0,0);
-        glColor3f(0,0,1);
-        glVertex3f(0,0,1.0);
-        glVertex3f(0,0,0);
-        glEnd();
+	glLineWidth(2.0);
+	glBegin(GL_LINES);
+	glColor3f(1,0,0);
+	glVertex3f(1.0,0,0);
+	glVertex3f(0,0,0);
+	glColor3f(0,1,0);
+	glVertex3f(0,1.0,0);
+	glVertex3f(0,0,0);
+	glColor3f(0,0,1);
+	glVertex3f(0,0,1.0);
+	glVertex3f(0,0,0);
+	glEnd();
+	glLineWidth(1.0);
 }
 
 void MotionGlWidget::init_gl_color()

@@ -20,7 +20,7 @@ class HuboMainController : public QMainWindow
 public:
     explicit HuboMainController(QWidget *parent = 0);
     ~HuboMainController();
-	HuboVpController *huboRefer, *huboIk, *huboCma, *huboBalance;
+	HuboVpController *huboRefer, *huboIk, *huboCma, *huboBalance, *huboInterBalance;
 
 private slots:
     void on_loadReferBtn_clicked();
@@ -30,6 +30,8 @@ private slots:
 	void on_cmaDlgBtn_clicked();
 
 	void on_balanceDlgBtn_clicked();
+
+	void on_interBalanceDlgBtn_clicked();
 
 private:
     Ui::HuboMainController *ui;

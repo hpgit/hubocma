@@ -43,6 +43,7 @@ public:
 	void setFrameTime(double _frameTime);
 	double getFrameTime();
 	int getMotionSize();
+	double getTotalTime();
 	void setMotionSize(int num);
 	void addMotionSize(int num);
 	void printAllMotion(string filename);

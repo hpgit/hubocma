@@ -25,7 +25,10 @@ SOURCES += main.cpp\
 	huboreferviewer.cpp \
     hubobalanceviewer.cpp \
     hubobalancemanage.cpp \
-    huborefermanage.cpp
+    huborefermanage.cpp \
+    hubovpglwidget.cpp \
+    hubointeractbalanceviewer.cpp \
+    hubointeractbalancemanage.cpp
 
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
@@ -39,7 +42,10 @@ HEADERS  += hubomaincontroller.h \
 	huboreferviewer.h \
 	hubobalanceviewer.h \
     hubobalancemanage.h \
-    huborefermanage.h
+    huborefermanage.h \
+    hubovpglwidget.h \
+    hubointeractbalanceviewer.h \
+    hubointeractbalancemanage.h
 
 FORMS    += hubomaincontroller.ui \
     huboglviewer.ui \
@@ -47,7 +53,9 @@ FORMS    += hubomaincontroller.ui \
     huboikmanage.ui \
     hubocmamanage.ui \
     hubobalancemanage.ui \
-    huborefermanage.ui
+    huborefermanage.ui \
+    hubointeractbalanceviewer.ui \
+    hubointeractbalancemanage.ui
 
 INCLUDEPATH += ../usr/include \
         ../HpMotion \

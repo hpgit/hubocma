@@ -5,6 +5,7 @@
 #include "hubotrackingviewer.h"
 #include "huboikviewer.h"
 #include "hubobalanceviewer.h"
+#include "hubointeractbalanceviewer.h"
 
 
 HuboMainController::HuboMainController(QWidget *parent) :
@@ -15,6 +16,7 @@ HuboMainController::HuboMainController(QWidget *parent) :
 	huboIk = 0;
 	huboCma = 0;
 	huboBalance = 0;
+	huboInterBalance = 0;
     ui->setupUi(this);
 }
 
@@ -83,6 +85,20 @@ void HuboMainController::on_balanceDlgBtn_clicked()
 		HuboBalanceViewer *win = new HuboBalanceViewer;
 		win->setWindowTitle(QString("Hubo Balance Viewer"));
 		win->initCont(huboBalance);
+		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->show();
+	}
+}
+void HuboMainController::on_interBalanceDlgBtn_clicked()
+{
+	if (huboRefer != 0)
+	{
+		huboInterBalance = new HuboVpController;
+		huboInterBalance->initController();
+		huboInterBalance->huboVpBody->pHuboMotion->setMotionSize(1);
+		HuboInteractBalanceViewer *win = new HuboInteractBalanceViewer;
+		win->setWindowTitle(QString("Hubo Interactive Balance Viewer"));
+		win->initCont(huboInterBalance);
 		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
 		win->show();
 	}

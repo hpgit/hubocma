@@ -20,7 +20,7 @@
       <x>230</x>
       <y>30</y>
       <width>151</width>
-      <height>181</height>
+      <height>200</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -53,6 +53,14 @@ reference motion</string>
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="interBalanceDlgBtn">
+       <property name="text">
+        <string>Interactive
+Balancing</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -62,7 +70,7 @@ reference motion</string>
      <x>0</x>
      <y>0</y>
      <width>420</width>
-     <height>31</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

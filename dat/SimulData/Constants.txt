@@ -1,4 +1,4 @@
-timestep	0.0001
+timestep	0.0002
 ks 32000 
 kd 357.76
 ksTorque

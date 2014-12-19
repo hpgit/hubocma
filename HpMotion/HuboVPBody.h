@@ -84,6 +84,7 @@ public:
 	void ignoreVpGroundBodyCollision(vpWorld *pWorld, vpBody *pGround);
 	void getAllJointTorque(Eigen::VectorXd &torque);
 	void applyAllJointValueVptoHubo();
+	void applyAddAllBodyForce(Eigen::VectorXd &force);
 	void applyAllJointTorque(Eigen::VectorXd &torque);
 	void applyAllJointTorque(
 		double WST, double NKY, 

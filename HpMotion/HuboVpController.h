@@ -112,6 +112,7 @@ public:
 			Eigen::VectorXd &torque
 			);
 
+	void motionPdTracking(Eigen::VectorXd &torque, HuboMotionData *referMotion, double time);
 	static void motionPdTrackingThread(HuboVpController *cont, HuboMotionData *referMotion);
 
 	void balance(

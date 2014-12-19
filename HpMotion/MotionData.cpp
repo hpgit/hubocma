@@ -64,6 +64,12 @@ int MotionData::getMotionSize()
 {
 	return frameTotal;
 }
+
+double MotionData::getTotalTime()
+{
+	return frameTotal / frameRate;
+}
+
 void MotionData::setMotionSize(int num)
 {
 	assert(num >= 0);

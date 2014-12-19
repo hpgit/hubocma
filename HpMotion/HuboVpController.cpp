@@ -317,8 +317,10 @@ void HuboVpController::applyPdControlTorque(
 	Eigen::VectorXd currentAngularVelocities;
 
 	huboVpBody->getAllAngle(currentAngles);
+	huboVpBody->getAllAngularVelocity(currentAngularVelocities);
 	torque = ks * (desireAngles - currentAngles)
 		+ kd * (desireAngularVelocities - currentAngularVelocities);
+	huboVpBody->applyAllJointTorque(torque);
 }
 
 void HuboVpController::getDesiredDofAngAccelForRoot(
@@ -386,6 +388,27 @@ void HuboVpController::getDesiredDofTorque(
 			//+ angleAccelRefer
 			;
 
+}
+
+void HuboVpController::motionPdTracking(Eigen::VectorXd &desDofTorque, HuboMotionData *referMotion, double time)
+{
+	Eigen::VectorXd angles, angVels;
+	huboVpBody->getAllAngle(angles);
+	huboVpBody->getAllAngularVelocity(angVels);
+
+	desDofTorque.resize(26);
+	desDofTorque.setZero();
+	{
+		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
+		Eigen::VectorXd desTorque;
+
+		// get desired acceleration for instance time
+		referMotion->getAllAngleInHuboMotionInTime(time, angleRefer);
+		referMotion->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
+		referMotion->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
+
+		getDesiredDofTorque(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desDofTorque);
+	}
 }
 
 void HuboVpController::motionPdTrackingThread(HuboVpController *cont, HuboMotionData *referMotion)
@@ -663,7 +686,7 @@ void HuboVpController::balance(
 
 			//TODO:
 			//not position, but orientation
-			/*
+			
 			//if (mainFoot == 2 && RfootPos.y() > 0.05)
 			
 			if (mainFoot == 2 
@@ -680,7 +703,7 @@ void HuboVpController::balance(
 				Wt(HuboVPBody::eLAR, HuboVPBody::eLAR) = 0;
 				Wt(HuboVPBody::eLAP, HuboVPBody::eLAP) = 0;
 			}
-			*/
+			
 			
 			if(mainFoot == 2)
 			{
@@ -729,11 +752,12 @@ void HuboVpController::balance(
 				//Wt(HuboVPBody::eRHR, HuboVPBody::eRHR) = 0;
 				//Wt(HuboVPBody::eRHY, HuboVPBody::eRHY) = 0;
 
-				//desDofTorque += 0.25*weightTrack*Wt* (leftFootRate * (JsupL.transpose() * k.head(6)) + rightFootRate * (JsupR.transpose() * k.head(6)));
-				desDofTorque += 0.125*Wt*weightTrack
+				desDofTorque += 0.125*0.25*weightTrack*Wt* (leftFootRate * (JsupL.transpose() * k.head(6)) + rightFootRate * (JsupR.transpose() * k.head(6)));
+				/*desDofTorque += 0.125*0.125*Wt*weightTrack
 					*( (leftFootJacobianWeight*(JsupL.transpose()*k.head(6))) 
 						+ (rightFootJacobianWeight*(JsupR.transpose() * k.head(6)))
 					);
+					*/
 			}
 			else if(mainFoot == HuboVPBody::RIGHT)
 				desDofTorque += 0.25* (JsupR.transpose() * k.head(6) );

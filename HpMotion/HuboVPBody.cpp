@@ -578,6 +578,11 @@ void HuboVPBody::applyAllJointValueVptoHubo()
 	for (int i = 0; i < joints.size(); i++)
 		vptohuboJointmap[joints.at(i)]->setAngle(frame, joints.at(i)->GetAngle());
 }
+void HuboVPBody::applyAddAllBodyForce(Eigen::VectorXd &force)
+{
+	for (int i = 0; i < bodies.size(); i++)
+		bodies.at(i)->ApplyGlobalForce(Vec3(force(3*i), force(3*i+1), force(3*i+2)), Vec3(0, 0, 0));
+}
 
 void HuboVPBody::applyAllJointTorque(Eigen::VectorXd &torque)
 {
