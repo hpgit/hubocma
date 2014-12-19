@@ -1,0 +1,6 @@
+message(STATUS "adding gear...")
+file(GLOB gear_SRC "src/*.cpp" "include/*.h" "include/*.inl")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+add_library(gear ${gear_SRC})
+set_target_properties(gear PROPERTIES OUTPUT_NAME gear)
+message(STATUS "gear added.")

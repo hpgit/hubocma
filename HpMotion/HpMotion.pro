@@ -21,7 +21,8 @@ SOURCES += \
     Joint.cpp \
     Motion.cpp \
     MotionData.cpp \
-    jointbase.cpp
+    jointbase.cpp \
+    HuboGearBody.cpp
 
 HEADERS += \
     BVHMotionData.h \
@@ -33,7 +34,8 @@ HEADERS += \
     Joint.h \
     Motion.h \
     MotionData.h \
-    jointbase.h
+    jointbase.h \
+    HuboGearBody.h
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter
