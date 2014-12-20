@@ -28,7 +28,7 @@ public:
 		eLPelvisY, eLPelvisR, eLUpperLeg, eLLowerLeg, eLAnkle, eLFoot
 	};
 
-	Vector3d com;
+	Eigen::Vector3d com;
 	double mass;
 	double grfKs;
 	double grfDs;
@@ -38,7 +38,8 @@ public:
 	GBody *Hip, *Torso, *Head;
 	GBody *ShoulderP[2], *ShoulderR[2], *UpperArm[2], *Elbow[2], *Wrist[2], *Hand[2];
 	GBody *PelvisY[2], *PelvisR[2], *UpperLeg[2], *LowerLeg[2], *Ankle[2], *Foot[2];
-	GJointRevolute *WST, *NKY, *HeadX, HeadZ; // upper part
+	GJointFreeST r;
+	GJointRevolute *WST, *NKY, *HeadX, *HeadZ; // upper part
 	GJointRevolute *RSP, *RSR, *RSY, *REB, *RWY, *RWP; // upper right
 	GJointRevolute *RHY, *RHR, *RHP, *RKN, *RAP, *RAR; // lower right
 	GJointRevolute *LSP, *LSR, *LSY, *LEB, *LWY, *LWP; // upper left
@@ -56,12 +57,12 @@ public:
 	std::map<GBody *, Joint *>vpBodytohuboParentJointmap;
 	std::map<GJointRevolute *, GBody *>vpJointtoBodymap;
 	std::map<GBody *, GBody *>vpBodytoParentBody;
-	std::map<GBody *, GJointRevolute *>vpBodytoJointmap;;
+	std::map<GBody *, GJointRevolute *>vpBodytoJointmap;
 	//*/
 
 	void initBody();
 	void initJoint();
-	void setInitBodyJoint(GBody *pBody, GJoint *pJoint, string bodyName, GBody *pParentBody, double elasticity, double damping);
+	void setInitBodyJoint(GBody *pBody, GJointRevolute *pJoint, std::string jointName, GBody *pParentBody, double elasticity, double damping);
 	void initHybridDynamics(bool floatingBase);
 	void solveHybridDynamics();
 	void create(GSystem *pWorld, HuboMotionData *pHuboImporter);

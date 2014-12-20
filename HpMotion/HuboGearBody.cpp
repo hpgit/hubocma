@@ -16,8 +16,8 @@ HuboGearBody::~HuboGearBody()
 {
 	for(int i=0; i<bodies.size(); i++)
 		delete bodies.at(i);
-	for(int i=0; i<bodyGeoms.size(); i++)
-		delete bodyGeoms.at(i);
+	//for(int i=0; i<bodyGeoms.size(); i++)
+	//	delete bodyGeoms.at(i);
 	for(int i=0; i<joints.size(); i++)
 		delete joints.at(i);
 }
@@ -42,23 +42,23 @@ void HuboGearBody::initBody()
 		delete bodies.at(i);
 	bodies.clear();
 
-	Hip = new vpBody;
-	Torso = new vpBody;
-	Head = new vpBody;
+	Hip = new GBody;
+	Torso = new GBody;
+	Head = new GBody;
 	for(int i=0; i<2; i++)
 	{
-		ShoulderP[i] = new vpBody;
-		ShoulderR[i] = new vpBody;
-		UpperArm[i] = new vpBody;
-		Elbow[i] = new vpBody;
-		Wrist[i] = new vpBody;
-		Hand[i] = new vpBody;
-		PelvisY[i] = new vpBody;
-		PelvisR[i] = new vpBody;
-		UpperLeg[i] = new vpBody;
-		LowerLeg[i] = new vpBody;
-		Ankle[i] = new vpBody;
-		Foot[i] = new vpBody;
+		ShoulderP[i] = new GBody;
+		ShoulderR[i] = new GBody;
+		UpperArm[i] = new GBody;
+		Elbow[i] = new GBody;
+		Wrist[i] = new GBody;
+		Hand[i] = new GBody;
+		PelvisY[i] = new GBody;
+		PelvisR[i] = new GBody;
+		UpperLeg[i] = new GBody;
+		LowerLeg[i] = new GBody;
+		Ankle[i] = new GBody;
+		Foot[i] = new GBody;
 	}
 	
 	bodies.push_back(Hip);
@@ -79,41 +79,41 @@ void HuboGearBody::initBody()
 		bodies.push_back(Ankle[i]);
 		bodies.push_back(Foot[i]);
 	}
-	for(int i=0; i<bodyGeoms.size(); i++)
-		delete bodyGeoms.at(i);
-	bodyGeoms.clear();
+	//for(int i=0; i<bodyGeoms.size(); i++)
+	//	delete bodyGeoms.at(i);
+	//bodyGeoms.clear();
 }
 
 void HuboGearBody::initJoint()
 {
 	for(int i=0; i<joints.size(); i++)
 		delete joints.at(i);
-	WST = new vpRJoint;
-	NKY = new vpRJoint;
-	RSP = new vpRJoint;
-	RSR = new vpRJoint;
-	RSY = new vpRJoint;
-	REB = new vpRJoint;
-	RWY = new vpRJoint;
-	RWP = new vpRJoint;
-	RHY = new vpRJoint;
-	RHR = new vpRJoint;
-	RHP = new vpRJoint;
-	RKN = new vpRJoint;
-	RAP = new vpRJoint;
-	RAR = new vpRJoint;
-	LSP = new vpRJoint;
-	LSR = new vpRJoint;
-	LSY = new vpRJoint;
-	LEB = new vpRJoint;
-	LWY = new vpRJoint;
-	LWP = new vpRJoint;
-	LHY = new vpRJoint;
-	LHR = new vpRJoint;
-	LHP = new vpRJoint;
-	LKN = new vpRJoint;
-	LAP = new vpRJoint;
-	LAR = new vpRJoint;
+	WST = new GJointRevolute;
+	NKY = new GJointRevolute;
+	RSP = new GJointRevolute;
+	RSR = new GJointRevolute;
+	RSY = new GJointRevolute;
+	REB = new GJointRevolute;
+	RWY = new GJointRevolute;
+	RWP = new GJointRevolute;
+	RHY = new GJointRevolute;
+	RHR = new GJointRevolute;
+	RHP = new GJointRevolute;
+	RKN = new GJointRevolute;
+	RAP = new GJointRevolute;
+	RAR = new GJointRevolute;
+	LSP = new GJointRevolute;
+	LSR = new GJointRevolute;
+	LSY = new GJointRevolute;
+	LEB = new GJointRevolute;
+	LWY = new GJointRevolute;
+	LWP = new GJointRevolute;
+	LHY = new GJointRevolute;
+	LHR = new GJointRevolute;
+	LHP = new GJointRevolute;
+	LKN = new GJointRevolute;
+	LAP = new GJointRevolute;
+	LAR = new GJointRevolute;
 
 	this->joints.clear();
 
@@ -152,7 +152,7 @@ void HuboGearBody::initJoint()
 }
 
 void HuboGearBody::setInitBodyJoint(
-	vpBody *pBody, vpRJoint *pJoint, string jointName, vpBody *pParentBody, 
+	GBody *pBody, GJointRevolute *pJoint, std::string jointName, GBody *pParentBody,
 	double elasticity, double damping
 	)
 {
@@ -160,23 +160,31 @@ void HuboGearBody::setInitBodyJoint(
 
 	if (pParentBody != NULL)
 	{
-		pParentBody->SetJoint(pJoint, vectorToVec3(huboJoint->offsetFromParent-huboJoint->parent->BSpos));
-		pBody->SetJoint(pJoint, -vectorToVec3(huboJoint->BSpos));
-		pJoint->SetElasticity(elasticity);
-		pJoint->SetDamping(damping);
-		pJoint->SetAxis(vectorToVec3(huboJoint->constraintAxis));
-	}
+		pJoint->connectBodies(pParentBody, pBody);
+		pJoint->setPosition(
+				vectorToVec3(huboJoint->offsetFromParent - huboJoint->parent->BSpos),
+				vectorToVec3(-huboJoint->BSpos)
+			);
 
-	bodyGeoms.push_back(new vpBox(vectorToVec3(huboJoint->BBsizev)));
-	//pBody->AddGeometry(bodyGeoms.back(), vectorToVec3(huboJoint->BSpos));
-	pBody->AddGeometry(bodyGeoms.back());
-	pBody->SetInertia(
-		BoxInertia(
-		huboJoint->childBodyMass / huboJoint->BBvol,
-		vectorToVec3(huboJoint->BBsizev/2)
-		));
+		pJoint->setAxis(vectorToVec3(huboJoint->constraintAxis));
+		pJoint->setName(huboJoint->name);
+		//pJoint->setID();
+	}
+	double M = huboJoint->childBodyMass;
+	double Lx = huboJoint->BBsizev.x();
+	double Ly = huboJoint->BBsizev.y();
+	double Lz = huboJoint->BBsizev.z();
+	double Ixx = 1./12.*M*(Ly*Ly+Lz*Lz),
+		Iyy = 1./12.*M*(Lx*Lx+Lz*Lz),
+		Izz = 1./12.*M*(Lx*Lx+Ly*Ly),
+		Ixy = 0, Ixz = 0, Iyz = 0;
+	SE3 TLinkCom = SE3();
+
+	pBody->setMass(M, Ixx, Iyy, Izz, Ixy, Ixz, Iyz, TLinkCom);
+	pJoint->setPrescribed(false);
 }
 
+//not yet
 void HuboGearBody::initHybridDynamics(bool floatingBase)
 {
 	if (floatingBase == true)
@@ -188,28 +196,27 @@ void HuboGearBody::initHybridDynamics(bool floatingBase)
 		joints.at(i)->SetHybridDynamicsType(VP::KINEMATIC);
 }
 
+//not yet
 void HuboGearBody::solveHybridDynamics()
 {
 	Hip->GetSystem()->HybridDynamics();	
 }
 
-void HuboGearBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
+void HuboGearBody::create(GSystem *pWorld, HuboMotionData *pHuboImporter)
 {
 	this->pHuboMotion = pHuboImporter;
-	std::map<string, Joint*> &huboJointMap = pHuboImporter->jointMap;
+	std::map<std::string, Joint*> &huboJointMap = pHuboImporter->jointMap;
 	//pIKSolver = new IKSolver(pHuboImporter);
 
 	scalar Hubo_elasticity = 1;
 	scalar Hubo_damping = 2;
 		
-	vpMaterial::GetDefaultMaterial()->SetRestitution(0.01);
-	vpMaterial::GetDefaultMaterial()->SetDynamicFriction(1);
-	vpMaterial::GetDefaultMaterial()->SetStaticFriction(1);
+	//vpMaterial::GetDefaultMaterial()->SetRestitution(0.01);
+	//vpMaterial::GetDefaultMaterial()->SetDynamicFriction(1);
+	//vpMaterial::GetDefaultMaterial()->SetStaticFriction(1);
 
 	initJoint();
 	initBody();
-
-	pWorld->AddBody(Hip);
 
 	setInitBodyJoint(Hip, NULL, "Hip", NULL, Hubo_elasticity, Hubo_damping);
 	setInitBodyJoint(Torso, WST, "WST", Hip, Hubo_elasticity, Hubo_damping);
@@ -245,7 +252,7 @@ void HuboGearBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 
 	mass = 0;
 	for(int i=0; i<bodies.size(); i++)
-		mass += bodies[i]->GetInertia().GetMass();
+		mass += bodies[i]->getMass();
 
 	vptohuboJointmap.clear();
 	vptohuboJointmap[WST] = huboJointMap["WST"];
@@ -425,11 +432,12 @@ void HuboGearBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 
 }
 
-void HuboGearBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
+//not yet
+void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround)
 {
-	std::vector<vpBody*>checkBodies;
+	std::vector<GBody*>checkBodies;
 
-	std::vector<vpBody*>collideBodies;
+	std::vector<GBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
@@ -449,9 +457,12 @@ void HuboGearBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 	pWorld->StepAhead();
 }
 
-void HuboGearBody::drawBodyBoundingBox(vpBody *body)
+//not yet
+void HuboGearBody::drawBodyBoundingBox(GBody *body)
 {
-	Vec3 v = body->GetFrame().GetPosition();
+	body->getPoseGlobal();
+	//ToDo:
+	Vec3 v = body->getPositionGlobal()COMGlobal()GetFrame().GetPosition();
 	Vec3 s = ((vpBox*)body->GetGeometry(0))->GetHalfSize();
 	double data[16], data_temp[16];
 
