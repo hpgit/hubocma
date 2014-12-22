@@ -38,7 +38,8 @@ public:
 	GBody *Hip, *Torso, *Head;
 	GBody *ShoulderP[2], *ShoulderR[2], *UpperArm[2], *Elbow[2], *Wrist[2], *Hand[2];
 	GBody *PelvisY[2], *PelvisR[2], *UpperLeg[2], *LowerLeg[2], *Ankle[2], *Foot[2];
-	GJointFreeST r;
+	//TODO: check it!
+	GJointFreeST *Root;
 	GJointRevolute *WST, *NKY, *HeadX, *HeadZ; // upper part
 	GJointRevolute *RSP, *RSR, *RSY, *REB, *RWY, *RWP; // upper right
 	GJointRevolute *RHY, *RHR, *RHP, *RKN, *RAP, *RAR; // lower right
@@ -64,9 +65,9 @@ public:
 	void initJoint();
 	void setInitBodyJoint(GBody *pBody, GJointRevolute *pJoint, std::string jointName, GBody *pParentBody, double elasticity, double damping);
 	void initHybridDynamics(bool floatingBase);
-	void solveHybridDynamics();
+	void solveHybridDynamics(GSystem *world);
 	void create(GSystem *pWorld, HuboMotionData *pHuboImporter);
-	void stepAhead(GSystem *pWorld, GBody *pGround);
+	void stepAhead(GSystem *pWorld, GBody *pGround, double timestep);
 
 	void drawBodyBoundingBox(GBody *body);
 	void drawAllBoundingBox();
@@ -102,10 +103,8 @@ public:
 	Vector3d getCOMposition();
 	Vector3d getCOMvelocity();
 	Vector3d getCOPposition(GSystem *pWorld, GBody *pGround);
-	Vec3 getCOM();
-	Vec3 getCOMLinvel();
 	Vec3 getCOP(GSystem *pWorld, GBody *pGround);
-	int getMainContactFoot(GSystem *pWorld, GBody *pGround, double &leftRate, double &rightRate);
+	int getMainContactFoot(GSystem *pWorld, GBody *pGround, double leftRate, double rightRate);
 	Vector3d getHipDirection();
 	void getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, Eigen::Vector3d &Vel, Eigen::Vector3d &AngVel);
 	Quaterniond getOrientation(GBody *pBody);
@@ -149,7 +148,7 @@ public:
 		Vec3 &force, double ks, double ds, double mu
 		); 
 	void applyPenaltyForce( 
-		const std::vector<GSystem*> &collideBodies, 
+		const std::vector<GBody*> &collideBodies, 
 		const std::vector<Vec3> &positionLocals, 
 		const std::vector<Vec3> &forces
 		);
