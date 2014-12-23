@@ -533,7 +533,7 @@ void HuboGearBody::applyAllJointValueVptoHubo()
 	Quaterniond q;
 	Quaterniond q_position(0, bspos.x(), bspos.y(), bspos.z());
 	
-	Hip->GetFrame().ToArray<double>(mat);
+	Hip->getPoseGlobal().ToArray<double>(mat);
 	for(int i=0; i<16; i++)
 		m(i%4, i/4) = mat[i];
 	q = Quaterniond(m.rotation());
@@ -542,18 +542,18 @@ void HuboGearBody::applyAllJointValueVptoHubo()
 	hubojoints["Hip"]->setTranslation(frame,  trans);
 
 	for (int i = 0; i < joints.size(); i++)
-		vptohuboJointmap[joints.at(i)]->setAngle(frame, joints.at(i)->GetAngle());
+		vptohuboJointmap[joints.at(i)]->setAngle(frame, joints.at(i)->get_q());
 }
 void HuboGearBody::applyAddAllBodyForce(Eigen::VectorXd &force)
 {
 	for (int i = 0; i < bodies.size(); i++)
-		bodies.at(i)->ApplyGlobalForce(Vec3(force(3*i), force(3*i+1), force(3*i+2)), Vec3(0, 0, 0));
+		bodies.at(i)->setExternalForceGlobally(Vec3(force(3*i), force(3*i+1), force(3*i+2)), Vec3(0, 0, 0));
 }
 
 void HuboGearBody::applyAllJointTorque(Eigen::VectorXd &torque)
 {
 	for(int i=0; i<joints.size(); i++)
-		joints.at(i)->SetTorque(torque(i));
+		joints.at(i)->set_tau(torque(i));
 }
 
 void HuboGearBody::applyRootJointDofAccel(Vector3d &accHip, Vector3d &angAccHip)
@@ -833,7 +833,7 @@ Vector3d HuboGearBody::getCOMposition()
 {
 	Vec3 v(.0, .0, .0);
 	for(int i=0; i<bodies.size(); i++)
-		v = v + bodies[i]->getMass() * bodies[i]->getPositionCOM();
+		v = v + bodies[i]->getMass() * bodies[i]->getPositionCOMGlobal();
 	
 	return Vec3Tovector(v)/mass;
 }
@@ -854,17 +854,17 @@ Vector3d HuboGearBody::getCOPposition(GSystem *pWorld, GBody *pGround)
 
 
 //not yet
-Vec3 HuboGearBody::getCOP(vpWorld *pWorld, vpBody *pGround)
+Vec3 HuboGearBody::getCOP(GSystem *pWorld, GBody *pGround)
 {
 	//TODO:
 	//calc correct COP
 	//temporally, only two foot are considered
-	std::vector<vpBody*>collideBodies;
+	std::vector<GBody*>collideBodies;
 	std::vector<Vec3>positions;
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
 
-	std::vector <vpBody*> bodies;
+	std::vector <GBody*> bodies;
 	bodies.push_back(Foot[0]);
 	bodies.push_back(Foot[1]);
 
@@ -881,7 +881,7 @@ Vec3 HuboGearBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 	Vec3 cop(0, 0, 0);
 
 	for (int j = 0; j < forces.size(); j++)
-		cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
+		cop += forces.at(j)[1] * collideBodies.at(j)->getPositionCOMGlobal();
 
 	if (sumForce < DBL_EPSILON)
 		return Vec3(0, -1, 0);
@@ -929,7 +929,7 @@ int HuboGearBody::getMainContactFoot(GSystem *pWorld, GBody *pGround, double lef
 	std::vector<Vec3>positionsLocal;
 	std::vector<Vec3>forces;
 
-	std::vector <vpBody*> bodies;
+	std::vector <GBody*> bodies;
 	bodies.push_back(Foot[0]);
 	bodies.push_back(Foot[1]);
 
@@ -975,7 +975,7 @@ Vector3d HuboGearBody::getHipDirection()
 }
 void HuboGearBody::getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, Eigen::Vector3d &Vel, Eigen::Vector3d &AngVel)
 {
-	Pos = Vec3Tovector(Hip->getPositionCOM());
+	Pos = Vec3Tovector(Hip->getPositionCOMGlobal());
 	Vel = Vec3Tovector(Hip->getVelocityCOMGlobal());
 	Ori = getOrientation(Hip);
 	AngVel = Vec3Tovector(Hip->getVelocityAngularGlobal());
@@ -1129,10 +1129,11 @@ void HuboGearBody::calcPenaltyForce(
 	std::vector<Vec3> &positions,
 	std::vector<Vec3> &positionLocals,
 	std::vector<Vec3> &forces,
-	double ks, double ds, double mu
+	double ks, double ds, double mu,
+	double timestep
 	)
 {
-	vpBody* pBody;
+	GBody* pBody;
 	vpBox* pBox;
 	Vec3 position, velocity, force, positionLocal;
 
@@ -1157,7 +1158,7 @@ void HuboGearBody::calcPenaltyForce(
 				position = verticesGlobal[k];
 				velocity = pBody->GetLinVelocity(positionLocal);
 
-				bool penentrated = _calcPenaltyForce(pWorld, pBody, position, velocity, force, ks, ds, mu);
+				bool penentrated = _calcPenaltyForce(pWorld, pBody, position, velocity, force, ks, ds, mu, timestep);
 				if(penentrated)
 				{
 					collideBodies.push_back(checkBodies.at(i));
@@ -1173,7 +1174,8 @@ void HuboGearBody::calcPenaltyForce(
 bool HuboGearBody::_calcPenaltyForce(
 	GSystem *pWorld,
 	const GBody *pBody, const Vec3 &position, const Vec3 &velocity, 
-	Vec3 &force, double ks, double ds, double mu
+	Vec3 &force, double ks, double ds, double mu,
+	double timestep
 	) 
 {
 	static Vec3 vRelVel, vNormalRelVel, vTangentialRelVel;
@@ -1189,8 +1191,6 @@ bool HuboGearBody::_calcPenaltyForce(
 	vNormalRelVel = normalRelVel * vNormal;
 	vTangentialRelVel = vRelVel - vNormalRelVel;
 	tangentialRelVel = Norm(vTangentialRelVel);
-
-	double timestep = pWorld->GetTimeStep();
 	
 	Vec3 nextPosition = position + velocity * timestep;
 
@@ -1249,12 +1249,13 @@ void HuboGearBody::calcPenaltyForceBoxGround(
 	std::vector<Vec3> &positions,
 	std::vector<Vec3> &positionLocals,
 	std::vector<Vec3> &forces,
-	double ks, double ds, double mu
+	double ks, double ds, double mu,
+	double timestep
 	)
 {
 	//bp::list bodyIDs, positions, forces, positionLocals;
 	//static numeric::array O_Vec3(make_tuple(0.,0.,0.));
-	vpBody* pBody;
+	GBody* pBody;
 	vpBox* pBox;
 	char type;
 	scalar data[3];
@@ -1305,7 +1306,9 @@ void HuboGearBody::calcPenaltyForceBoxGround(
 bool HuboGearBody::_calcPenaltyForceBoxGround( 
 	const Vec3& boxSize, const SE3& boxFrame, const vpBody* pBody, 
 	const Vec3& position, const Vec3& velocity, 
-	Vec3& force, double Ks, double Ds, double mu )
+	Vec3& force, double Ks, double Ds, double mu,
+	double timestep
+	)
 {
 	static Vec3 vRelVel, vNormalRelVel, vTangentialRelVel;
 	static scalar normalRelVel, tangentialRelVel;
@@ -1366,12 +1369,12 @@ bool HuboGearBody::_calcPenaltyForceBoxGround(
 
 
 void HuboGearBody::applyPenaltyForce(
-	const std::vector<vpBody*> &collideBodies, 
+	const std::vector<GBody*> &collideBodies, 
 	const std::vector<Vec3> &positionLocals, 
 	const std::vector<Vec3> &forces
 	)
 {
-	vpBody* pBody;
+	GBody* pBody;
 	static Vec3 position, force;
 
 	for(int i=0; i<collideBodies.size(); i++)
@@ -1380,7 +1383,7 @@ void HuboGearBody::applyPenaltyForce(
 		// is it right?
 		// position"Locals" ?
 		pBody = collideBodies.at(i);
-		pBody->ApplyGlobalForce(forces.at(i), positionLocals.at(i));
+		pBody->setExternalForceGlobally(forces.at(i), positionLocals.at(i));
 	}
 }
 
@@ -1497,7 +1500,7 @@ void HuboGearBody::getJacobian(Eigen::MatrixXd &J, int includeRoot)
 
 			for(int i=0; i < 3*bodiessize; i+=3)
 			{
-				r = bodies.at(i/3)->GetFrame().GetPosition()-vectorToVec3(getVpHipRotationalJointPosition());
+				r = bodies.at(i/3)->getPositionCOMGlobal()-vectorToVec3(getVpHipRotationalJointPosition());
 				valongx = Cross(angx, r);
 				valongy = Cross(angy, r);
 				valongz = Cross(angz, r);
@@ -1542,7 +1545,7 @@ void HuboGearBody::getJacobian(Eigen::MatrixXd &J, int includeRoot)
 			if( vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]]) 
 				|| vpBodytoJointmap[bodies[i/3]] == joints[j] )
 			{
-				rcom = bodies[i/3]->GetFrame().GetPosition();
+				rcom = bodies[i / 3]->getPositionCOMGlobal();
 				rk = vectorToVec3(getVpJointPosition(joints[j]));
 				w = vectorToVec3(getVpJointAxis(joints[j]));
 				v = Cross(w, rcom-rk);
@@ -1575,17 +1578,17 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 	// root orientation
 	for(int i=0; i < 3*bodiessize; i+=3)	
 	{
-		vpRJoint *parentJoint = NULL, *joint  = NULL;
+		GJointRevolute *parentJoint = NULL, *joint  = NULL;
 		Vec3 rcom, rk, wb, v, wp, w, sumWcrossRk, rKpforSum, rKcforSum, wKforSum;
 		for (int j = 0; j < 3; j++)
 		{
 			wb = Vec3(0, 0, 0);
 			wb[j] = 1;
 
-			wp = Hip->GetAngVelocity();
+			wp = Hip->getVelocityAngularGlobal();
 			w = Cross(wp, wb);
 
-			rcom = bodies[i / 3]->GetFrame().GetPosition();
+			rcom = bodies[i / 3]->getPositionCOMGlobal();
 			rk = vectorToVec3(getVpHipRotationalJointPosition());
 			sumWcrossRk = Vec3(0, 0, 0);
 			
@@ -1594,7 +1597,7 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 				joint = vpBodytoJointmap[bodies[i / 3]];
 
 				sumWcrossRk += Cross(
-					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
+					vpBodytoParentBody[bodies[i/3]]->getVelocityAngularGlobal(),
 					rcom - vectorToVec3(getVpJointPosition(joint))
 					);
 
@@ -1608,13 +1611,13 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
 					sumWcrossRk += Cross(
 						//parentJoint->GetVelocity() * vectorToVec3(getVpJointAxis(parentJoint)),
-						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
+						vpJointtoBodymap[parentJoint]->getVelocityAngularGlobal(),
 						rKcforSum - rKpforSum);
 					rKpforSum = rKcforSum;
 				}
 
 				sumWcrossRk += Cross(
-					Hip->GetAngVelocity()[j] * wb,
+					Hip->getVelocityAngularGlobal()[j] * wb,
 					vectorToVec3(getVpJointPosition(joint) - getVpHipRotationalJointPosition())
 					);
 				
@@ -1622,8 +1625,8 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 			else
 			{
 				sumWcrossRk += Cross(
-					Hip->GetAngVelocity()[j] * wb,
-					Hip->GetFrame().GetPosition() - vectorToVec3(getVpHipRotationalJointPosition())
+					Hip->getVelocityAngularGlobal()[j] * wb,
+					Hip->getPositionCOMGlobal() - vectorToVec3(getVpHipRotationalJointPosition())
 					);
 			}
 			//	# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
@@ -1635,7 +1638,7 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 			v = Cross(wb, sumWcrossRk);
 			else
 			v = Cross(wb, sumWcrossRk)
-				+ Cross(w, Hip->GetFrame().GetPosition() - vectorToVec3(getVpHipRotationalJointPosition()));
+				+ Cross(w, Hip->getPositionCOMGlobal() - vectorToVec3(getVpHipRotationalJointPosition()));
 
 			dJ(i, 3+j) = v[0];
 			dJ(i + 1, 3 + j) = v[1];
@@ -1655,7 +1658,7 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 	for(int j=0; j<jointssize; j++)
 	{
 		Vec3 rcom, rk, wb, v, wp, w, sumWcrossRk, rKpforSum, rKcforSum, wKforSum;
-		vpRJoint *parentJoint = NULL, *joint  = NULL;
+		GJointRevolute *parentJoint = NULL, *joint  = NULL;
 		// rcom : com of link
 		// rk : position of joint of basis
 		// rKpforSum, rKcforSum : variables that calculating sumWcrossRk, position of each joint
@@ -1691,10 +1694,10 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 //				# dZ(j) = w(j)<cross>Z(j)
 				wb = vectorToVec3(getVpJointAxis(joints[j]));
 				wb.Normalize();
-				wp = vpBodytoParentBody[vpJointtoBodymap[joints[j]]]->GetAngVelocity();
+				wp = vpBodytoParentBody[vpJointtoBodymap[joints[j]]]->getVelocityAngularGlobal();
 				w = Cross(wp, wb);
 
-				rcom = bodies[i / 3]->GetFrame().GetPosition(); 
+				rcom = bodies[i / 3]->getPositionCOMGlobal(); 
 				rk = vectorToVec3(getVpJointPosition(joints[j]));
 				sumWcrossRk = Vec3(0,0,0);
 
@@ -1702,7 +1705,7 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 
 
 				sumWcrossRk += Cross(
-					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
+					vpBodytoParentBody[bodies[i/3]]->getVelocityAngularGlobal(),
 					rcom - vectorToVec3(getVpJointPosition(joint))
 					);
 
@@ -1715,7 +1718,7 @@ void HuboGearBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 					rKcforSum = vectorToVec3(getVpJointPosition(joint));
 					rKpforSum = vectorToVec3(getVpJointPosition(parentJoint));
 					sumWcrossRk += Cross(
-						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
+						vpJointtoBodymap[parentJoint]->getVelocityAngularGlobal(),
 						rKcforSum - rKpforSum);
 					rKpforSum = rKcforSum;
 				}
@@ -1743,8 +1746,6 @@ void HuboGearBody::getLinkMatrix(Eigen::MatrixXd &M)
 	M.resize(6, 6*bodiessize); 
 	M.setZero();
 
-	double m;
-	double mat[36];
 	Eigen::MatrixXd inertia;
 	inertia.resize(6, 6);
 	Vec3 rComToLink;
@@ -1752,16 +1753,25 @@ void HuboGearBody::getLinkMatrix(Eigen::MatrixXd &M)
 	for(int i=0; i<3*bodiessize; i+=3)
 	{
 		inertia.setZero();
-		bodies[i/3]->GetInertia().ToArray<double>(mat);
-		for (int j = 0; j < 6; j++)
-			for (int k = 0; k < 6; k++)
-				inertia(j, k) = mat[6 * j + k];
+		Joint *huboJoint = vpBodytohuboParentJointmap[bodies[i / 3]];
+		double mass = huboJoint->childBodyMass;
+		double Lx = huboJoint->BBsizev.x();
+		double Ly = huboJoint->BBsizev.y();
+		double Lz = huboJoint->BBsizev.z();
+		double Ixx = 1./12.*mass*(Ly*Ly+Lz*Lz),
+			Iyy = 1./12.*mass*(Lx*Lx+Lz*Lz),
+			Izz = 1./12.*mass*(Lx*Lx+Ly*Ly),
+			Ixy = 0, Ixz = 0, Iyz = 0;
+
+		inertia.block(3, 3, 3, 3).setIdentity();
+		inertia.block(3, 3, 3, 3) *= mass;
+		inertia(0, 0) = Ixx; inertia(1, 1) = Iyy; inertia(2, 2) = Izz;
 
 		M.block(0, i, 3, 3) = inertia.block(3, 3, 3, 3);
 
 		M.block(3, 3 * bodiessize + i, 3, 3) = inertia.block(0, 0, 3, 3);
 
-		rComToLink = bodies[i / 3]->GetFrame().GetPosition() - getCOM();
+		rComToLink = bodies[i / 3]->getPositionCOMGlobal() - vectorToVec3(getCOMposition());
 
 		M.block(3, i, 3, 3) = inertia(3,3) * vectorToSkewMat(Vec3Tovector(rComToLink));
 	}
@@ -1775,8 +1785,6 @@ void HuboGearBody::getDifferentialLinkMatrix(Eigen::MatrixXd &dM)
 	dM.resize(6, 6 * bodiessize);
 	dM.setZero();
 
-	double m;
-	double mat[36];
 	Eigen::MatrixXd inertia;
 	inertia.resize(6, 6);
 	Vec3 vComToLink;
@@ -1784,15 +1792,24 @@ void HuboGearBody::getDifferentialLinkMatrix(Eigen::MatrixXd &dM)
 	for (int i = 0; i < 3 * bodiessize; i += 3)
 	{
 		inertia.setZero();
-		bodies[i / 3]->GetInertia().ToArray<double>(mat);
-		for (int j = 0; j < 6; j++)
-			for (int k = 0; k < 6; k++)
-				inertia(j, k) = mat[6 * j + k];
+		Joint *huboJoint = vpBodytohuboParentJointmap[bodies[i / 3]];
+		double mass = huboJoint->childBodyMass;
+		double Lx = huboJoint->BBsizev.x();
+		double Ly = huboJoint->BBsizev.y();
+		double Lz = huboJoint->BBsizev.z();
+		double Ixx = 1./12.*mass*(Ly*Ly+Lz*Lz),
+			Iyy = 1./12.*mass*(Lx*Lx+Lz*Lz),
+			Izz = 1./12.*mass*(Lx*Lx+Ly*Ly),
+			Ixy = 0, Ixz = 0, Iyz = 0;
+
+		inertia.block(3, 3, 3, 3).setIdentity();
+		inertia.block(3, 3, 3, 3) *= mass;
+		inertia(0, 0) = Ixx; inertia(1, 1) = Iyy; inertia(2, 2) = Izz;
 
 		dM.block(3, 3 * bodiessize + i, 3, 3) =
-			vectorToSkewMat(Vec3Tovector(bodies[i / 3]->GetAngVelocity())) * inertia.block(0, 0, 3, 3);
+			vectorToSkewMat(Vec3Tovector(bodies[i / 3]->getVelocityAngularGlobal())) * inertia.block(0, 0, 3, 3);
 
-		vComToLink = bodies[i / 3]->GetLinVelocity(Vec3(0, 0, 0)) - getCOMLinvel();
+		vComToLink = bodies[i / 3]->getVelocityCOMGlobal() - vectorToVec3(getCOMvelocity());
 
 		dM.block(3, i, 3, 3) = inertia(3,3)*vectorToSkewMat(Vec3Tovector(vComToLink));
 
@@ -1835,7 +1852,7 @@ void HuboGearBody::getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT)
 				if( !(vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]])
 					|| vpBodytoJointmap[bodies[i/3]] == joints[j]) )
 				{
-					rcom = bodies[i/3]->GetFrame().GetPosition();
+					rcom = bodies[i/3]->getPositionCOMGlobal();
 					rk = vectorToVec3(getVpJointPosition(joints[j]));
 					w = vectorToVec3(getVpJointAxis(joints[j]));
 					v = Cross(w, rcom-rk);
@@ -1855,7 +1872,7 @@ void HuboGearBody::getSingleFootRootJacobian(Eigen::MatrixXd &J, int isLEFT)
 				if( vpBodytohuboParentJointmap[bodies[i/3]]->isDescendant(vptohuboJointmap[joints[j]])
 					|| vpBodytoJointmap[bodies[i/3]] == joints[j] )
 				{
-					rcom = bodies[i/3]->GetFrame().GetPosition();
+					rcom = bodies[i/3]->getPositionCOMGlobal();
 					rk = vectorToVec3(getVpJointPosition(joints[j]));
 					w = vectorToVec3(getVpJointAxis(joints[j]));
 					v = Cross(w, rcom-rk);
@@ -1892,7 +1909,7 @@ void HuboGearBody::getSingleFootRootToHipJacobian(Eigen::MatrixXd &J, int isLEFT
 	// rcom : CoM of hip link
 	// rk : position of joint which is considered
 	// w : an axis of the joint
-	rcom = Hip->GetFrame().GetPosition();
+	rcom = Hip->getPositionCOMGlobal();
 
 	for(int j=0; j<jointssize; j++)
 	{

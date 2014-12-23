@@ -125,12 +125,14 @@ public:
 		std::vector<Vec3> &positions,
 		std::vector<Vec3> &positionLocals,
 		std::vector<Vec3> &forces,
-		double ks, double ds, double mu
+		double ks, double ds, double mu,
+		double timestep
 		);
 	bool _calcPenaltyForce(
 		GSystem *pWorld,
 		const GBody *pBody, const Vec3 &position, const Vec3 &velocity, 
-		Vec3 &force, double ks, double ds, double mu
+		Vec3 &force, double ks, double ds, double mu,
+		double timestep
 		); 
 
 	void calcPenaltyForceBoxGround(
@@ -140,12 +142,14 @@ public:
 		std::vector<Vec3> &positions,
 		std::vector<Vec3> &positionLocals,
 		std::vector<Vec3> &forces,
-		double ks, double ds, double mu
+		double ks, double ds, double mu,
+		double timestep
 		);
 	bool _calcPenaltyForceBoxGround(
 		const Vec3 &boxSize, const SE3 &boxFrame, const GBody *pBody, 
 		const Vec3 &position, const Vec3 &velocity, 
-		Vec3 &force, double ks, double ds, double mu
+		Vec3 &force, double ks, double ds, double mu,
+		double timestep
 		); 
 	void applyPenaltyForce( 
 		const std::vector<GBody*> &collideBodies, 
