@@ -102,9 +102,9 @@ public:
 	Vector3d getVpJointAxis(GJointRevolute *joint);
 	Vector3d getCOMposition();
 	Vector3d getCOMvelocity();
-	Vector3d getCOPposition(GSystem *pWorld, GBody *pGround);
-	Vec3 getCOP(GSystem *pWorld, GBody *pGround);
-	int getMainContactFoot(GSystem *pWorld, GBody *pGround, double leftRate, double rightRate);
+	Vector3d getCOPposition(GSystem *pWorld, GBody *pGround, double timestep);
+	Vec3 getCOP(GSystem *pWorld, GBody *pGround, double timestep);
+	int getMainContactFoot(GSystem *pWorld, GBody *pGround, double leftRate, double rightRate, double timestep);
 	Vector3d getHipDirection();
 	void getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, Eigen::Vector3d &Vel, Eigen::Vector3d &AngVel);
 	Quaterniond getOrientation(GBody *pBody);

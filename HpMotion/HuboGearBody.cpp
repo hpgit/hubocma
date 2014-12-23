@@ -447,7 +447,8 @@ void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround, double timestep)
 
 	calcPenaltyForce(
 		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
-		grfKs, grfDs, mu
+		grfKs, grfDs, mu,
+		timestep
 		);
 	applyPenaltyForce(collideBodies,positionsLocal, forces);
 	
@@ -519,7 +520,7 @@ void HuboGearBody::getAllJointTorque(Eigen::VectorXd &torque)
 {
 	torque.resize(joints.size());
 	for (int i = 0; i < joints.size(); i++)
-		torque(i) = joints.at(i)->get_tau();
+		torque(i) = joints.at(i)->get_tau()[0];
 }
 
 void HuboGearBody::applyAllJointValueVptoHubo()
@@ -542,7 +543,7 @@ void HuboGearBody::applyAllJointValueVptoHubo()
 	hubojoints["Hip"]->setTranslation(frame,  trans);
 
 	for (int i = 0; i < joints.size(); i++)
-		vptohuboJointmap[joints.at(i)]->setAngle(frame, joints.at(i)->get_q());
+		vptohuboJointmap[joints.at(i)]->setAngle(frame, joints.at(i)->get_q()[0]);
 }
 void HuboGearBody::applyAddAllBodyForce(Eigen::VectorXd &force)
 {
@@ -847,14 +848,14 @@ Vector3d HuboGearBody::getCOMvelocity()
 	return Vec3Tovector(v)/mass;
 }
 
-Vector3d HuboGearBody::getCOPposition(GSystem *pWorld, GBody *pGround)
+Vector3d HuboGearBody::getCOPposition(GSystem *pWorld, GBody *pGround, double timestep)
 {
-	return Vec3Tovector(getCOP(pWorld, pGround));
+	return Vec3Tovector(getCOP(pWorld, pGround, timestep));
 }
 
 
 //not yet
-Vec3 HuboGearBody::getCOP(GSystem *pWorld, GBody *pGround)
+Vec3 HuboGearBody::getCOP(GSystem *pWorld, GBody *pGround, double timestep)
 {
 	//TODO:
 	//calc correct COP
@@ -870,7 +871,8 @@ Vec3 HuboGearBody::getCOP(GSystem *pWorld, GBody *pGround)
 
 	calcPenaltyForce(
 		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-		grfKs, grfDs, mu
+		grfKs, grfDs, mu,
+		timestep
 		);
 
 	double sumForce = 0;
@@ -919,7 +921,7 @@ Vec3 HuboGearBody::getCOP(GSystem *pWorld, GBody *pGround)
 }
 
 //not yet
-int HuboGearBody::getMainContactFoot(GSystem *pWorld, GBody *pGround, double leftRate, double rightRate)
+int HuboGearBody::getMainContactFoot(GSystem *pWorld, GBody *pGround, double leftRate, double rightRate, double timestep)
 {
 	//TODO:
 	//calc correct COP
@@ -935,7 +937,8 @@ int HuboGearBody::getMainContactFoot(GSystem *pWorld, GBody *pGround, double lef
 
 	calcPenaltyForce(
 		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-		grfKs, grfDs, mu
+		grfKs, grfDs, mu,
+		timestep
 		);
 
 	int sumForce[2] = {0, 0};
@@ -1011,14 +1014,14 @@ void HuboGearBody::getAllAngle(Eigen::VectorXd &angles)
 	angles.resize(26);
 	
 	for(int i=0; i<joints.size(); i++)
-		angles(i) = joints.at(i)->get_q();
+		angles(i) = joints.at(i)->get_q()[0];
 }
 
 void HuboGearBody::getAllAngularVelocity(Eigen::VectorXd &angVel)
 {
 	angVel.resize(26);
 	for(int i=0; i<joints.size(); i++)
-		angVel(i) = joints.at(i)->get_dq();
+		angVel(i) = joints.at(i)->get_dq()[0];
 }
 
 void HuboGearBody::getFootPoints(int LEFTorRIGHT, std::vector<Vector3d, aligned_allocator<Vector3d> > &points)
@@ -1243,9 +1246,9 @@ bool HuboGearBody::_calcPenaltyForce(
 
 // @return ( bodyIDs, positions, postionLocals, forces)
 void HuboGearBody::calcPenaltyForceBoxGround(
-	vpWorld *pWorld, vpBody* pGround, 
-	std::vector<vpBody*> &checkBodies,
-	std::vector<vpBody*> &collideBodies,
+	GSystem *pWorld, GBody* pGround, 
+	std::vector<GBody*> &checkBodies,
+	std::vector<GBody*> &collideBodies,
 	std::vector<Vec3> &positions,
 	std::vector<Vec3> &positionLocals,
 	std::vector<Vec3> &forces,
@@ -1304,7 +1307,7 @@ void HuboGearBody::calcPenaltyForceBoxGround(
 }
 
 bool HuboGearBody::_calcPenaltyForceBoxGround( 
-	const Vec3& boxSize, const SE3& boxFrame, const vpBody* pBody, 
+	const Vec3& boxSize, const SE3& boxFrame, const GBody* pBody, 
 	const Vec3& position, const Vec3& velocity, 
 	Vec3& force, double Ks, double Ds, double mu,
 	double timestep
