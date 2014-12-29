@@ -236,7 +236,6 @@ void HuboGearController::initController(void)
 	if(world)
 		delete world;
 	world = new GSystem;
-	world->setGravity(Vec3(0.0, -9.8, 0.0));
 
 	if(ground)
 		delete ground;
@@ -279,6 +278,7 @@ void HuboGearController::initController(void)
 	
 	world->buildSystem(ground);
 	world->initBodyForcesAndJointTorques();
+	world->setGravity(Vec3(0.0, -9.8, 0.0));
 }
 
 void HuboGearController::setTimeStep(double _timestep)
@@ -295,10 +295,7 @@ void HuboGearController::stepAheadWithPenaltyForces()
 	//TODO:
 	cpBeforeOneStep = huboGearBody->getCOPposition(world, ground, timestep);
 	//cpBeforeOneStep = huboGearBody->getSupportRegionCenter();
-	if (manualContactForces)
-		huboGearBody->stepAhead(world, ground, timestep);
-	else
-		world->stepSimulation(timestep);
+	huboGearBody->stepAhead(world, ground, timestep);
 }
 
 void HuboGearController::applyPdControlTorque(

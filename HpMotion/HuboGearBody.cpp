@@ -170,7 +170,10 @@ void HuboGearBody::setInitBodyJoint(
 
 	pBody->setMass(M, Ixx, Iyy, Izz, Ixy, Ixz, Iyz, TLinkCom);
 	if(pJoint != NULL)
+	{
+		pBody->setName(jointName);
 		pJoint->setPrescribed(false);
+	}
 }
 
 //not yet
@@ -430,19 +433,20 @@ void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround, double timestep)
 	//checkBodies.push_back(Foot[1]);
 	//calcPenaltyForce(
 	//	pWorld, pGround, checkBodies, collideBodies, positions, positionsLocal, forces,
-	//	grfKs, grfDs, mu
+	//	grfKs, grfDs, mu, timestep
 	//	);
 
 	//TODO:
-	//calcPenaltyForce(
-	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-	//	grfKs, grfDs, mu,
-	//	timestep
-	//	);
-	//applyPenaltyForce(collideBodies,positionsLocal, forces);
+	calcPenaltyForce(
+		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
+		grfKs, grfDs, mu,
+		timestep
+		);
+	applyPenaltyForce(collideBodies,positionsLocal, forces);
 	
 	pWorld->stepSimulation(timestep);
 	pWorld->initBodyForcesAndJointTorques();
+	pWorld->setGravity(Vec3(0.0, -9.8, 0.0));
 }
 
 void HuboGearBody::drawBodyBoundingBox(GBody *body)
@@ -1088,6 +1092,7 @@ void HuboGearBody::getVertices(
 	//Vec3 size = pBox->GetHalfSize();
 	Eigen::Vector3d vSize = hubojoint->BBsizev / 2;
 	Vec3 size = vectorToVec3(vSize);
+
 	SE3 frame = pBody->getPoseGlobal();
 	Vec3 temp;
 	{

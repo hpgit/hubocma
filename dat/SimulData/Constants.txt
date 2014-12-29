@@ -2,7 +2,7 @@ timestep	0.0002
 ks 32000 
 kd 357.76
 ksTorque
-WST	200
+WST 200
 RSP 2
 RSR 2
 RSY 2

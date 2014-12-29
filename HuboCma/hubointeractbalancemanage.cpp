@@ -106,9 +106,9 @@ void HuboInteractBalanceManage::timer()
 	for(int i=0; i<renderTimeStep/simulTimeStep; i++)
 	{
 		double time = fmod(simulTime, totalTime);
-		//viewer->hubo->motionPdTracking(dofTorque, viewer->refer, fmod(simulTime, totalTime));
-		//viewer->hubo->huboVpBody->applyAllJointTorque(dofTorque);
-		viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+		viewer->hubo->motionPdTracking(dofTorque, viewer->refer, fmod(simulTime, totalTime));
+		viewer->hubo->huboGearBody->applyAllJointTorque(dofTorque);
+		//viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
 		if(pushTime > DBL_EPSILON)
 		{
 			viewer->hubo->huboGearBody->applyAddAllBodyForce(pushForce);
@@ -126,9 +126,12 @@ void HuboInteractBalanceManage::timer()
 
 void HuboInteractBalanceManage::on_stepBtn_clicked()
 {
+	Eigen::VectorXd dofTorque;
 	double totalTime = viewer->refer->getTotalTime();
 	double time = fmod(simulTime, totalTime);
-	viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+	//viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+	viewer->hubo->motionPdTracking(dofTorque, viewer->refer, fmod(simulTime, totalTime));
+	viewer->hubo->huboGearBody->applyAllJointTorque(dofTorque);
 	if(pushTime > DBL_EPSILON)
 	{
 		viewer->hubo->huboGearBody->applyAddAllBodyForce(pushForce);
