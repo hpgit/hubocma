@@ -16,8 +16,8 @@ SOURCES += main.cpp\
         hubomaincontroller.cpp \
     huboglviewer.cpp \
     huboglwidget.cpp \
-    hubotrackingviewer.cpp \
-    hubotrackingmanage.cpp \
+	hubotrackingviewer.cpp \
+	hubotrackingmanage.cpp \
     huboikmanage.cpp \
     huboikviewer.cpp \
     hubocmamanage.cpp \
@@ -33,8 +33,8 @@ SOURCES += main.cpp\
 HEADERS  += hubomaincontroller.h \
     huboglviewer.h \
     huboglwidget.h \
-    hubotrackingviewer.h \
-    hubotrackingmanage.h \
+	hubotrackingviewer.h \
+	hubotrackingmanage.h \
     huboikmanage.h \
     huboikviewer.h \
     hubocmamanage.h \
@@ -71,7 +71,8 @@ LIBS += -L"../../usr/lib" \
         -lboundary_transformation \
         -lcma \
         -lGLU \
-        -lvpLib
+		#-lvpLib
+		-lgear
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter

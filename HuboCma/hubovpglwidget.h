@@ -2,14 +2,15 @@
 #define HUBOVPGLWIDGET_H
 
 #include <motionglwidget.h>
-#include <HuboVpController.h>
+//#include <HuboVpController.h>
+#include <HuboGearController.h>
 
 class HuboVpGlWidget : public MotionGlWidget
 {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	HuboVpGlWidget(QWidget *parent = 0);
-	HuboVpController *cont;
+	HuboGearController *cont;
 
 	int playing;
 	int forceDraw;

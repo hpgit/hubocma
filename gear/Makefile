@@ -1,21 +1,39 @@
-.PHONY: all clean gear debug install_dependencies_ubuntu
- 
-all: gear
+# Builds all the projects in the solution...
+#.PHONY: all_projects
+#all_projects: gear
+#all_projects: vpLib vpRenderer stacking ragdoll tutorial 
 
-clean: 
-	cd build_release;make clean;rm CMakeCache.txt;rm Makefile
+# Builds project 'gear'...
+.PHONY: gear
+vpLib: 
+	make --directory="src/" --file=gear.makefile
 
-gear: build_release/Makefile
-	cd build_release;make --no-print-directory
+## Builds project 'vpRenderer'...
+#.PHONY: vpRenderer
+#vpRenderer: vpLib 
+#	make --directory="vpRenderer/" --file=vpRenderer.makefile
 
-debug: build_debug/Makefile
-	cd build_debug;make --no-print-directory
+# Builds project 'stacking'...
+.PHONY: stacking
+stacking: vpRenderer vpLib 
+	make --directory="Examples/stacking/" --file=stacking.makefile
 
-build_release/Makefile: CMakeLists.txt
-	mkdir -p build_release;cd build_release;export CC=gcc;export CXX=g++;cmake -DCMAKE_BUILD_TYPE=Release ..
+# Builds project 'ragdoll'...
+.PHONY: ragdoll
+ragdoll: vpRenderer vpLib 
+	make --directory="Examples/ragdoll/" --file=ragdoll.makefile
 
-build_debug/Makefile: CMakeLists.txt
-	mkdir -p build_debug;cd build_debug;export CC=gcc;export CXX=g++;cmake -DCMAKE_BUILD_TYPE=Debug ..
+# Builds project 'tutorial'...
+.PHONY: tutorial
+tutorial: vpRenderer vpLib 
+	make --directory="Examples/tutorial/" --file=tutorial.makefile
 
-install_dependencies_ubuntu:
-	sudo apt-get install build-essential cmake freeglut3-dev binutils-gold libxmu-dev libxi-dev
+# Cleans all projects...
+.PHONY: clean
+clean:
+	make --directory="src/" --file=gear.makefile clean
+#	make --directory="vpRenderer/" --file=vpRenderer.makefile clean
+#	make --directory="Examples/stacking/" --file=stacking.makefile clean
+#	make --directory="Examples/ragdoll/" --file=ragdoll.makefile clean
+#	make --directory="Examples/tutorial/" --file=tutorial.makefile clean
+

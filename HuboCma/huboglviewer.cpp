@@ -18,11 +18,11 @@ HuboGlViewer::~HuboGlViewer()
     delete ui;
 }
 
-void HuboGlViewer::initCont(HuboVpController *_hubo)
+void HuboGlViewer::initCont(HuboGearController *_hubo)
 {
     hubo = _hubo;
     glWidget = new HuboGlWidget(this);
-    glWidget->pHuboMotion = _hubo->huboVpBody->pHuboMotion;
+	glWidget->pHuboMotion = _hubo->getHuboMotion();
     glWidget->pHuboMotion->setOBJon();
 
     this->resize(600, 600);
@@ -33,7 +33,7 @@ void HuboGlViewer::initCont(HuboVpController *_hubo)
 	displayTimer->setInterval(glWidget->pHuboMotion->getFrameTime());
     connect(displayTimer, SIGNAL(timeout()), this, SLOT(timer()));
 
-    ui->frameSlider->setRange(0, _hubo->huboVpBody->pHuboMotion->getMotionSize()-1);
+	ui->frameSlider->setRange(0, _hubo->getHuboMotion()->getMotionSize()-1);
     ui->frameSlider->setValue(0);
     ui->frameSlider->setSingleStep(1);
 
@@ -72,7 +72,7 @@ void HuboGlViewer::adjustHuboMotionToViewer()
 {
 	displayTimer->stop();
 	displayTimer->setInterval(glWidget->pHuboMotion->getFrameTime());
-    ui->frameSlider->setRange(0, hubo->huboVpBody->pHuboMotion->getMotionSize()-1);
+	ui->frameSlider->setRange(0, hubo->getHuboMotion()->getMotionSize()-1);
     ui->frameSlider->setValue(glWidget->pHuboMotion->getCurrentFrame());
 	ui->textEdit->setText(QString::number(ui->frameSlider->value()));
 	glWidget->updateGL();

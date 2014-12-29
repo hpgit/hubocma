@@ -3,6 +3,7 @@
 
 #include <QTimer>
 #include "HpMotionMath.h"
+#include <float.h>
 
 HuboInteractBalanceManage::HuboInteractBalanceManage(QWidget *parent) :
 	QDialog(parent),
@@ -34,7 +35,7 @@ void HuboInteractBalanceManage::initTimer()
 	connect(playTimer, SIGNAL(timeout()), this, SLOT(timer()));
 
 	viewer->playing = 0;
-	pushForce.resize(viewer->hubo->huboVpBody->bodies.size()*3);
+	pushForce.resize(viewer->hubo->huboGearBody->bodies.size()*3);
 	pushForce.setZero();
 
 	//viewer->hubo->huboVpBody->setInitialHuboHipFromMotion(viewer->refer);
@@ -54,9 +55,10 @@ void HuboInteractBalanceManage::reset()
 
 	pushTime = 0;
 
-	viewer->hubo->huboVpBody->setInitialHuboHipFromMotion(viewer->refer);
-	viewer->hubo->huboVpBody->setInitialHuboAngleFromMotion(viewer->refer);
-	viewer->hubo->huboVpBody->setInitialHuboAngleRateFromMotion(viewer->refer);
+	viewer->hubo->huboGearBody->setInitialHuboHipFromMotion(viewer->refer);
+	viewer->hubo->huboGearBody->setInitialHuboAngleFromMotion(viewer->refer);
+	viewer->hubo->huboGearBody->setInitialHuboAngleRateFromMotion(viewer->refer);
+	viewer->hubo->world->updateKinematics();
 	viewer->glWidget->updateGL();
 }
 
@@ -77,17 +79,17 @@ void HuboInteractBalanceManage::on_playBtn_clicked()
 
 void HuboInteractBalanceManage::on_pushBtn_clicked()
 {
-	pushForce.resize(viewer->hubo->huboVpBody->bodies.size()*3);
+	pushForce.resize(viewer->hubo->huboGearBody->bodies.size()*3);
 	pushForce.setZero();
-	pushForce(HuboVPBody::eTorso*3+0) = ui->pushForceXText->toPlainText().toDouble();
-	pushForce(HuboVPBody::eTorso*3+1) = ui->pushForceYText->toPlainText().toDouble();
-	pushForce(HuboVPBody::eTorso*3+2) = ui->pushForceZText->toPlainText().toDouble();
+	pushForce(HuboGearBody::eTorso*3+0) = ui->pushForceXText->toPlainText().toDouble();
+	pushForce(HuboGearBody::eTorso*3+1) = ui->pushForceYText->toPlainText().toDouble();
+	pushForce(HuboGearBody::eTorso*3+2) = ui->pushForceZText->toPlainText().toDouble();
 	pushTime += 0.2;
 	Eigen::Vector3d force(
 				ui->pushForceXText->toPlainText().toDouble(),
 				ui->pushForceYText->toPlainText().toDouble(),
 				ui->pushForceZText->toPlainText().toDouble());
-	Eigen::Vector3d pos = Vec3Tovector(viewer->hubo->huboVpBody->Torso->GetFrame().GetPosition());
+	Eigen::Vector3d pos = Vec3Tovector(viewer->hubo->huboGearBody->Torso->getPositionCOMGlobal());
 	viewer->glWidget->forceDrawOn(force, pos);
 	viewer->glWidget->updateGL();
 }
@@ -109,7 +111,7 @@ void HuboInteractBalanceManage::timer()
 		viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
 		if(pushTime > DBL_EPSILON)
 		{
-			viewer->hubo->huboVpBody->applyAddAllBodyForce(pushForce);
+			viewer->hubo->huboGearBody->applyAddAllBodyForce(pushForce);
 			pushTime -= simulTimeStep;
 		}
 		else
@@ -118,6 +120,26 @@ void HuboInteractBalanceManage::timer()
 	}
 	simulTime += renderTimeStep;
 
-	viewer->hubo->huboVpBody->applyAllJointValueVptoHubo();
+	viewer->hubo->huboGearBody->applyAllJointValueVptoHubo();
+	viewer->glWidget->updateGL();
+}
+
+void HuboInteractBalanceManage::on_stepBtn_clicked()
+{
+	double totalTime = viewer->refer->getTotalTime();
+	double time = fmod(simulTime, totalTime);
+	viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+	if(pushTime > DBL_EPSILON)
+	{
+		viewer->hubo->huboGearBody->applyAddAllBodyForce(pushForce);
+		pushTime -= simulTimeStep;
+	}
+	else
+		viewer->glWidget->forceDrawOff();
+	viewer->hubo->stepAheadWithPenaltyForces();
+
+	simulTime += simulTimeStep;
+
+	viewer->hubo->huboGearBody->applyAllJointValueVptoHubo();
 	viewer->glWidget->updateGL();
 }

@@ -867,7 +867,7 @@ void HuboMotionData::getHuboAllMassMatrix(Eigen::MatrixXd &massMatrix, int apply
 
 void HuboMotionData::makeGroundContact()
 {	
-	double height = min(jointMap["LAR"]->getGlobalComPosition(frame).y(), jointMap["RAR"]->getGlobalComPosition(frame).y());
+	double height = fmin(jointMap["LAR"]->getGlobalComPosition(frame).y(), jointMap["RAR"]->getGlobalComPosition(frame).y());
 
 	Vector3d v = jointMap["Hip"]->getTranslation(frame) + Vector3d(0,-(height-0.035),0);
 

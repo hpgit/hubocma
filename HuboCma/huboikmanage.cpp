@@ -80,28 +80,28 @@ void HuboIkManage::on_solveAllBtn_clicked()
 
 void HuboIkManage::on_backupBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	data->backUpMotion(data->getCurrentFrame());
 	viewer->glWidget->updateGL();
 }
 
 void HuboIkManage::on_initBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	data->copyOneMotion(viewer->refer, data->getCurrentFrame(), data->getCurrentFrame());
 	viewer->glWidget->updateGL();
 }
 
 void HuboIkManage::on_initAllBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	data->copyAllMotion(viewer->refer);
 	viewer->glWidget->updateGL();
 }
 
 void HuboIkManage::on_propagateBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	int begin = ui->beginFrameEdit->toPlainText().toInt();
 	int end = ui->endFrameEdit->toPlainText().toInt();
 
@@ -110,13 +110,13 @@ void HuboIkManage::on_propagateBtn_clicked()
 
 void HuboIkManage::on_saveBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	QString filename = QFileDialog::getSaveFileName();
 	data->save(filename.toStdString().data(), 0);
 }
 
 void HuboIkManage::on_applyBtn_clicked()
 {
-	HuboMotionData *data = viewer->hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = viewer->hubo->getHuboMotion();
 	viewer->refer->copyAllMotion(data);
 }

@@ -24,14 +24,14 @@ HuboInteractBalanceViewer::~HuboInteractBalanceViewer()
 	delete ui;
 }
 
-void HuboInteractBalanceViewer::initCont(HuboVpController *_hubo)
+void HuboInteractBalanceViewer::initCont(HuboGearController *_hubo)
 {
 	hubo = _hubo;
 	glWidget = new HuboVpGlWidget(this);
 
 	glWidget->cont = _hubo;
 	//glWidget->pHuboMotion = _hubo->huboVpBody->pHuboMotion;
-	glWidget->cont->huboVpBody->pHuboMotion->setOBJon();
+	glWidget->cont->getHuboMotion()->setOBJon();
 
 	_manager->initTimer();
 

@@ -1,6 +1,6 @@
 #include "HuboGearBody.h"
 #include "HpMotionMath.h"
-
+#include <float.h>
 HuboGearBody::HuboGearBody()
 {
 	grfKs = 75000.;
@@ -21,20 +21,6 @@ HuboGearBody::~HuboGearBody()
 	//	delete bodyGeoms.at(i);
 	for(int i=0; i<joints.size(); i++)
 		delete joints.at(i);
-}
-
-void HuboGearBody::ignoreVpHuboBodyCollision(vpWorld *pWorld)
-{
-	for(int i=0; i<bodies.size(); i++)
-		for(int j=0; j<i; j++)
-			pWorld->IgnoreCollision(bodies.at(i), bodies.at(j));
-			
-}
-
-void HuboGearBody::ignoreVpGroundBodyCollision(vpWorld *pWorld, vpBody *pGround)
-{
-	for(int i=0; i<bodies.size(); i++)
-		pWorld->IgnoreCollision(bodies.at(i), pGround);
 }
 
 void HuboGearBody::initBody()
@@ -89,6 +75,7 @@ void HuboGearBody::initJoint()
 {
 	for(int i=0; i<joints.size(); i++)
 		delete joints.at(i);
+	Root = new GJointFree;
 	WST = new GJointRevolute;
 	NKY = new GJointRevolute;
 	RSP = new GJointRevolute;
@@ -182,7 +169,8 @@ void HuboGearBody::setInitBodyJoint(
 	SE3 TLinkCom = SE3();
 
 	pBody->setMass(M, Ixx, Iyy, Izz, Ixy, Ixz, Iyz, TLinkCom);
-	pJoint->setPrescribed(false);
+	if(pJoint != NULL)
+		pJoint->setPrescribed(false);
 }
 
 //not yet
@@ -204,9 +192,9 @@ void HuboGearBody::create(GSystem *pWorld, HuboMotionData *pHuboImporter)
 	this->pHuboMotion = pHuboImporter;
 	std::map<std::string, Joint*> &huboJointMap = pHuboImporter->jointMap;
 	//pIKSolver = new IKSolver(pHuboImporter);
-
-	scalar Hubo_elasticity = 1;
-	scalar Hubo_damping = 2;
+	
+	gReal Hubo_elasticity = 1;
+	gReal Hubo_damping = 2;
 		
 	//vpMaterial::GetDefaultMaterial()->SetRestitution(0.01);
 	//vpMaterial::GetDefaultMaterial()->SetDynamicFriction(1);
@@ -445,12 +433,13 @@ void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround, double timestep)
 	//	grfKs, grfDs, mu
 	//	);
 
-	calcPenaltyForce(
-		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
-		grfKs, grfDs, mu,
-		timestep
-		);
-	applyPenaltyForce(collideBodies,positionsLocal, forces);
+	//TODO:
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
+	//	grfKs, grfDs, mu,
+	//	timestep
+	//	);
+	//applyPenaltyForce(collideBodies,positionsLocal, forces);
 	
 	pWorld->stepSimulation(timestep);
 	pWorld->initBodyForcesAndJointTorques();
@@ -459,10 +448,10 @@ void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround, double timestep)
 void HuboGearBody::drawBodyBoundingBox(GBody *body)
 {
 	Vec3 s = vectorToVec3(vpBodytohuboParentJointmap[body]->BBsizev);
-	double data[16], data_temp[16];
+	gReal data[16];
 
 	glPushMatrix();
-	body->getPoseGlobal().ToArray(data_temp);
+	gReal *data_temp = body->getPoseGlobal().GetArray();
 	for(int i=0; i<4; i++)
 		for(int j=0; j<4; j++)
 			data[4*i+j] = data_temp[4*j+i];
@@ -529,12 +518,11 @@ void HuboGearBody::applyAllJointValueVptoHubo()
 	std::map<string, Joint*> &hubojoints = pHuboMotion->jointMap;
 
 	Eigen::Affine3d m;
-	double mat[16];
 	Vector3d bspos = hubojoints["Hip"]->BSpos;
 	Quaterniond q;
 	Quaterniond q_position(0, bspos.x(), bspos.y(), bspos.z());
 	
-	Hip->getPoseGlobal().ToArray<double>(mat);
+	gReal *mat = Hip->getPoseGlobal().GetArray();
 	for(int i=0; i<16; i++)
 		m(i%4, i/4) = mat[i];
 	q = Quaterniond(m.rotation());
@@ -661,7 +649,6 @@ void HuboGearBody::applyAllJointTorque(
 	LAR->set_tau(tLAR);	
 }
 
-//not yet
 void HuboGearBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 {
 	Eigen::Vector3d pos = refer->getHipJointGlobalPositionInTime(0) + Eigen::Vector3d(0, 0.03, 0);
@@ -676,8 +663,13 @@ void HuboGearBody::setInitialHuboHipFromMotion(HuboMotionData *refer)
 	for(int i=0; i<16; i++)
 		mat[i] = m(i%4, i/4);
 
-	SE3 T(mat);
+	SE3 T(mat), invT, identity;
+	invT.SetInvOf(T);
+	identity.SetIdentity();
+
 	//TODO:
+	//is it correct?
+	Root->setPositionAndOrientation(identity, invT);
 	//Hip->setSetFrame(T);
 }
 void HuboGearBody::setInitialHuboAngleFromMotion(HuboMotionData *refer)
@@ -711,16 +703,19 @@ void HuboGearBody::getHuboLimit(int minOrMax, std::vector<double> &bound)
 		bound.push_back(vptohuboJointmap[joints.at(i)]->constraintAngle[minOrMax]);
 }
 
-static int getFootSupVertices(
-	vpBox *pBox, 
+int HuboGearBody::getFootSupVertices(
+	GBody *pBody, 
 	std::vector<Vec3> &verticesLocal, 
 	std::vector<Vec3> &verticesGlobal
 	)
 {
-	Vec3 size = pBox->GetHalfSize();
-	SE3 frame = pBox->GetGlobalFrame();
-	const double groundHeight = 0.00;
+	Joint *hubojoint = vpBodytohuboParentJointmap[pBody];
+	//Vec3 size = pBox->GetHalfSize();
+	Eigen::Vector3d vSize = hubojoint->BBsizev / 2;
+	Vec3 size = vectorToVec3(vSize);
+	SE3 frame = pBody->getPoseGlobal();
 	Vec3 temp;
+	const double groundHeight = 0.00;
 	{
 		temp = Vec3(size[0], -size[1], size[2]);
 		if ((frame*temp)[1] < groundHeight)
@@ -757,8 +752,8 @@ Vector3d HuboGearBody::getSupportRegionCenter()
 	int num = 0;
 	std::vector<Vec3>verticesLocal;
 	std::vector<Vec3>verticesGlobal;
-	getFootSupVertices((vpBox*)Foot[RIGHT]->GetGeometry(0), verticesLocal, verticesGlobal);
-	getFootSupVertices((vpBox*)Foot[LEFT]->GetGeometry(0), verticesLocal, verticesGlobal);
+	getFootSupVertices(Foot[RIGHT], verticesLocal, verticesGlobal);
+	getFootSupVertices(Foot[LEFT], verticesLocal, verticesGlobal);
 	
 	Vector3d sup(0, 0, 0);
 
@@ -786,11 +781,10 @@ Vector3d HuboGearBody::getSupportRegionCenter()
 
 Vector3d HuboGearBody::getVpHipRotationalJointPosition()
 {
-	double mat[16];
 	Eigen::Affine3d m;
 	m.setIdentity();
 
-	Hip->getPoseGlobal().ToArray(mat);
+	gReal *mat = Hip->getPoseGlobal().GetArray();
 	for(int i=0; i<16; i++)
 		m(i%4, i/4) = mat[i];
 	Quaterniond q = Quaterniond(m.rotation());
@@ -801,11 +795,10 @@ Vector3d HuboGearBody::getVpHipRotationalJointPosition()
 
 Vector3d HuboGearBody::getVpJointPosition(GJointRevolute *joint)
 {
-	double mat[16];
 	Eigen::Affine3d m;
 	m.setIdentity();
 
-	vpJointtoBodymap[joint]->getPoseGlobal().ToArray(mat);
+	gReal *mat = vpJointtoBodymap[joint]->getPoseGlobal().GetArray();
 	for(int i=0; i<16; i++)
 		m(i%4, i/4) = mat[i];
 	Quaterniond q = Quaterniond(m.rotation());
@@ -816,11 +809,10 @@ Vector3d HuboGearBody::getVpJointPosition(GJointRevolute *joint)
 
 Vector3d HuboGearBody::getVpJointAxis(GJointRevolute *joint)
 {
-	double mat[16];
 	Eigen::Affine3d m;
 	m.setIdentity();
 
-	vpJointtoBodymap[joint]->getPoseGlobal().ToArray(mat);
+	gReal *mat = vpJointtoBodymap[joint]->getPoseGlobal().GetArray();
 	for(int i=0; i<16; i++)
 		m(i%4, i/4) = mat[i];
 	Quaterniond q = Quaterniond(m.rotation());
@@ -986,9 +978,8 @@ void HuboGearBody::getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori
 
 Quaterniond HuboGearBody::getOrientation(GBody *pBody)
 {
-	double mat[16];
 	Eigen::Affine3d m;
-	pBody->getPoseGlobal().ToArray(mat);
+	gReal *mat = pBody->getPoseGlobal().GetArray();
 	for (int i = 0; i <16; i++)
 		m(i%4, i/4) = mat[i];
 
@@ -1087,15 +1078,17 @@ Vector3d HuboGearBody::getFootPenaltyPosition(int LEFTorRIGHT, double &retmoment
 	return p;
 }
 
-//not yet
-static void getVertices(
-	vpBox *pBox, 
+void HuboGearBody::getVertices(
+	GBody *pBody, 
 	std::vector<Vec3> &verticesLocal, 
 	std::vector<Vec3> &verticesGlobal
 	)
 {
-	Vec3 size = pBox->GetHalfSize();
-	SE3 frame = pBox->GetGlobalFrame();
+	Joint *hubojoint = vpBodytohuboParentJointmap[pBody];
+	//Vec3 size = pBox->GetHalfSize();
+	Eigen::Vector3d vSize = hubojoint->BBsizev / 2;
+	Vec3 size = vectorToVec3(vSize);
+	SE3 frame = pBody->getPoseGlobal();
 	Vec3 temp;
 	{
 		temp = Vec3(size[0], size[1], size[2]);
@@ -1137,7 +1130,6 @@ void HuboGearBody::calcPenaltyForce(
 	)
 {
 	GBody* pBody;
-	vpBox* pBox;
 	Vec3 position, velocity, force, positionLocal;
 
 	std::vector<Vec3> verticesLocal;
@@ -1147,28 +1139,23 @@ void HuboGearBody::calcPenaltyForce(
 	{
 		pBody = checkBodies.at(i);
 
-		for(int j=0; j < pBody->GetNumGeometry(); ++j)
+		verticesLocal.clear();
+		verticesGlobal.clear();
+		getVertices(pBody, verticesLocal, verticesGlobal);
+
+		for (int k = 0; k < verticesLocal.size(); ++k)
 		{
-			pBox = (vpBox*)pBody->GetGeometry(j);
+			positionLocal = verticesLocal[k];
+			position = verticesGlobal[k];
+			velocity = pBody->getVelocityLinearGlobal(positionLocal);
 
-			verticesLocal.clear();
-			verticesGlobal.clear();
-			getVertices(pBox, verticesLocal, verticesGlobal);
-
-			for(int k=0; k<verticesLocal.size(); ++k)
+			bool penentrated = _calcPenaltyForce(pWorld, pBody, position, velocity, force, ks, ds, mu, timestep);
+			if (penentrated)
 			{
-				positionLocal = verticesLocal[k];
-				position = verticesGlobal[k];
-				velocity = pBody->GetLinVelocity(positionLocal);
-
-				bool penentrated = _calcPenaltyForce(pWorld, pBody, position, velocity, force, ks, ds, mu, timestep);
-				if(penentrated)
-				{
-					collideBodies.push_back(checkBodies.at(i));
-					forces.push_back(force);
-					positions.push_back(position);
-					positionLocals.push_back(positionLocal);
-				}
+				collideBodies.push_back(checkBodies.at(i));
+				forces.push_back(force);
+				positions.push_back(position);
+				positionLocals.push_back(positionLocal);
 			}
 		}
 	}
@@ -1182,10 +1169,10 @@ bool HuboGearBody::_calcPenaltyForce(
 	) 
 {
 	static Vec3 vRelVel, vNormalRelVel, vTangentialRelVel;
-	static scalar normalRelVel, tangentialRelVel;
+	static gReal normalRelVel, tangentialRelVel;
 	static const Vec3 vNormal(0,1,0);
 	static Vec3 vNormalForce, vFrictionForce;
-	scalar normalForce=0., frictionForce=0.;
+	gReal normalForce=0., frictionForce=0.;
 	double _lockingVel = 0.05;
 	double _planeHeight = 0.0;
 
@@ -1235,7 +1222,7 @@ bool HuboGearBody::_calcPenaltyForce(
 			frictionForce *= tangentialRelVel / _lockingVel;
 			*/
 
-		vFrictionForce = frictionForce * -Normalize(vTangentialRelVel);
+		vFrictionForce = frictionForce * -vectorToVec3(Vec3Tovector(vTangentialRelVel).normalized());
 
 		force = vNormalForce + vFrictionForce;
 
@@ -1256,53 +1243,48 @@ void HuboGearBody::calcPenaltyForceBoxGround(
 	double timestep
 	)
 {
-	//bp::list bodyIDs, positions, forces, positionLocals;
-	//static numeric::array O_Vec3(make_tuple(0.,0.,0.));
-	GBody* pBody;
-	vpBox* pBox;
-	char type;
-	scalar data[3];
-	Vec3 position, velocity, force, positionLocal;
-
-	// if you want consider multiple contact objects,
-	// make list for boxSize and boxFrame
-	pGround->GetGeometry(0)->GetShape(&type, data);
-	Vec3 boxSize(data);
-	SE3 boxFrame = pGround->GetGeometry(0)->GetGlobalFrame();
-
-	std::vector<Vec3> verticesLocal;
-	std::vector<Vec3> verticesGlobal; 
-
-	for(int i=0; i<checkBodies.size(); ++i)
-	{
-		pBody = checkBodies.at(i);
-
-		for(int j=0; j<pBody->GetNumGeometry(); ++j)
-		{
-			pBox = (vpBox*)pBody->GetGeometry(j);
-
-			verticesGlobal.clear();
-			verticesLocal.clear();
-			getVertices(pBox, verticesLocal, verticesGlobal);
-
-			for(int k=0; k<verticesLocal.size(); ++k)
-			{
-				positionLocal = verticesLocal[k];
-				position = verticesGlobal[k];
-				velocity = pBody->GetLinVelocity(positionLocal);
-
-				bool penentrated = _calcPenaltyForceBoxGround(boxSize, boxFrame, pBody, position, velocity, force, ks, ds, mu);
-				if(penentrated)
-				{
-					collideBodies.push_back(checkBodies.at(i));
-					forces.push_back(force);
-					positions.push_back(position);
-					positionLocals.push_back(positionLocal);
-				}
-			}
-		}
-	}
-
+//	//bp::list bodyIDs, positions, forces, positionLocals;
+//	//static numeric::array O_Vec3(make_tuple(0.,0.,0.));
+//	GBody* pBody;
+//	char type;
+//	scalar data[3];
+//	Vec3 position, velocity, force, positionLocal;
+//
+//	// if you want consider multiple contact objects,
+//	// make list for boxSize and boxFrame
+//	pGround->GetGeometry(0)->GetShape(&type, data);
+//	Vec3 boxSize(data);
+//	SE3 boxFrame = pGround->GetGeometry(0)->GetGlobalFrame();
+//
+//	std::vector<Vec3> verticesLocal;
+//	std::vector<Vec3> verticesGlobal; 
+//
+//	for(int i=0; i<checkBodies.size(); ++i)
+//	{
+//		pBody = checkBodies.at(i);
+//
+//
+//		verticesGlobal.clear();
+//		verticesLocal.clear();
+//		getVertices(pBody, verticesLocal, verticesGlobal);
+//
+//		for (int k = 0; k < verticesLocal.size(); ++k)
+//		{
+//			positionLocal = verticesLocal[k];
+//			position = verticesGlobal[k];
+//			velocity = pBody->getVelocityLinearGlobal(positionLocal);
+//
+//			bool penentrated = _calcPenaltyForceBoxGround(boxSize, boxFrame, pBody, position, velocity, force, ks, ds, mu);
+//			if (penentrated)
+//			{
+//				collideBodies.push_back(checkBodies.at(i));
+//				forces.push_back(force);
+//				positions.push_back(position);
+//				positionLocals.push_back(positionLocal);
+//			}
+//		}
+//	}
+//
 	return ;
 }
 
@@ -1314,10 +1296,10 @@ bool HuboGearBody::_calcPenaltyForceBoxGround(
 	)
 {
 	static Vec3 vRelVel, vNormalRelVel, vTangentialRelVel;
-	static scalar normalRelVel, tangentialRelVel;
+	static gReal normalRelVel, tangentialRelVel;
 	static const Vec3 vNormal(0,1,0);
 	static Vec3 vNormalForce, vFrictionForce;
-	scalar normalForce=0., frictionForce=0.;
+	gReal normalForce=0., frictionForce=0.;
 
 	//
 	double _lockingVel = 0.05;
@@ -1325,7 +1307,7 @@ bool HuboGearBody::_calcPenaltyForceBoxGround(
 	static Vec3 position_moved, velocity_moved, force_moved;
 	static const Vec3 vZero(0,0,0);
 	SE3 boxR;
-	scalar boxHeight;
+	gReal boxHeight;
 
 	boxHeight = boxSize[1]/2.;
 	position_moved = Inv(boxFrame) * position;
@@ -1361,7 +1343,8 @@ bool HuboGearBody::_calcPenaltyForceBoxGround(
 		if(tangentialRelVel < _lockingVel) 
 			frictionForce *= tangentialRelVel/_lockingVel;
 
-		vFrictionForce = frictionForce * -Normalize(vTangentialRelVel);
+		vFrictionForce = frictionForce * -vectorToVec3(Vec3Tovector(vTangentialRelVel).normalized());
+		//vFrictionForce = frictionForce * -Normalize(vTangentialRelVel);
 
 		force_moved = vNormalForce + vFrictionForce;
 		force = boxFrame * force_moved;

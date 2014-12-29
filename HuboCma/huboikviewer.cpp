@@ -18,7 +18,7 @@ void HuboIkViewer::setReferMotion(HuboMotionData *_refer)
 
 void HuboIkViewer::rFoot()
 {
-	HuboMotionData *data = hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = hubo->getHuboMotion();
 	IKSolver *ik = new IKSolver(data);
 
 	Eigen::Vector3d p = refer->jointMap["RAR"]->getGlobalBoundingBoxPosition(data->getCurrentFrame()) + Vector3d(0,0.1,0);
@@ -41,7 +41,7 @@ void HuboIkViewer::rFoot()
 void HuboIkViewer::solve(std::string name, Eigen::Vector3d &dpos, bool parallel,
 	int maxIter, double ikEps, double weightPos, double weightAng, double stepSize)
 {
-	HuboMotionData *data = hubo->huboVpBody->pHuboMotion;
+	HuboMotionData *data = hubo->getHuboMotion();
 	IKSolver *ik = new IKSolver(data);
 
 	Eigen::Vector3d p = refer->jointMap[name]->getGlobalBoundingBoxPosition(data->getCurrentFrame()) + dpos;

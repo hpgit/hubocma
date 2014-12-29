@@ -1,4 +1,5 @@
 #include "HpMotionMath.h"
+#include <float.h>
 
 //HuboVPBody.cpp
 Vec3 vectorToVec3(const Eigen::Vector3d &v)

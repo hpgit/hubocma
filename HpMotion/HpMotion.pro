@@ -15,8 +15,8 @@ SOURCES += \
     BVHMotionData.cpp \
     HpMotionMath.cpp \
     HuboMotionData.cpp \
-    HuboVPBody.cpp \
-    HuboVpController.cpp \
+#    HuboVPBody.cpp \
+#    HuboVpController.cpp \
     IKSolver.cpp \
     Joint.cpp \
     Motion.cpp \
@@ -29,8 +29,8 @@ HEADERS += \
     BVHMotionData.h \
     HpMotionMath.h \
     HuboMotionData.h \
-    HuboVPBody.h \
-    HuboVpController.h \
+#    HuboVPBody.h \
+#    HuboVpController.h \
     IKSolver.h \
     Joint.h \
     Motion.h \

@@ -72,8 +72,8 @@ public:
 	void drawBodyBoundingBox(GBody *body);
 	void drawAllBoundingBox();
 
-	void ignoreVpHuboBodyCollision(GSystem *pWorld);
-	void ignoreVpGroundBodyCollision(GSystem *pWorld, GBody *pGround);
+	//void ignoreVpHuboBodyCollision(GSystem *pWorld);
+	//void ignoreVpGroundBodyCollision(GSystem *pWorld, GBody *pGround);
 	void getAllJointTorque(Eigen::VectorXd &torque);
 	void applyAllJointValueVptoHubo();
 	void applyAddAllBodyForce(Eigen::VectorXd &force);
@@ -96,6 +96,11 @@ public:
 	
 	void getHuboLimit(int minOrMax, std::vector<double> &bound);//min :0, max : 1
 	HuboMotionData *getHuboImporter();
+	int getFootSupVertices(
+		GBody *pBody,
+		std::vector<Vec3> &verticesLocal,
+		std::vector<Vec3> &verticesGlobal
+		);
 	Vector3d getSupportRegionCenter();
 	Vector3d getVpHipRotationalJointPosition();
 	Vector3d getVpJointPosition(GJointRevolute *joint);
@@ -117,6 +122,12 @@ public:
 
 	void getFootPoints(int LEFTorRIGHT, std::vector<Vector3d, aligned_allocator<Vector3d> > &points);
 	Vector3d getFootPenaltyPosition(int LEFTorRIGHT, double &retmomentsum);
+
+	void getVertices(
+		GBody *pBody,
+		std::vector<Vec3> &verticesLocal,
+		std::vector<Vec3> &verticesGlobal
+		);
 
 	void calcPenaltyForce(
 		GSystem *pWorld, GBody* pGround,

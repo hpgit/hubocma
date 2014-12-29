@@ -62,6 +62,7 @@ public:
 	void init();
 	void initController();
 	void getConstants(char* filename);
+	HuboMotionData *getHuboMotion(){ return huboGearBody->pHuboMotion; }
 
 	void setTimeStep(double _timestep);
 	double getTimeStep();

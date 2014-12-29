@@ -35,9 +35,9 @@ void HuboMainController::on_loadReferBtn_clicked()
 	//QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
 	if (filename.length() > 0)
 	{
-		huboRefer = new HuboVpController;
+		huboRefer = new HuboGearController;
 		huboRefer->initController();
-		huboRefer->huboVpBody->pHuboMotion->import(filename.toStdString().data(), 0);
+		huboRefer->getHuboMotion()->import(filename.toStdString().data(), 0);
 		//if(filename1.length() > 0)
 		//	huboRefer->huboVpBody->pHuboMotion->importContactPeriodAnnotation(filename1.toStdString().data(), 0);
 		HuboReferViewer *win = new HuboReferViewer;
@@ -51,13 +51,13 @@ void HuboMainController::on_ikDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboIk = new HuboVpController;
+		huboIk = new HuboGearController;
 		huboIk->initController();
-		huboIk->huboVpBody->pHuboMotion->copyAllMotion(huboRefer->huboVpBody->pHuboMotion);
+		huboIk->getHuboMotion()->copyAllMotion(huboRefer->getHuboMotion());
 		HuboIkViewer *win = new HuboIkViewer;
 		win->setWindowTitle(QString("Hubo IK Viewer"));
 		win->initCont(huboIk);
-		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->setReferMotion(huboRefer->getHuboMotion());
 		win->show();
 	}
 }
@@ -66,12 +66,12 @@ void HuboMainController::on_cmaDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboCma = new HuboVpController;
+		huboCma = new HuboGearController;
 		huboCma->initController();
 		HuboTrackingViewer *win = new HuboTrackingViewer;
 		win->setWindowTitle(QString("Hubo Tracking Viewer"));
 		win->initCont(huboCma);
-		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->setReferMotion(huboRefer->getHuboMotion());
 		win->show();
 	}
 }
@@ -80,12 +80,12 @@ void HuboMainController::on_balanceDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboBalance = new HuboVpController;
+		huboBalance = new HuboGearController;
 		huboBalance->initController();
 		HuboBalanceViewer *win = new HuboBalanceViewer;
 		win->setWindowTitle(QString("Hubo Balance Viewer"));
 		win->initCont(huboBalance);
-		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->setReferMotion(huboRefer->getHuboMotion());
 		win->show();
 	}
 }
@@ -93,13 +93,13 @@ void HuboMainController::on_interBalanceDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboInterBalance = new HuboVpController;
+		huboInterBalance = new HuboGearController;
 		huboInterBalance->initController();
-		huboInterBalance->huboVpBody->pHuboMotion->setMotionSize(1);
+		huboInterBalance->getHuboMotion()->setMotionSize(1);
 		HuboInteractBalanceViewer *win = new HuboInteractBalanceViewer;
 		win->setWindowTitle(QString("Hubo Interactive Balance Viewer"));
 		win->initCont(huboInterBalance);
-		win->setReferMotion(huboRefer->huboVpBody->pHuboMotion);
+		win->setReferMotion(huboRefer->getHuboMotion());
 		win->show();
 	}
 }

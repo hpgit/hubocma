@@ -18,14 +18,14 @@ public:
 	explicit HuboInteractBalanceViewer(QWidget *parent = 0);
 	~HuboInteractBalanceViewer();
 
-	void initCont(HuboVpController *_hubo);
+	void initCont(HuboGearController *_hubo);
 
 	void resizeEvent(QResizeEvent *);
 	void adjustHuboMotionToViewer();
 
 	QTimer			*displayTimer;
 	HuboVpGlWidget	*glWidget;
-	HuboVpController *hubo;
+	HuboGearController *hubo;
 	HuboMotionData *refer;
 	int playing;
 	void setReferMotion(HuboMotionData *refer);

@@ -713,18 +713,6 @@ inline void iQuat(const SO3 &R, gReal *quat)
 	}
 }
 
-inline bool isSO3(gReal *R, gReal eps)
-{
-	if (fabs(R[0]*R[1] + R[3]*R[4] + R[6]*R[7]) > eps) return false;
-	if (fabs(R[0]*R[2] + R[3]*R[5] + R[6]*R[8]) > eps) return false;
-	if (fabs(R[1]*R[2] + R[4]*R[5] + R[7]*R[8]) > eps) return false;
-	if (fabs(R[0]*R[0] + R[3]*R[3] + R[6]*R[6] - 1) > eps) return false;
-	if (fabs(R[1]*R[1] + R[4]*R[4] + R[7]*R[7] - 1) > eps) return false;
-	if (fabs(R[2]*R[2] + R[5]*R[5] + R[8]*R[8] - 1) > eps) return false;
-	if (fabs(R[0]*R[4]*R[8] + R[3]*R[7]*R[2] + R[6]*R[1]*R[5] - R[0]*R[7]*R[5] - R[3]*R[1]*R[8] - R[6]*R[4]*R[2] -1) > eps) return false;
-	return true;
-}
-
 inline SO3 GetRotationWithZAxis(Vec3 axis)
 {
 	Vec3 z(0,0,1);

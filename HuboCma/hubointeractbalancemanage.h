@@ -36,6 +36,8 @@ private slots:
 
 	void on_pushBtn_clicked();
 
+	void on_stepBtn_clicked();
+
 private:
 	Ui::HuboInteractBalanceManage *ui;
 

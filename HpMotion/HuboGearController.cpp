@@ -1,9 +1,6 @@
 #include "HuboGearController.h"
 #include "HpMotionMath.h"
-
-HuboGearController::HuboGearController()
-{
-}
+#include <float.h>
 
 HuboGearController::~HuboGearController()
 {
@@ -244,7 +241,6 @@ void HuboGearController::initController(void)
 	if(ground)
 		delete ground;
 	ground = new GBody;
-	//world->buildSystem(ground);
 
 	if(huboGearBody)
 		delete huboGearBody;
@@ -261,13 +257,17 @@ void HuboGearController::initController(void)
 	huboGearBody->mu = mu;
 	huboGearBody->grfDs = grfDs;
 	huboGearBody->grfKs = grfKs;
-	huboGearBody->ignoreVpHuboBodyCollision(world);
-	if(manualContactForces)
-		huboGearBody->ignoreVpGroundBodyCollision(world, ground);
+	//huboGearBody->ignoreVpHuboBodyCollision(world);
+	//if(manualContactForces)
+	//	huboGearBody->ignoreVpGroundBodyCollision(world, ground);
 
 	//TODO:
 	//set hip state correctly
-	//huboGearBody->root->blabla
+	SE3 groundToRoot, hipToRoot;
+	huboGearBody->Root->connectBodies(ground, huboGearBody->Hip);
+	huboGearBody->Root->setName(std::string("Root"));
+	huboGearBody->Root->setPrescribed(false);
+	huboGearBody->Root->setPositionAndOrientation(groundToRoot, hipToRoot);
 	/*
 	huboGearBody->Hip->SetFrame(
 		Vec3(huboMotion->jointMap["Hip"]->getGlobalPosition(frame).data())
@@ -277,6 +277,7 @@ void HuboGearController::initController(void)
 		);
 		*/
 	
+	world->buildSystem(ground);
 	world->initBodyForcesAndJointTorques();
 }
 

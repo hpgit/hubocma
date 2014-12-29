@@ -7,7 +7,8 @@
 #endif
 
 #include <QMainWindow>
-#include <HuboVpController.h>
+//#include <HuboVpController.h>
+#include <HuboGearController.h>
 
 namespace Ui {
 class HuboMainController;
@@ -20,7 +21,7 @@ class HuboMainController : public QMainWindow
 public:
     explicit HuboMainController(QWidget *parent = 0);
     ~HuboMainController();
-	HuboVpController *huboRefer, *huboIk, *huboCma, *huboBalance, *huboInterBalance;
+	HuboGearController *huboRefer, *huboIk, *huboCma, *huboBalance, *huboInterBalance;
 
 private slots:
     void on_loadReferBtn_clicked();

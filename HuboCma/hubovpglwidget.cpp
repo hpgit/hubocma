@@ -38,8 +38,8 @@ void HuboVpGlWidget::paintGL()
 	glEnable(GL_LIGHTING);
 	if(cont != NULL)
 	{
-		HuboMotionData *pHuboMotion = cont->huboVpBody->pHuboMotion;
-		cont->huboVpBody->applyAllJointValueVptoHubo();
+		HuboMotionData *pHuboMotion = cont->getHuboMotion();
+		cont->huboGearBody->applyAllJointValueVptoHubo();
 		//pHuboMotion->draw(frame);
 		pHuboMotion->drawBox();
 		if(forceDraw)
@@ -58,13 +58,13 @@ void HuboVpGlWidget::paintGL()
 		glBegin(GL_POINTS);
 			glColor3f(1,0,0);
 			//Eigen::Vector3d com = pHuboMotion->getHuboComGlobalPosition();
-			Eigen::Vector3d com = cont->huboVpBody->getCOMposition();
+			Eigen::Vector3d com = cont->huboGearBody->getCOMposition();
 			glVertex3dv(com.data());
 			//com.y() = 0;
 			glVertex3dv(com.data());
 			glColor3f(0,0,1);
 			//glVertex3dv(pHuboMotion->getFootCenter().data());
-			glVertex3dv(cont->huboVpBody->getSupportRegionCenter().data());
+			glVertex3dv(cont->huboGearBody->getSupportRegionCenter().data());
 		glEnd();
 
 
