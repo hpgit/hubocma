@@ -3,8 +3,8 @@
 
 #include <motionglwidget.h>
 #include <HuboMotionData.h>
-//#include <HuboVpController.h>
-#include <HuboGearController.h>
+#include <HuboVpController.h>
+//#include <HuboGearController.h>
 
 class HuboGlWidget : public MotionGlWidget
 {
@@ -12,7 +12,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     HuboGlWidget(QWidget *parent = 0);
     HuboMotionData *pHuboMotion;
-	HuboGearController *cont;
+	HuboVpController *cont;
     int isAutoRepeat;
     int playing;
 

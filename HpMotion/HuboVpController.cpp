@@ -783,15 +783,13 @@ void HuboVpController::balanceQP(
 	double weightTrack, double weightTrackUpper
 	)
 {
-	// TODO:
-	// get M, C, g matrices
-
-	//Eigen::MatrixXd M;
-	Eigen::VectorXd C, g;
+	Eigen::MatrixXd Mass;
+	Eigen::VectorXd b;
+	huboVpBody->getEquationsOfMotion(world, Mass, b);
 
 	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
 
-	//[Macchietto 2009]
+	//[Macchietto 2009] for momentum term
 	Eigen::MatrixXd M, dM, J, dJ, Jsup, dJsup;
 	huboVpBody->getJacobian(J, 1);
 	huboVpBody->getLinkMatrix(M);
@@ -811,15 +809,12 @@ void HuboVpController::balanceQP(
 	dofVels.segment(0, 3) = Vec3Tovector(rootVel);
 	dofVels.segment(3, 3) = Vec3Tovector(rootAngVel);
 	dofVels.tail(26) = angVels;
-	//std::cout << "dofVels: " << dofVels.transpose() << std::endl;
 
 	Eigen::MatrixXd RS = M*J;
 	Eigen::MatrixXd R = RS.block(0, 0, 3, 32);
 	Eigen::MatrixXd S = RS.block(3, 0, 3, 32);
 
 	Eigen::VectorXd rs = (dM*J+M*dJ)*dofVels;
-	//std::cout << "rs: " << rs.transpose() << std::endl;
-
 	Eigen::Vector3d rbias = rs.head(3);
 	Eigen::Vector3d sbias = rs.tail(3);
 
@@ -834,28 +829,21 @@ void HuboVpController::balanceQP(
 	comPlane.y() = 0;
 	//std::cout << supCenter.transpose() <<std::endl;
 
-	Eigen::Vector3d comVel = (M*J*dofVels).head(3);
+	//Eigen::Vector3d comVel = (M*J*dofVels).head(3);
 
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
 		kl * (supCenter - comPlane)
-		//- dl * huboVpBody->getCOMvelocity()
-		- dl * comVel
+		- dl * huboVpBody->getCOMvelocity()
+		//- dl * comVel
 			);
 	LdotDes.y() = 0;
-	//std::cout << supCenter.transpose() << std::endl;
-	//std::cout << "kl term: " << (supCenter-comPlane).transpose()
-	//		  << ", com velocity : " << huboVpBody->getCOMvelocity().transpose()
-	//		  << ",  LdotDes: " << LdotDes.transpose()
-	//		  << std::endl;
 
 	//HdotDes
 	//cpBeforeOneStep is calculated in stepAheadWithPenaltyForces()
 	Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
 	Eigen::Vector3d cpOld = this->cpBeforeOneStep;
 	int bCalCP = 1;
-
-	//std::cout << "cp: " <<cp.transpose() << std::endl;
 
 	cpOld = this->cpBeforeOneStep;
 	//TODO : when cp.y() < 0
@@ -876,7 +864,6 @@ void HuboVpController::balanceQP(
 		pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
 		HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
 	}
-	//std::cout << "HdotDes: " << HdotDes.transpose() << std::endl;
 
 	// tracking term
 	Eigen::VectorXd desDofAccel;
@@ -916,9 +903,6 @@ void HuboVpController::balanceQP(
 		desDofAccel.head(3) = hipDesAccel;
 		desDofAccel.segment(3,3) = hipDesAngAccel;
 		desDofAccel.tail(26) = desAccel;
-
-		//std::cout << "desAccel :" << desDofAccel.transpose() << std::endl;
-		//std::cout << "desHipAccel :" << hipDesAccel.transpose() << std::endl;
 	}
 
 	// constraint
@@ -929,7 +913,7 @@ void HuboVpController::balanceQP(
 	// linear equation
 	Eigen::MatrixXd A;
 	Eigen::MatrixXd Wt;
-	Eigen::VectorXd b;
+	Eigen::VectorXd a;
 
 	//A.resize(32, 32);
 	A.resize(32 + Jsup.rows(), 32 + Jsup.rows());
@@ -950,19 +934,19 @@ void HuboVpController::balanceQP(
 		A.block(32, 0, Jsup.rows(), 32) = Jsup;
 	}
 
-	//b.resize(32);
-	b.resize(32+Jsup.rows());
-	b.head(32) = Wt*desDofAccel;
+	//a.resize(32);
+	a.resize(32+Jsup.rows());
+	a.head(32) = Wt*desDofAccel;
 	if(bCalCP)
 	{
-		b.head(32) += (R.transpose() * (LdotDes - rbias));
-		b.head(32) += (S.transpose() * (HdotDes - sbias));
-		b.tail(Jsup.rows()) = -dJsup * dofVels;
+		a.head(32) += (R.transpose() * (LdotDes - rbias));
+		a.head(32) += (S.transpose() * (HdotDes - sbias));
+		a.tail(Jsup.rows()) = -dJsup * dofVels;
 	}
 	//std::cout << "b: " << b.transpose() << std::endl;
 
-	//Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-	Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(b);
+	//Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(a);
+	Eigen::VectorXd ddth = A.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(a);
 	Eigen::Vector3d rootAcc = ddth.head(3);
 	Eigen::Vector3d rootAngAcc = ddth.segment(3, 3);
 	Eigen::VectorXd otherJointDdth = ddth.segment(6, 26);

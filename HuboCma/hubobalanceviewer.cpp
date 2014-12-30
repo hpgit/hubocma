@@ -45,15 +45,15 @@ void HuboBalanceViewer::setBalanceMotion(
 		frameTime = 1.0/frameRate;
 	}
 
-	hubo->huboGearBody->setInitialHuboHipFromMotion(referMotion);
-	hubo->huboGearBody->setInitialHuboAngleFromMotion(referMotion);
-	hubo->huboGearBody->setInitialHuboAngleRateFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
 	if(stepNum == 0)
 		stepNum = totalStep;
 
 	int motionSize = stepNum*hubo->timestep/frameTime;
-	hubo->huboGearBody->pHuboMotion->setMotionSize(motionSize);
+	hubo->huboVpBody->pHuboMotion->setMotionSize(motionSize);
 
 	int j = 0;
 	//for (int i = 0; i < totalStep; i++)
@@ -82,7 +82,7 @@ void HuboBalanceViewer::setBalanceMotion(
 		{
 			j++;
 			framestep -= frameTime;
-			hubo->huboGearBody->applyAllJointValueVptoHubo();
+			hubo->huboVpBody->applyAllJointValueVptoHubo();
 			if (hubo->getHuboMotion()->canGoOneFrame())
 				hubo->getHuboMotion()->setCurrentFrame(hubo->getHuboMotion()->getCurrentFrame() + 1);
 		}
@@ -110,7 +110,7 @@ void HuboBalanceViewer::setCmaMotion(
 	hubo->getHuboMotion()->setFrameRate(referMotion->getFrameRate());
 
 	// set hybrid dynamics with floating base
-	hubo->huboGearBody->initHybridDynamics(true);
+	hubo->huboVpBody->initHybridDynamics(true);
 
 	// loop for entire time
 	int totalStep = (int)
@@ -129,9 +129,9 @@ void HuboBalanceViewer::setCmaMotion(
 		hubo->getHuboMotion()->setMotionSize(motionSize);
 	}
 
-	hubo->huboGearBody->setInitialHuboHipFromMotion(referMotion);
-	hubo->huboGearBody->setInitialHuboAngleFromMotion(referMotion);
-	hubo->huboGearBody->setInitialHuboAngleRateFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboHipFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleFromMotion(referMotion);
+	hubo->huboVpBody->setInitialHuboAngleRateFromMotion(referMotion);
 
 	//TOOD:
 	//for debug
@@ -152,7 +152,7 @@ void HuboBalanceViewer::setCmaMotion(
 			weightTrack, weightTrackAnkle, weightTrackUpper
 		);
 
-		hubo->huboGearBody->solveHybridDynamics(hubo->world);
+		hubo->huboVpBody->solveHybridDynamics();
 
 		// go one time step
 		hubo->stepAheadWithPenaltyForces();
@@ -161,7 +161,7 @@ void HuboBalanceViewer::setCmaMotion(
 		if (framestep >= frameTime)
 		{
 			framestep -= frameTime;
-			hubo->huboGearBody->applyAllJointValueVptoHubo();
+			hubo->huboVpBody->applyAllJointValueVptoHubo();
 			if (hubo->getHuboMotion()->canGoOneFrame())
 				hubo->getHuboMotion()->setCurrentFrame(hubo->getHuboMotion()->getCurrentFrame() + 1);
 		}
@@ -174,7 +174,7 @@ void HuboBalanceViewer::setCmaMotion(
 			std::cout << referOri.w() << " " << referOri.x() << " " << referOri.y() << " " << referOri.z() << std::endl;
 			Eigen::Vector3d posV, velV, angVelV;
 			Eigen::Quaterniond oriV;
-			hubo->huboGearBody->getHuboHipState(posV, oriV, velV, angVelV);
+			hubo->huboVpBody->getHuboHipState(posV, oriV, velV, angVelV);
 			std::cout << oriV.w() << " " << oriV.x() << " " << oriV.y() << " " << oriV.z() <<std::endl;
 		}
 

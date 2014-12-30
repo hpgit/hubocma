@@ -71,8 +71,8 @@ LIBS += -L"../../usr/lib" \
         -lboundary_transformation \
         -lcma \
         -lGLU \
-		#-lvpLib
-		-lgear
+		-lvpLib
+		#-lgear
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter

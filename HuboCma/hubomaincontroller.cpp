@@ -35,7 +35,7 @@ void HuboMainController::on_loadReferBtn_clicked()
 	//QString filename1 = QFileDialog::getOpenFileName(this, title1, dir1);
 	if (filename.length() > 0)
 	{
-		huboRefer = new HuboGearController;
+		huboRefer = new HuboVpController;
 		huboRefer->initController();
 		huboRefer->getHuboMotion()->import(filename.toStdString().data(), 0);
 		//if(filename1.length() > 0)
@@ -51,7 +51,7 @@ void HuboMainController::on_ikDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboIk = new HuboGearController;
+		huboIk = new HuboVpController;
 		huboIk->initController();
 		huboIk->getHuboMotion()->copyAllMotion(huboRefer->getHuboMotion());
 		HuboIkViewer *win = new HuboIkViewer;
@@ -66,7 +66,7 @@ void HuboMainController::on_cmaDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboCma = new HuboGearController;
+		huboCma = new HuboVpController;
 		huboCma->initController();
 		HuboTrackingViewer *win = new HuboTrackingViewer;
 		win->setWindowTitle(QString("Hubo Tracking Viewer"));
@@ -80,7 +80,7 @@ void HuboMainController::on_balanceDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboBalance = new HuboGearController;
+		huboBalance = new HuboVpController;
 		huboBalance->initController();
 		HuboBalanceViewer *win = new HuboBalanceViewer;
 		win->setWindowTitle(QString("Hubo Balance Viewer"));
@@ -93,7 +93,7 @@ void HuboMainController::on_interBalanceDlgBtn_clicked()
 {
 	if (huboRefer != 0)
 	{
-		huboInterBalance = new HuboGearController;
+		huboInterBalance = new HuboVpController;
 		huboInterBalance->initController();
 		huboInterBalance->getHuboMotion()->setMotionSize(1);
 		HuboInteractBalanceViewer *win = new HuboInteractBalanceViewer;

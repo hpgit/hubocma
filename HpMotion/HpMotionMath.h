@@ -3,8 +3,8 @@
 #define _HPMOTIONMATH_H_
 
 #include <Eigen/Dense>
-//#include <VP/vphysics.h>
-#include <gear/gear.h>
+#include <VP/vphysics.h>
+//#include <gear/gear.h>
 #include "IKSolver.h"
 
 

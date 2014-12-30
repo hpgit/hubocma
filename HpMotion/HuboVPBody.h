@@ -82,7 +82,6 @@ public:
 
 	void ignoreVpHuboBodyCollision(vpWorld *pWorld);
 	void ignoreVpGroundBodyCollision(vpWorld *pWorld, vpBody *pGround);
-	void getAllJointTorque(Eigen::VectorXd &torque);
 	void applyAllJointValueVptoHubo();
 	void applyAddAllBodyForce(Eigen::VectorXd &force);
 	void applyAllJointTorque(Eigen::VectorXd &torque);
@@ -104,29 +103,34 @@ public:
 	
 	void getHuboLimit(int minOrMax, std::vector<double> &bound);//min :0, max : 1
 	HuboMotionData *getHuboImporter();
-	Vector3d getSupportRegionCenter();
-	Vector3d getVpHipRotationalJointPosition();
-	Vector3d getVpJointPosition(vpRJoint *joint);
-	Vector3d getVpJointAxis(vpRJoint *joint);
-	Vector3d getCOMposition();
-	Vector3d getCOMvelocity();
-	Vector3d getCOPposition(vpWorld *pWorld, vpBody *pGround);
+	Eigen::Vector3d getSupportRegionCenter();
+	Eigen::Vector3d getVpHipRotationalJointPosition();
+	Eigen::Vector3d getVpJointPosition(vpRJoint *joint);
+	Eigen::Vector3d getVpJointAxis(vpRJoint *joint);
+	Eigen::Vector3d getCOMposition();
+	Eigen::Vector3d getCOMvelocity();
+	Eigen::Vector3d getCOPposition(vpWorld *pWorld, vpBody *pGround);
 	Vec3 getCOM();
 	Vec3 getCOMLinvel();
 	Vec3 getCOP(vpWorld *pWorld, vpBody *pGround);
 	int getMainContactFoot(vpWorld *pWorld, vpBody *pGround, double &leftRate, double &rightRate);
-	Vector3d getHipDirection();
+	Eigen::Vector3d getHipDirection();
 	void getHuboHipState(Eigen::Vector3d &Pos, Eigen::Quaterniond &Ori, Eigen::Vector3d &Vel, Eigen::Vector3d &AngVel);
-	Quaterniond getOrientation(vpBody *pBody);
+	Eigen::Quaterniond getOrientation(vpBody *pBody);
 
 	void getBodyState(vpBody *pBody, Eigen::Vector3d &pos, Eigen::Quaterniond &ori, Eigen::Vector3d &vel, Eigen::Vector3d &angVel);
 	void getFootSole(int LEFTorRIGHT, Eigen::Vector3d &pos, Eigen::Quaterniond &ori);
 
 	void getAllAngle(Eigen::VectorXd &angles); // radian
 	void getAllAngularVelocity(Eigen::VectorXd &angVel);
+	void getAllAngularAcc(Eigen::VectorXd &angacc);
+	void getAllJointTorque(Eigen::VectorXd &torque);
+
+	void setAllAngularAcc(Eigen::VectorXd &angacc);
+	void setAllJointTorque(Eigen::VectorXd &torque);
 
 	void getFootPoints(int LEFTorRIGHT, std::vector<Vector3d, aligned_allocator<Vector3d> > &points);
-	Vector3d getFootPenaltyPosition(int LEFTorRIGHT, double &retmomentsum);
+	Eigen::Vector3d getFootPenaltyPosition(int LEFTorRIGHT, double &retmomentsum);
 
 	void calcPenaltyForce(
 		vpWorld *pWorld, vpBody* pGround,
@@ -174,5 +178,7 @@ public:
 	void getSingleFootRootLinkMatrix(Eigen::MatrixXd &M, int isLEFT);
 	
 	void getSingleFootRootToHipJacobian(Eigen::MatrixXd &J, int isLEFT);
+
+	void getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen::VectorXd &b);
 };
 #endif

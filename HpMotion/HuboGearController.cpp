@@ -276,6 +276,7 @@ void HuboGearController::initController(void)
 		);
 		*/
 	
+	huboGearBody->RAR->set_tauLL(1);
 	world->buildSystem(ground);
 	world->initBodyForcesAndJointTorques();
 	world->setGravity(Vec3(0.0, -9.8, 0.0));

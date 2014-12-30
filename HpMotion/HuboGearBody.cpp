@@ -443,8 +443,9 @@ void HuboGearBody::stepAhead(GSystem *pWorld, GBody *pGround, double timestep)
 		timestep
 		);
 	applyPenaltyForce(collideBodies,positionsLocal, forces);
-	
+
 	pWorld->stepSimulation(timestep);
+	pWorld->updateKinematics();
 	pWorld->initBodyForcesAndJointTorques();
 	pWorld->setGravity(Vec3(0.0, -9.8, 0.0));
 }
@@ -1373,8 +1374,10 @@ void HuboGearBody::applyPenaltyForce(
 		//TODO:
 		// is it right?
 		// position"Locals" ?
+
 		pBody = collideBodies.at(i);
-		pBody->setExternalForceGlobally(forces.at(i), positionLocals.at(i));
+		pBody->addExternalForceGlobally(forces.at(i), positionLocals.at(i));
+		//pBody->setExternalForceGlobally(forces.at(i), positionLocals.at(i));
 	}
 }
 

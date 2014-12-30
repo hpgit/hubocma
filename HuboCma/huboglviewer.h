@@ -18,14 +18,14 @@ public:
     explicit HuboGlViewer(QWidget *parent = 0);
     ~HuboGlViewer();
 
-	void initCont(HuboGearController *_hubo);
+	void initCont(HuboVpController *_hubo);
 
     void resizeEvent(QResizeEvent *);
 	void adjustHuboMotionToViewer();
 
     QTimer          *displayTimer;
     HuboGlWidget	*glWidget;
-	HuboGearController *hubo;
+	HuboVpController *hubo;
     int playing;
 
 private slots:

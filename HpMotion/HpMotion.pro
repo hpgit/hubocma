@@ -15,29 +15,29 @@ SOURCES += \
     BVHMotionData.cpp \
     HpMotionMath.cpp \
     HuboMotionData.cpp \
-#    HuboVPBody.cpp \
-#    HuboVpController.cpp \
+	HuboVPBody.cpp \
+	HuboVpController.cpp \
     IKSolver.cpp \
     Joint.cpp \
     Motion.cpp \
     MotionData.cpp \
     jointbase.cpp \
-    HuboGearBody.cpp \
-    HuboGearController.cpp
+#    HuboGearBody.cpp \
+#    HuboGearController.cpp
 
 HEADERS += \
     BVHMotionData.h \
     HpMotionMath.h \
     HuboMotionData.h \
-#    HuboVPBody.h \
-#    HuboVpController.h \
+	HuboVPBody.h \
+	HuboVpController.h \
     IKSolver.h \
     Joint.h \
     Motion.h \
     MotionData.h \
     jointbase.h \
-    HuboGearBody.h \
-    HuboGearController.h
+#    HuboGearBody.h \
+#    HuboGearController.h
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter

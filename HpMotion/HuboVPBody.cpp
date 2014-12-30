@@ -1065,7 +1065,24 @@ void HuboVPBody::getAllAngularVelocity(Eigen::VectorXd &angVel)
 	for(int i=0; i<joints.size(); i++)
 		angVel(i) = joints.at(i)->GetVelocity();
 }
+void HuboVPBody::getAllAngularAcc(Eigen::VectorXd &angacc)
+{
+	angacc.resize(26);
+	for(int i=0; i<joints.size(); i++)
+		angacc(i) = joints.at(i)->GetAcceleration();
+}
 
+void HuboVPBody::setAllAngularAcc(Eigen::VectorXd &angacc)
+{
+	for(int i=0; i<joints.size(); i++)
+		joints.at(i)->SetAcceleration(angacc(i));
+}
+
+void HuboVPBody::setAllJointTorque(Eigen::VectorXd &torque)
+{
+	for(int i=0; i<joints.size(); i++)
+		joints.at(i)->SetTorque(torque(i));
+}
 void HuboVPBody::getFootPoints(int LEFTorRIGHT, std::vector<Vector3d, aligned_allocator<Vector3d> > &points)
 {
 	char type;
@@ -1974,4 +1991,82 @@ void HuboVPBody::getSingleFootRootToHipJacobian(Eigen::MatrixXd &J, int isLEFT)
 			}
 		}
 	}
+}
+
+void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen::VectorXd &b)
+{
+	//RMatrix ddq = get_ddq(), tau = get_tau(); // save current ddq and tau
+	//int n = getNumCoordinates();
+	//M.ReNew(n,n);
+	//set_ddq(Zeros(n,1));
+	//GSystem::calcInverseDynamics();
+	//b = get_tau();
+	//for (int i=0; i<n; i++) {
+	//	RMatrix unit = Zeros(n,1);
+	//	unit[i] = 1;
+	//	set_ddq(unit);
+	//	GSystem::calcInverseDynamics();
+	//	get_tau(&M[i*n]);
+	//	for (int j=0; j<n; j++) {
+	//		M[i*n+j] -= b[j];
+	//	}
+	//}
+	//set_ddq(ddq); set_tau(tau); // restore ddq and tau
+
+
+	Eigen::VectorXd ddq, tau;
+	//save current ddq and tau
+	getAllAngularAcc(ddq);
+	getAllJointTorque(tau);
+	se3 hipAcc = Hip->GetGenAcceleration();
+	dse3 hipTorque = Hip->GetForce();
+
+
+	int n = 6+joints.size();
+	M.resize(n, n);
+	M.setZero();
+	b.resize(n);
+	Eigen::VectorXd ddq_tmp;
+	ddq_tmp.resize(joints.size());
+
+	se3 zero_se3(0.0);
+	Hip->SetGenAcceleration(zero_se3);
+	setAllAngularAcc(ddq_tmp);
+	Hip->GetSystem()->InverseDynamics();
+
+	Eigen::VectorXd b_tmp;
+	dse3 hipTorque_tmp = Hip->GetForce();
+	getAllJointTorque(b_tmp);
+	b.tail(joints.size()) = b_tmp;
+	for (int i = 0; i < 6; i++) b(i) = hipTorque_tmp[i];
+
+	Eigen::VectorXd unit;
+	unit.resize(n-6);
+	for(int i=0; i<n; i++)
+	{
+		unit.setZero();
+		se3 se3_tmp(0.0);
+		if (i < 6)
+			se3_tmp[i] = 1.0;
+		else
+			unit(i - 6) = 1;
+
+		Hip->SetGenAcceleration(se3_tmp);
+		setAllAngularAcc(unit);
+
+		Hip->GetSystem()->InverseDynamics();
+
+		getAllJointTorque(b_tmp);
+		hipTorque_tmp = Hip->GetForce();
+		for (int j = 0; j < 6; j++) M(j, i) = hipTorque_tmp[j] - b(j);
+		M.col(i).tail(n - 6) = b_tmp - b.tail(n - 6);
+	}
+
+	// restore ddq and tau
+	Vec3 zero_Vec3(0.0);
+	Hip->SetGenAcceleration(hipAcc);
+	Hip->ResetForce();
+	Hip->ApplyGlobalForce(hipTorque, zero_Vec3);
+	setAllAngularAcc(ddq);
+	setAllJointTorque(tau);
 }
