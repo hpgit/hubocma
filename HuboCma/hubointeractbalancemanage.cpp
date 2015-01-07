@@ -117,7 +117,7 @@ void HuboInteractBalanceManage::timer()
 		}
 		else
 			viewer->glWidget->forceDrawOff();
-		viewer->hubo->huboVpBody->getEquationsOfMotion(viewer->hubo->world, M, b);
+		//viewer->hubo->huboVpBody->getEquationsOfMotion(viewer->hubo->world, M, b);
 		viewer->hubo->stepAheadWithPenaltyForces();
 	}
 	simulTime += renderTimeStep;
@@ -145,23 +145,22 @@ void HuboInteractBalanceManage::on_stepBtn_clicked()
 	else
 		viewer->glWidget->forceDrawOff();
 	//viewer->hubo->huboVpBody->getEquationsOfMotion(viewer->hubo->world, M, b);
-	Eigen::MatrixXd J, dJ, dJ_calc;
-	viewer->hubo->huboVpBody->getJacobian(J, 1);
-	viewer->hubo->huboVpBody->getDifferentialJacobian(dJ, 1);
+	//Eigen::MatrixXd J, dJ, dJ_calc;
+	//viewer->hubo->huboVpBody->getJacobian(J, 1);
+	//viewer->hubo->huboVpBody->getDifferentialJacobian(dJ, 1);
 	viewer->hubo->stepAheadWithPenaltyForces();
 
-	if(simulTime > DBL_EPSILON)
-	{
-		dJ_calc = (J-Jold)/simulTimeStep;
-		std::cout << "dJ_calc:" << std::endl;
-		std::cout << dJ_calc <<std::endl;
-		std::cout << "dJ:" << std::endl;
-		std::cout << dJ <<std::endl;
-		std::cout << "diff: " <<std::endl;
-		std::cout << (dJ-dJ_calc) << std::endl;
-	}
-
-	Jold = J;
+	//if(simulTime > DBL_EPSILON)
+	//{
+	//	dJ_calc = (J-Jold)/simulTimeStep;
+	//	std::cout << "dJ_calc:" << std::endl;
+	//	std::cout << dJ_calc <<std::endl;
+	//	std::cout << "dJ:" << std::endl;
+	//	std::cout << dJ <<std::endl;
+	//	std::cout << "diff: " <<std::endl;
+	//	std::cout << (dJ-dJ_calc) << std::endl;
+	//}
+	//Jold = J;
 	simulTime += simulTimeStep;
 
 	viewer->hubo->huboVpBody->applyAllJointValueVptoHubo();

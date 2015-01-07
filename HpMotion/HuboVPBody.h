@@ -51,7 +51,7 @@ public:
 	vpBJoint b;
 
 
-	Vector3d com;
+	Eigen::Vector3d com;
 	double mass;
 	double grfKs;
 	double grfDs;

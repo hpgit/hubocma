@@ -448,6 +448,8 @@ void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 		);
 	applyPenaltyForce(collideBodies,positionsLocal, forces);
 	pWorld->StepAhead();
+	//Eigen::MatrixXd J;
+	//getJacobian(J, 1);
 }
 
 void HuboVPBody::drawBodyBoundingBox(vpBody *body)
@@ -1758,6 +1760,7 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 
 //				# dZ(j) = w(j)<cross>Z(j)
 				wb = vectorToVec3(getVpJointAxis(joints[j]));
+				//wb = vectorToVec3(vptohuboJointmap[joints[j]]->constraintAxis);
 				wb.Normalize();
 				wp = vpBodytoParentBody[vpJointtoBodymap[joints[j]]]->GetAngVelocity();
 				w = Cross(wp, wb);
