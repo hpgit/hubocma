@@ -1734,7 +1734,6 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 		// wp : angular velocity of parent link : w(j)
 		//sumWcrossRk : <sum k=j to n> {w(k+1)<cross>P(k+1, k)}
 		
-
 		// linear acceleration part
 		for(int i=3; i < 3*bodiessize; i+=3)	
 		{
@@ -1771,10 +1770,10 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 
 				joint = vpBodytoJointmap[bodies[i / 3]];
 
-
 				sumWcrossRk += Cross(
 					vpBodytoParentBody[bodies[i/3]]->GetAngVelocity(),
-					rcom - vectorToVec3(getVpJointPosition(joint))
+					//rcom - vectorToVec3(getVpJointPosition(joint))
+					rcom - rk
 					);
 
 				for (joint = vpBodytoJointmap[bodies[i / 3]], parentJoint = getParentJoint(joint);
@@ -1788,7 +1787,6 @@ void HuboVPBody::getDifferentialJacobian(Eigen::MatrixXd &dJ, int includeRoot)
 					sumWcrossRk += Cross(
 						vpJointtoBodymap[parentJoint]->GetAngVelocity(),
 						rKcforSum - rKpforSum);
-					rKpforSum = rKcforSum;
 				}
 				
 //				# Z(j)<cross>(<sum k=j to n>w(k+1)<cross>P(k+1, k)) + (w(j)<cross>Z(j))<cross>P(n+1, j)
