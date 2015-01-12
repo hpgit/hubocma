@@ -53,9 +53,6 @@ public:
 
 	Eigen::Vector3d com;
 	double mass;
-	double grfKs;
-	double grfDs;
-	double mu;
 
 	IKSolver *pIKSolver;
 	HuboMotionData *pHuboMotion;
@@ -68,6 +65,17 @@ public:
 	std::map<vpJoint *, vpBody *>vpJointtoBodymap;
 	std::map<vpBody *, vpBody *>vpBodytoParentBody;
 	std::map<vpBody *, vpRJoint *>vpBodytoJointmap;;
+
+
+	// contact info
+	double grfKs;
+	double grfDs;
+	double mu;
+	std::vector<vpBody*>collideCheckBodies;
+	std::vector<vpBody*>collideBodies;
+	std::vector<Vec3>positions;
+	std::vector<Vec3>positionsLocal;
+	std::vector<Vec3>forces;
 
 	void initBody();
 	void initJoint();
@@ -135,10 +143,6 @@ public:
 	void calcPenaltyForce(
 		vpWorld *pWorld, vpBody* pGround,
 		std::vector<vpBody*> &checkBodies,
-		std::vector<vpBody*> &collideBodies,
-		std::vector<Vec3> &positions,
-		std::vector<Vec3> &positionLocals,
-		std::vector<Vec3> &forces,
 		double ks, double ds, double mu
 		);
 	bool _calcPenaltyForce(
@@ -150,10 +154,6 @@ public:
 	void calcPenaltyForceBoxGround(
 		vpWorld *pWorld, vpBody* pGround,
 		std::vector<vpBody*> &checkBodies,
-		std::vector<vpBody*> &collideBodies,
-		std::vector<Vec3> &positions,
-		std::vector<Vec3> &positionLocals,
-		std::vector<Vec3> &forces,
 		double ks, double ds, double mu
 		);
 	bool _calcPenaltyForceBoxGround(
@@ -161,11 +161,7 @@ public:
 		const Vec3 &position, const Vec3 &velocity, 
 		Vec3 &force, double ks, double ds, double mu
 		); 
-	void applyPenaltyForce( 
-		const std::vector<vpBody*> &collideBodies, 
-		const std::vector<Vec3> &positionLocals, 
-		const std::vector<Vec3> &forces
-		);
+	void applyPenaltyForce();
 
 	void getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &Jsup, int RIGHTorLEFT);
 	void getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJsup, int RIGHTorLEFT);

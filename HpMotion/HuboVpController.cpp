@@ -285,6 +285,11 @@ void HuboVpController::initController(void)
 
 	world->Initialize();
 	world->BackupState();
+	huboVpBody->calcPenaltyForce(
+		world, ground,huboVpBody->bodies, huboVpBody->grfKs,huboVpBody->grfDs,huboVpBody->mu
+		);
+	cp = huboVpBody->getCOPposition(world, ground);
+	cpBeforeOneStep = cp;
 }
 
 void HuboVpController::setTimeStep(double _timestep)
@@ -299,12 +304,13 @@ double HuboVpController::getTimeStep()
 void HuboVpController::stepAheadWithPenaltyForces()
 {
 	//TODO:
-	cpBeforeOneStep = huboVpBody->getCOPposition(world, ground);
+	cpBeforeOneStep = cp;
 	//cpBeforeOneStep = huboVpBody->getSupportRegionCenter();
 	if(manualContactForces)
 		huboVpBody->stepAhead(world, ground);
 	else
 		world->StepAhead();
+	cp = huboVpBody->getCOPposition(world, ground);
 }
 
 void HuboVpController::applyPdControlTorque(

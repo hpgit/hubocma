@@ -42,6 +42,7 @@ void HuboVPBody::initBody()
 	for(int i=0; i<bodies.size(); i++)
 		delete bodies.at(i);
 	bodies.clear();
+	collideCheckBodies.clear();
 
 	Hip = new vpBody;
 	Torso = new vpBody;
@@ -65,6 +66,9 @@ void HuboVPBody::initBody()
 	bodies.push_back(Hip);
 	bodies.push_back(Torso);
 	bodies.push_back(Head);
+	collideCheckBodies.push_back(Hip);
+	collideCheckBodies.push_back(Torso);
+	collideCheckBodies.push_back(Head);
 	for(int i=0; i<2; i++)
 	{
 		bodies.push_back(ShoulderP[i]);
@@ -79,6 +83,18 @@ void HuboVPBody::initBody()
 		bodies.push_back(LowerLeg[i]);
 		bodies.push_back(Ankle[i]);
 		bodies.push_back(Foot[i]);
+		collideCheckBodies.push_back(ShoulderP[i]);
+		collideCheckBodies.push_back(ShoulderR[i]);
+		collideCheckBodies.push_back(UpperArm[i]);
+		collideCheckBodies.push_back(Elbow[i]);
+		collideCheckBodies.push_back(Wrist[i]);
+		collideCheckBodies.push_back(Hand[i]);
+		collideCheckBodies.push_back(PelvisY[i]);
+		collideCheckBodies.push_back(PelvisR[i]);
+		collideCheckBodies.push_back(UpperLeg[i]);
+		//collideCheckBodies.push_back(LowerLeg[i]);
+		//collideCheckBodies.push_back(Ankle[i]);
+		collideCheckBodies.push_back(Foot[i]);
 	}
 	for(int i=0; i<bodyGeoms.size(); i++)
 		delete bodyGeoms.at(i);
@@ -429,12 +445,6 @@ void HuboVPBody::create(vpWorld *pWorld, HuboMotionData *pHuboImporter)
 void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 {
 	std::vector<vpBody*>checkBodies;
-
-	std::vector<vpBody*>collideBodies;
-	std::vector<Vec3>positions;
-	std::vector<Vec3>positionsLocal;
-	std::vector<Vec3>forces;
-
 	//checkBodies.push_back(Foot[0]);
 	//checkBodies.push_back(Foot[1]);
 	//calcPenaltyForce(
@@ -442,12 +452,19 @@ void HuboVPBody::stepAhead(vpWorld *pWorld, vpBody *pGround)
 	//	grfKs, grfDs, mu
 	//	);
 
-	calcPenaltyForce(
-		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
-		grfKs, grfDs, mu
-		);
-	applyPenaltyForce(collideBodies,positionsLocal, forces);
+	
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces, 
+	//	grfKs, grfDs, mu
+	//	);
+	//	
+	//applyPenaltyForce(collideBodies,positionsLocal, forces);
+
+
+	applyPenaltyForce();
 	pWorld->StepAhead();
+	calcPenaltyForce(pWorld, pGround, collideCheckBodies, grfKs, grfDs, mu);
+	//calcPenaltyForce(pWorld, pGround, bodies, grfKs, grfDs, mu);
 	//Eigen::MatrixXd J;
 	//getJacobian(J, 1);
 }
@@ -909,29 +926,27 @@ Vec3 HuboVPBody::getCOP(vpWorld *pWorld, vpBody *pGround)
 	//TODO:
 	//calc correct COP
 	//temporally, only two foot are considered
-	std::vector<vpBody*>collideBodies;
-	std::vector<Vec3>positions;
-	std::vector<Vec3>positionsLocal;
-	std::vector<Vec3>forces;
 
-	std::vector <vpBody*> bodies;
-	bodies.push_back(Foot[0]);
-	bodies.push_back(Foot[1]);
-
-	calcPenaltyForce(
-		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-		grfKs, grfDs, mu
-		);
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies, 
+	//	grfKs, grfDs, mu
+	//	);
 
 	double sumForce = 0;
 
 	for (int j = 0; j < forces.size(); j++)
-		sumForce += forces.at(j)[1];
+	{
+		if (collideBodies.at(j) == Foot[0] || collideBodies.at(j) == Foot[1])
+			sumForce += forces.at(j)[1];
+	}
 
 	Vec3 cop(0, 0, 0);
 
 	for (int j = 0; j < forces.size(); j++)
-		cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
+	{
+		if (collideBodies.at(j) == Foot[0] || collideBodies.at(j) == Foot[1])
+			cop += forces.at(j)[1] * collideBodies.at(j)->GetFrame().GetPosition();
+	}
 
 	if (sumForce < DBL_EPSILON)
 		return Vec3(0, -1, 0);
@@ -972,19 +987,10 @@ int HuboVPBody::getMainContactFoot(vpWorld *pWorld, vpBody *pGround, double &lef
 	//TODO:
 	//calc correct COP
 	//temporally, only two foot are considered
-	std::vector<vpBody*>collideBodies;
-	std::vector<Vec3>positions;
-	std::vector<Vec3>positionsLocal;
-	std::vector<Vec3>forces;
-
-	std::vector <vpBody*> bodies;
-	bodies.push_back(Foot[0]);
-	bodies.push_back(Foot[1]);
-
-	calcPenaltyForce(
-		pWorld, pGround, bodies, collideBodies, positions, positionsLocal, forces,
-		grfKs, grfDs, mu
-		);
+	//calcPenaltyForce(
+	//	pWorld, pGround, bodies,
+	//	grfKs, grfDs, mu
+	//	);
 
 	int sumForce[2] = {0, 0};
 
@@ -1195,10 +1201,6 @@ static void getVertices(
 void HuboVPBody::calcPenaltyForce(
 	vpWorld *pWorld, vpBody* pGround,
 	std::vector<vpBody*> &checkBodies,
-	std::vector<vpBody*> &collideBodies,
-	std::vector<Vec3> &positions,
-	std::vector<Vec3> &positionLocals,
-	std::vector<Vec3> &forces,
 	double ks, double ds, double mu
 	)
 {
@@ -1208,6 +1210,11 @@ void HuboVPBody::calcPenaltyForce(
 
 	std::vector<Vec3> verticesLocal;
 	std::vector<Vec3> verticesGlobal; 
+
+	collideBodies.clear();
+	positions.clear();
+	positionsLocal.clear();
+	forces.clear();
 
 	for (int i = 0; i < checkBodies.size(); ++i)
 	{
@@ -1233,7 +1240,7 @@ void HuboVPBody::calcPenaltyForce(
 					collideBodies.push_back(checkBodies.at(i));
 					forces.push_back(force);
 					positions.push_back(position);
-					positionLocals.push_back(positionLocal);
+					positionsLocal.push_back(positionLocal);
 				}
 			}
 		}
@@ -1315,10 +1322,6 @@ bool HuboVPBody::_calcPenaltyForce(
 void HuboVPBody::calcPenaltyForceBoxGround(
 	vpWorld *pWorld, vpBody* pGround, 
 	std::vector<vpBody*> &checkBodies,
-	std::vector<vpBody*> &collideBodies,
-	std::vector<Vec3> &positions,
-	std::vector<Vec3> &positionLocals,
-	std::vector<Vec3> &forces,
 	double ks, double ds, double mu
 	)
 {
@@ -1338,6 +1341,11 @@ void HuboVPBody::calcPenaltyForceBoxGround(
 
 	std::vector<Vec3> verticesLocal;
 	std::vector<Vec3> verticesGlobal; 
+
+	collideBodies.clear();
+	positions.clear();
+	positionsLocal.clear();
+	forces.clear();
 
 	for(int i=0; i<checkBodies.size(); ++i)
 	{
@@ -1363,7 +1371,7 @@ void HuboVPBody::calcPenaltyForceBoxGround(
 					collideBodies.push_back(checkBodies.at(i));
 					forces.push_back(force);
 					positions.push_back(position);
-					positionLocals.push_back(positionLocal);
+					positionsLocal.push_back(positionLocal);
 				}
 			}
 		}
@@ -1435,11 +1443,7 @@ bool HuboVPBody::_calcPenaltyForceBoxGround(
 }
 
 
-void HuboVPBody::applyPenaltyForce(
-	const std::vector<vpBody*> &collideBodies, 
-	const std::vector<Vec3> &positionLocals, 
-	const std::vector<Vec3> &forces
-	)
+void HuboVPBody::applyPenaltyForce()
 {
 	vpBody* pBody;
 	static Vec3 position, force;
@@ -1448,9 +1452,9 @@ void HuboVPBody::applyPenaltyForce(
 	{
 		//TODO:
 		// is it right?
-		// position"Locals" ?
+		// positions"Local" ?
 		pBody = collideBodies.at(i);
-		pBody->ApplyGlobalForce(forces.at(i), positionLocals.at(i));
+		pBody->ApplyGlobalForce(forces.at(i), positionsLocal.at(i));
 	}
 }
 

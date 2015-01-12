@@ -6,7 +6,7 @@
 
 class HuboVpController 
 {
-private:
+protected:
 	HuboMotionData *huboMotion;
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW

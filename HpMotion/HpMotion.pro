@@ -24,6 +24,7 @@ SOURCES += \
     jointbase.cpp \
 #    HuboGearBody.cpp \
 #    HuboGearController.cpp
+    HuboVpQpController.cpp
 
 HEADERS += \
     BVHMotionData.h \
@@ -38,6 +39,7 @@ HEADERS += \
     jointbase.h \
 #    HuboGearBody.h \
 #    HuboGearController.h
+    HuboVpQpController.h
 
 QMAKE_CXXFLAGS_WARN_ON = ""
 QMAKE_CXXFLAGS_WARN_OFF += -Wno-unused-parameter
