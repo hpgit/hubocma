@@ -1457,6 +1457,62 @@ void HuboVPBody::applyPenaltyForce()
 		pBody->ApplyGlobalForce(forces.at(i), positionsLocal.at(i));
 	}
 }
+void HuboVPBody::getBodyJacobian(vpBody *body, Eigen::MatrixXd &J)
+{
+	// 6dof root, 26 joints
+	// 6dof root = 3 dof for position, 3 dof for orientation
+
+	const int jointssize = joints.size();
+
+	int rootOffset = 6;
+	J.resize(6, jointssize+rootOffset);
+	J.setZero();
+
+	{
+		// root translation
+		J.topLeftCorner(6, 6).setIdentity();
+
+		// root orientation
+		{
+			Eigen::Vector3d r;
+
+			for(int i=0; i < 3; i+=3)
+			{
+				r = Vec3Tovector(body->GetFrame().GetPosition())-getVpHipRotationalJointPosition();
+				J.block(0, 3, 3, 1) = Eigen::Vector3d::UnitX().cross(r);
+				J.block(0, 4, 3, 1) = Eigen::Vector3d::UnitY().cross(r);
+				J.block(0, 5, 3, 1) = Eigen::Vector3d::UnitZ().cross(r);
+			}
+		}
+	}
+
+	// joint part
+
+	Eigen::Vector3d rcom, rk, w, v; 
+	// rcom : CoM of link
+	// rk : position of joint which is considered
+	// w : an axis of the joint 
+
+	for(int j=0; j<jointssize; j++)
+	{
+		// linear velocity part
+		rcom = Vec3Tovector(body->GetFrame().GetPosition());
+		if( vpBodytohuboParentJointmap[body]->isDescendant(vptohuboJointmap[joints[j]]) 
+			|| vpBodytoJointmap[body] == joints[j] )
+		{
+			rk = getVpJointPosition(joints[j]);
+			w = getVpJointAxis(joints[j]);
+			v = w.cross(rcom - rk);
+
+			J.block(0, j + rootOffset, 3, 1) = v;
+			J.block(3, j + rootOffset, 3, 1) = w;
+		}
+	}
+}
+void HuboVPBody::getBodyDifferentialJacobian(vpBody *body, Eigen::MatrixXd &dJ)
+{
+	//TODO:
+}
 
 void HuboVPBody::getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &J, int RIGHTorLEFT)
 {
@@ -2018,6 +2074,8 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 	//}
 	//set_ddq(ddq); set_tau(tau); // restore ddq and tau
 
+
+	// M * ddq + b = tau
 
 	Eigen::VectorXd ddq, tau;
 	//save current ddq and tau

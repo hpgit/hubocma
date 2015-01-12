@@ -163,6 +163,8 @@ public:
 		); 
 	void applyPenaltyForce();
 
+	void getBodyJacobian(vpBody *body, Eigen::MatrixXd &J);
+	void getBodyDifferentialJacobian(vpBody *body, Eigen::MatrixXd &dJ);
 	void getFootSupJacobian(Eigen::MatrixXd &fullJ, Eigen::MatrixXd &Jsup, int RIGHTorLEFT);
 	void getDifferentialFootSupJacobian(Eigen::MatrixXd &fulldJ, Eigen::MatrixXd &dJsup, int RIGHTorLEFT);
 	void getJacobian(Eigen::MatrixXd &J, int inlucdeRoot = 0);
