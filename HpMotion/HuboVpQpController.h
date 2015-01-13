@@ -19,6 +19,12 @@ public:
 	void addQpObj(Eigen::MatrixXd &W, Eigen::VectorXd &a);
 	void solveQp(Eigen::VectorXd &q, Eigen::VectorXd &tau, Eigen::VectorXd &lambda);
 
+	void balanceQp(
+			HuboMotionData *refer,
+			double time,
+			double kl, double kh,
+			double weightTrack, double weightTrackUpper
+			);
 };
 
 #endif // _HUBOVPQPCONTROLLER_H_

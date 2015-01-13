@@ -152,3 +152,122 @@ void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eig
 	ddq = x.head(32);
 	tau = x.segment(32, 32);
 }
+
+void HuboVpQpController::balanceQp(
+			HuboMotionData *refer,
+			double time,
+			double kl, double kh,
+			double weightTrack, double weightTrackUpper
+			)
+{
+	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
+
+	//[Macchietto 2009] for momentum term
+	Eigen::MatrixXd M, dM, J, dJ;
+	huboVpBody->getJacobian2(J);
+	huboVpBody->getLinkMatrix(M);
+	huboVpBody->getDifferentialJacobian2(dJ);
+	huboVpBody->getDifferentialLinkMatrix(dM);
+
+	Eigen::VectorXd angles, angVels, angAccels;
+	Eigen::VectorXd dofVels;
+	huboVpBody->getAllAngle(angles);
+	huboVpBody->getAllAngularVelocity(angVels);
+	dofVels.resize(32);
+
+	Vec3 rootVel, rootAngVel;
+	rootVel = huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0));
+	rootAngVel = huboVpBody->Hip->GetAngVelocity();
+
+	dofVels.segment(0, 3) = Vec3Tovector(rootVel);
+	dofVels.segment(3, 3) = Vec3Tovector(rootAngVel);
+	dofVels.tail(26) = angVels;
+
+	Eigen::MatrixXd RS = M*J;
+	Eigen::MatrixXd R = RS.block(0, 0, 3, 32);
+	Eigen::MatrixXd S = RS.block(3, 0, 3, 32);
+
+	Eigen::VectorXd rs = (dM*J+M*dJ)*dofVels;
+	Eigen::Vector3d rbias = rs.head(3);
+	Eigen::Vector3d sbias = rs.tail(3);
+
+	Eigen::Vector3d LdotDes, HdotDes;
+	
+	//TODO :
+	//using real VP value
+	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
+	Eigen::Vector3d supCenter = refer->getFootCenterInTime(time);
+	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
+	comPlane.y() = 0;
+	//std::cout << supCenter.transpose() <<std::endl;
+
+	//Eigen::Vector3d comVel = (M*J*dofVels).head(3);
+
+	//LdotDes
+	LdotDes = huboVpBody->mass *(
+		kl * (supCenter - comPlane)
+		- dl * huboVpBody->getCOMvelocity()
+		//- dl * comVel
+			);
+	LdotDes.y() = 0;
+
+	//HdotDes
+	//cp and cpBeforeOneStep is calculated in stepAheadWithPenaltyForces()
+	//Eigen::Vector3d cp = huboVpBody->getCOPposition(world, ground);
+	Eigen::Vector3d cpOld = this->cpBeforeOneStep;
+
+	if (cp.y() < 0 || cpOld.y() < 0)
+		HdotDes = Vector3d(0, 0, 0);
+	else
+	{
+		Eigen::Vector3d pdes, dp, ddpdes;
+		Eigen::Vector3d refSupCenter =
+				refer->getFootCenterInTime(time);
+
+		dp = cp - cpOld;
+
+		ddpdes = kh*(refSupCenter - cp) - dh*dp;
+		pdes = cp + dp*timestep + 0.5 * ddpdes*timestep*timestep;
+		HdotDes = (pdes - comPlane).cross(LdotDes - huboVpBody->mass * Vector3d(0, -9.8, 0));
+	}
+
+	// tracking term
+	Eigen::VectorXd desDofAccel;
+	desDofAccel.resize(32);
+	{
+		Eigen::VectorXd angleRefer, angleVelRefer, angleAccelRefer;
+		Eigen::VectorXd desAccel;
+
+		Eigen::Vector3d hipPosRefer, hipVelRefer, hipAccelRefer, hipDesAccel;
+		Eigen::Vector3d hipPos, hipVel;
+		Eigen::Vector3d hipAngVelRefer, hipAngAccelRefer, hipDesAngAccel;
+		Eigen::Vector3d hipAngVel;
+		Eigen::Quaterniond hipOrienRefer;
+		Eigen::Quaterniond hipOrien;
+		 
+		// get desired acceleration for instance time
+		hipPosRefer = refer->getHipJointGlobalPositionInTime(time);
+		hipOrienRefer = refer->getHipJointGlobalOrientationInTime(time);
+		hipVelRefer = refer->getHipJointVelInHuboMotionInTime(time);
+		hipAngVelRefer = refer->getHipJointAngVelInHuboMotionInTime(time);
+		hipAccelRefer = refer->getHipJointAccelInHuboMotionInTime(time);
+		hipAngAccelRefer = refer->getHipJointAngAccelInHuboMotionInTime(time);
+
+		hipPos = Vec3Tovector(huboVpBody->Hip->GetFrame().GetPosition());
+		hipVel = Vec3Tovector(huboVpBody->Hip->GetLinVelocity(Vec3(0,0,0)));
+		hipOrien = huboVpBody->getOrientation(huboVpBody->Hip);
+		hipAngVel = Vec3Tovector(huboVpBody->Hip->GetAngVelocity());
+
+		refer->getAllAngleInHuboMotionInTime(time, angleRefer);
+		refer->getAllAngleRateInHuboMotionInTime(time, angleVelRefer);
+		refer->getAllAngleAccelInHuboMotionInTime(time, angleAccelRefer);
+
+		getDesiredDofAccelForRoot(hipPosRefer, hipPos, hipVelRefer, hipVel, hipAccelRefer, hipDesAccel);
+		getDesiredDofAngAccelForRoot(hipOrienRefer, hipOrien, hipAngVelRefer, hipAngVel, hipAngAccelRefer, hipDesAngAccel);
+		getDesiredDofAccel(angleRefer, angles, angleVelRefer, angVels, angleAccelRefer, desAccel);
+
+		desDofAccel.head(3) = hipDesAccel;
+		desDofAccel.segment(3,3) = hipDesAngAccel;
+		desDofAccel.tail(26) = desAccel;
+	}
+}
