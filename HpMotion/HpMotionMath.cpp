@@ -47,10 +47,10 @@ Eigen::Quaterniond quaterRealMult(Eigen::Quaterniond &q, double a)
 }
 
 //HuboVpController.cpp
+// a b | [a]
+//       [b]
 void matrixStackUptoDown(Eigen::MatrixXd &a, Eigen::MatrixXd &b)
 {
-	// a b | [a]
-	//       [b]
 	assert(a.cols() == b.cols());
 	a.conservativeResize(a.rows()+b.rows(), a.cols());
 	a.block(a.rows(), 0, b.rows(), b.cols()) = b;

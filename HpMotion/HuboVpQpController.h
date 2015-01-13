@@ -8,11 +8,15 @@ class HuboVpQpController : public HuboVpController
 {
 public:
 	// QP Matrices
-	Eigen::MatrixXd Mass;
-	Eigen::VectorXd b;
+	// problem formulation : min 0.5*x^T *W*x + a^T x
+	Eigen::MatrixXd W;
+	Eigen::VectorXd a;
 
-	void stepAheadWithPenaltyForces();
+	//void stepAheadWithPenaltyForces();
 
+	// problem formulation : min 0.5*x^T *W*x + a^T x
+	// x^T = [ddq^T tau^T]^T
+	void addQpObj(Eigen::MatrixXd &W, Eigen::VectorXd &a);
 	void solveQp(Eigen::VectorXd &q, Eigen::VectorXd &tau, Eigen::VectorXd &lambda);
 
 };
