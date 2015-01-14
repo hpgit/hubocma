@@ -1,6 +1,21 @@
 #include "HuboVpQpController.h"
 #include "HpMotionMath.h"
 
+void HuboVpQpController::addQpObj(Eigen::MatrixXd &_W, Eigen::VectorXd &_a)
+{
+	if (qpMatrixInit == 0)
+	{
+		W.resize(64, 64);
+		W.setZero();
+		a.resize(64);
+		a.setZero();
+		qpMatrixInit = 1;
+	}
+
+	W += _W;
+	a += _a;
+}
+
 void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eigen::VectorXd &lambda)
 {
 	//TODO:
@@ -9,10 +24,10 @@ void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eig
 	// currently, only equality constraints are considered
 	// so the QP is solved linear equations.
 
-	// min w1*|| ddtheta_des - ddtheta ||^2 + w2*|| tau || ^2
+	// min 0.5*x^T*W*x + a^T*x
 	// w.r.t.	M*ddtheta + b = S*tau + J_c^T * f_c
 	//			J_c * ddtheta = dJ_c * dtheta + acc_c_des
-	// => min 0.5*x^T*W*x - | ddtheta_des^T*W1 0 |*x
+	// => min 0.5*x^T*W*x + a^T*x
 	// w.r.t. Cx = d 
 
 	// S =  | 0 0 |   => underactuated root
@@ -30,8 +45,8 @@ void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eig
 	// A =  | W C^T |
 	//		| C   0 |
 
-	// b_A =| W1 * ddtheta_des |
-	//		| d                |
+	// b_A =| -a |
+	//		| d  |
 
 	Eigen::MatrixXd Mass;
 	Eigen::VectorXd b;
@@ -117,17 +132,20 @@ void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eig
 	}
 
 	
-	Eigen::MatrixXd C(Mass.rows() + numContactFoot * 6, Mass.cols() + S.cols());
+	Eigen::MatrixXd C(Mass.rows() + numContactFoot * 6 + 6, Mass.cols() + S.cols());
 	C.setZero();
 	C.topLeftCorner(Mass.rows(), Mass.cols()) = Mass;
+	C.topRightCorner(S.rows(), S.cols()) = -S;
+	C.block(Mass.rows(), Mass.cols(), 6, 6).setIdentity(); // torque for root == 0 
 	if(numContactFoot != 0)
 		C.bottomLeftCorner(J_c.rows(), J_c.cols()) = J_c;
-	C.topRightCorner(S.rows(), S.cols()) = -S;
 
 
 
-	Eigen::VectorXd d(Mass.rows() + 6 * numContactFoot);
+	Eigen::VectorXd d(Mass.rows() + 6 * numContactFoot + 6);
+	d.setZero();
 	d.head(Mass.rows()) = -b;
+	//d.segment(Mass.rows(), 6).setZero(); // torque for root == 0
 	if (numContactFoot != 0)
 	{
 		d.head(Mass.rows()) += J_c.transpose() *cForces;
@@ -141,7 +159,7 @@ void HuboVpQpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eig
 	A.bottomLeftCorner(C.rows(), C.cols()) = C;
 
 	Eigen::VectorXd b_A(a.size()+d.size());
-	b_A.head(a.size()) = a;
+	b_A.head(a.size()) = -a;
 	b_A.tail(d.size()) = d;
 
 	//Eigen::VectorXd x = A.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(a);
@@ -157,7 +175,9 @@ void HuboVpQpController::balanceQp(
 			HuboMotionData *refer,
 			double time,
 			double kl, double kh,
-			double weightTrack, double weightTrackUpper
+			double trackWeight, double trackUpperWeight,
+			double linWeight, double angWeight,
+			double torqueWeight
 			)
 {
 	double dl=2*std::sqrt(kl), dh=2*std::sqrt(kh);
@@ -193,15 +213,10 @@ void HuboVpQpController::balanceQp(
 
 	Eigen::Vector3d LdotDes, HdotDes;
 	
-	//TODO :
-	//using real VP value
 	//Eigen::Vector3d supCenter = huboVpBody->getSupportRegionCenter();
 	Eigen::Vector3d supCenter = refer->getFootCenterInTime(time);
 	Eigen::Vector3d comPlane = huboVpBody->getCOMposition();
 	comPlane.y() = 0;
-	//std::cout << supCenter.transpose() <<std::endl;
-
-	//Eigen::Vector3d comVel = (M*J*dofVels).head(3);
 
 	//LdotDes
 	LdotDes = huboVpBody->mass *(
@@ -269,5 +284,44 @@ void HuboVpQpController::balanceQp(
 		desDofAccel.head(3) = hipDesAccel;
 		desDofAccel.segment(3,3) = hipDesAngAccel;
 		desDofAccel.tail(26) = desAccel;
+	}
+
+
+	{
+		Eigen::MatrixXd tempW;
+		Eigen::VectorXd tempa;
+		tempW.resize(64, 64);
+
+		//linear term
+		tempW.setZero();
+		tempa.setZero();
+		tempW.topLeftCorner(32,32) = linWeight*R.transpose()*R;
+		tempa.head(32) = -linWeight*(LdotDes - rbias);
+		addQpObj(tempW, tempa);
+		
+		//linear term
+		tempW.setZero();
+		tempa.setZero();
+		tempW.topLeftCorner(32,32) = angWeight*S.transpose()*S;
+		tempa.head(32) = -angWeight*(HdotDes - sbias);
+		addQpObj(tempW, tempa);
+
+		//tracking term
+		tempW.setZero();
+		tempa.setZero();
+		tempW.topLeftCorner(32, 32).setIdentity();
+		tempW *= trackWeight;
+		tempa.head(32) = -trackWeight * desDofAccel;
+		addQpObj(tempW, tempa);
+
+		//torque minimize term
+		tempW.setZero();
+		tempa.setZero();
+		tempW.bottomRightCorner(32, 32).setIdentity();
+		tempW *= torqueWeight;
+		addQpObj(tempW, tempa);
+		
+		Eigen::VectorXd ddq, tau, lambda;
+		solveQp(ddq, tau, lambda);
 	}
 }
