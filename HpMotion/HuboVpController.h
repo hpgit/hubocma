@@ -45,6 +45,26 @@ public:
 	Eigen::Vector3d cp;
 	Eigen::Vector3d cpBeforeOneStep;
 
+	// QP Matrices
+	// problem formulation : min 0.5*x^T *W*x + a^T x
+	Eigen::MatrixXd W;
+	Eigen::VectorXd a;
+
+	// problem formulation : min 0.5*x^T *W*x + a^T x
+	// x^T = [ddq^T tau^T]^T
+	//void addQpObj(double w, Eigen::VectorXd &a);
+	void addQpObj(Eigen::MatrixXd &W, Eigen::VectorXd &a);
+	void solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eigen::VectorXd &lambda);
+
+	void balanceQp(
+			HuboMotionData *refer,
+			double time,
+			double kl, double kh,
+			double trackWeight, double trackUpperWeight,
+			double linWeight, double angWeight,
+			double torqueWeight
+			);
+
 	//TODO:
 	//deperecated
 	//com tracking

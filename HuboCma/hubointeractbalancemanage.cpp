@@ -4,6 +4,7 @@
 #include <QTimer>
 #include "HpMotionMath.h"
 #include <float.h>
+#include <QLabel>
 
 HuboInteractBalanceManage::HuboInteractBalanceManage(QWidget *parent) :
 	QDialog(parent),
@@ -19,6 +20,15 @@ HuboInteractBalanceManage::HuboInteractBalanceManage(QWidget *parent) :
 	ui->pushForceXText->setPlainText(QString("30"));
 	ui->pushForceYText->setPlainText(QString("0"));
 	ui->pushForceZText->setPlainText(QString("0"));
+
+
+	kl=1;
+	kh=1;
+	trackWeight=1;
+	trackUpperWeight=1;
+	linWeight=1;
+	angWeight=1;
+	torqueWeight=1;
 }
 
 HuboInteractBalanceManage::~HuboInteractBalanceManage()
@@ -99,17 +109,29 @@ void HuboInteractBalanceManage::on_resetBtn_clicked()
 	reset();
 }
 
+
+void HuboInteractBalanceManage::doingInOneStep(double time)
+{
+	//Eigen::VectorXd dofTorque;
+	//viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+	//viewer->hubo->motionPdTracking(dofTorque, viewer->refer, time);
+	//viewer->hubo->huboVpBody->applyAllJointTorque(dofTorque);
+	viewer->hubo->balanceQp(viewer->refer,time,
+							kl, kh,
+							trackWeight, trackUpperWeight,
+							linWeight, angWeight,torqueWeight
+							);
+}
+
 void HuboInteractBalanceManage::timer()
 {
-	Eigen::VectorXd dofTorque, b;
-	Eigen::MatrixXd M;
 	double totalTime = viewer->refer->getTotalTime();
 	for(int i=0; i<renderTimeStep/simulTimeStep; i++)
 	{
 		double time = fmod(simulTime, totalTime);
-		viewer->hubo->motionPdTracking(dofTorque, viewer->refer, fmod(simulTime, totalTime));
-		viewer->hubo->huboVpBody->applyAllJointTorque(dofTorque);
-		//viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
+
+		doingInOneStep(time);
+
 		if(pushTime > DBL_EPSILON)
 		{
 			viewer->hubo->huboVpBody->applyAddAllBodyForce(pushForce);
@@ -117,26 +139,23 @@ void HuboInteractBalanceManage::timer()
 		}
 		else
 			viewer->glWidget->forceDrawOff();
-		//viewer->hubo->huboVpBody->getEquationsOfMotion(viewer->hubo->world, M, b);
 		viewer->hubo->stepAheadWithPenaltyForces();
+		simulTime += simulTimeStep;
 	}
-	simulTime += renderTimeStep;
+	//simulTime += renderTimeStep;
 
 	viewer->hubo->huboVpBody->applyAllJointValueVptoHubo();
 	viewer->glWidget->updateGL();
 }
 
-static Eigen::MatrixXd Jold;
-
 void HuboInteractBalanceManage::on_stepBtn_clicked()
 {
-	Eigen::VectorXd dofTorque, b;
-	Eigen::MatrixXd M;
+	Eigen::VectorXd dofTorque;
 	double totalTime = viewer->refer->getTotalTime();
 	double time = fmod(simulTime, totalTime);
-	//viewer->hubo->balance(viewer->refer, time, 0.1, 1, 1, 1);
-	viewer->hubo->motionPdTracking(dofTorque, viewer->refer, fmod(simulTime, totalTime));
-	viewer->hubo->huboVpBody->applyAllJointTorque(dofTorque);
+
+	doingInOneStep(time);
+
 	if(pushTime > DBL_EPSILON)
 	{
 		viewer->hubo->huboVpBody->applyAddAllBodyForce(pushForce);
@@ -144,10 +163,6 @@ void HuboInteractBalanceManage::on_stepBtn_clicked()
 	}
 	else
 		viewer->glWidget->forceDrawOff();
-	//viewer->hubo->huboVpBody->getEquationsOfMotion(viewer->hubo->world, M, b);
-	Eigen::MatrixXd J, dJ, dJ_calc;
-	//viewer->hubo->huboVpBody->getJacobian(J, 1);
-	viewer->hubo->huboVpBody->getDifferentialJacobian(dJ, 1);
 	viewer->hubo->stepAheadWithPenaltyForces();
 
 	//if(simulTime > DBL_EPSILON)
@@ -165,8 +180,55 @@ void HuboInteractBalanceManage::on_stepBtn_clicked()
 
 	viewer->hubo->huboVpBody->applyAllJointValueVptoHubo();
 	viewer->glWidget->updateGL();
-	//std::cout << "M: " <<std::endl;
-	//std::cout << M <<std::endl;
-	//std::cout << "b: " <<std::endl;
-	//std::cout << b.transpose() <<std::endl;
+}
+
+
+void HuboInteractBalanceManage::on_hSlider_1_valueChanged(int value)
+{
+	kl = std::pow(10,(double)value /100.0);
+	if(value == -300)
+		kl = 0;
+	ui->label_2->setText(QString::number(kl,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_2_valueChanged(int value)
+{
+	kh = std::pow(10,(double)value /100.0);
+	if(value == -300)
+		kh = 0;
+	ui->label_4->setText(QString::number(kh,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_3_valueChanged(int value)
+{
+	trackWeight    = std::pow(10,(double)value /100.0);
+	if(value == -300)
+		trackWeight = 0;
+	ui->label_6->setText(QString::number(trackWeight,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_4_valueChanged(int value)
+{
+	trackUpperWeight= std::pow(10,(double)value /100.0);
+	if(value == -300)
+		trackUpperWeight = 0;
+	ui->label_8->setText(QString::number(trackUpperWeight,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_5_valueChanged(int value)
+{
+	linWeight= std::pow(10,(double)value /100.0);
+	if(value == -300)
+		linWeight = 0;
+	ui->label_10->setText(QString::number(linWeight,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_6_valueChanged(int value)
+{
+	angWeight = std::pow(10,(double)value /100.0);
+	if(value == -300)
+		angWeight = 0;
+	ui->label_12->setText(QString::number(angWeight,'g',3));
+}
+void HuboInteractBalanceManage::on_hSlider_7_valueChanged(int value)
+{
+	torqueWeight= std::pow(10,(double)value /100.0);
+	if(value == -300)
+		torqueWeight = 0;
+	ui->label_14->setText(QString::number(torqueWeight,'g',3));
 }

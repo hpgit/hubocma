@@ -2052,8 +2052,8 @@ void HuboVPBody::getJacobian2(Eigen::MatrixXd &J)
 	for (int i = 0; i < bodysize; i++)
 	{
 		getBodyJacobian(bodies.at(i), Jbody);
-		J.block(3 * i, 0, 3, J.cols()) = Jbody;
-		J.block(3 * i + 3*bodysize, 0, 3, J.cols()) = Jbody;
+		J.middleRows(3 * i, 3) = Jbody.topRows(3);
+		J.middleRows(3 * i+3*bodysize, 3) = Jbody.bottomRows(3);
 	}
 }
 
@@ -2067,8 +2067,8 @@ void HuboVPBody::getDifferentialJacobian2(Eigen::MatrixXd &dJ)
 	for (int i = 0; i < bodysize; i++)
 	{
 		getBodyDifferentialJacobian(bodies.at(i), dJbody);
-		dJ.block(3 * i, 0, 3, dJ.cols()) = dJbody;
-		dJ.block(3 * i + 3*bodysize, 0, 3, dJ.cols()) = dJbody;
+		dJ.middleRows(3 * i, 3) = dJbody.topRows(3);
+		dJ.middleRows(3 * i+3*bodysize, 3) = dJbody.bottomRows(3);
 	}
 }
 
@@ -2299,6 +2299,7 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 	b.resize(n);
 	Eigen::VectorXd ddq_tmp;
 	ddq_tmp.resize(joints.size());
+	ddq_tmp.setZero();
 
 	se3 zero_se3(0.0);
 	Hip->SetGenAcceleration(zero_se3);
