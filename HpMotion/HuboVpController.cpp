@@ -295,6 +295,8 @@ void HuboVpController::initController(void)
 	cpBeforeOneStep = cp;
 	W.resize(64, 64);
 	a.resize(64);
+	W.setZero();
+	a.setZero();
 }
 
 void HuboVpController::setTimeStep(double _timestep)
@@ -1391,6 +1393,7 @@ void HuboVpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eigen
 
 
 
+
 	Eigen::VectorXd d(Mass.rows() + 6 * numContactFoot + 6);
 	d.setZero();
 	d.head(Mass.rows()) = -b;
@@ -1401,15 +1404,17 @@ void HuboVpController::solveQp(Eigen::VectorXd &ddq, Eigen::VectorXd &tau, Eigen
 		d.tail(J_c.rows()) = -J_c * dtheta + acc_c_des;
 	}
 
-	Eigen::MatrixXd A(W.rows()+C.rows(), W.cols()+C.rows());
+	//Eigen::MatrixXd A(W.rows()+C.rows(), W.cols()+C.rows());
+	Eigen::MatrixXd A(W.rows(), W.cols());
 	A.setZero();
 	A.topLeftCorner(W.rows(), W.cols()) = W;
-	A.topRightCorner(C.cols(), C.rows()) = C.transpose();
-	A.bottomLeftCorner(C.rows(), C.cols()) = C;
+	//A.topRightCorner(C.cols(), C.rows()) = C.transpose();
+	//A.bottomLeftCorner(C.rows(), C.cols()) = C;
 
-	Eigen::VectorXd b_A(a.size()+d.size());
+	//Eigen::VectorXd b_A(a.size()+d.size());
+	Eigen::VectorXd b_A(a.size());
 	b_A.head(a.size()) = -a;
-	b_A.tail(d.size()) = d;
+	//b_A.tail(d.size()) = d;
 
 	//Eigen::VectorXd x = A.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(a);
 	Eigen::VectorXd x = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b_A);
@@ -1548,14 +1553,14 @@ void HuboVpController::balanceQp(
 		tempa.setZero();
 		tempW.topLeftCorner(32,32) = linWeight*R.transpose()*R;
 		tempa.head(32) = -R.transpose()*(linWeight*(LdotDes - rbias));
-		addQpObj(tempW, tempa);
+		//addQpObj(tempW, tempa);
 		
 		//linear term
 		tempW.setZero();
 		tempa.setZero();
 		tempW.topLeftCorner(32,32) = angWeight*S.transpose()*S;
 		tempa.head(32) = -S.transpose()*(angWeight*(HdotDes - sbias));
-		addQpObj(tempW, tempa);
+		//addQpObj(tempW, tempa);
 
 		//tracking term
 		tempW.setZero();

@@ -2284,6 +2284,7 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 
 
 	// M * ddq + b = tau
+	// ddq^T = [rootLin^T rootAng^T joints^T]^T
 
 	Eigen::VectorXd ddq, tau;
 	//save current ddq and tau
@@ -2310,7 +2311,14 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 	dse3 hipTorque_tmp = Hip->GetForce();
 	getAllJointTorque(b_tmp);
 	b.tail(joints.size()) = b_tmp;
-	for (int i = 0; i < 6; i++) b(i) = hipTorque_tmp[i];
+	{
+		b(0) = hipTorque_tmp[3];
+		b(1) = hipTorque_tmp[4];
+		b(2) = hipTorque_tmp[5];
+		b(3) = hipTorque_tmp[0];
+		b(4) = hipTorque_tmp[1];
+		b(5) = hipTorque_tmp[2];
+	}
 
 	Eigen::VectorXd unit;
 	unit.resize(n-6);
@@ -2318,8 +2326,14 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 	{
 		unit.setZero();
 		se3 se3_tmp(0.0);
-		if (i < 6)
-			se3_tmp[i] = 1.0;
+		if (i < 3)
+		{
+			se3_tmp[i+3] = 1.0;
+		}
+		else if(i<6)
+		{
+			se3_tmp[i-3] = 1.0;
+		}
 		else
 			unit(i - 6) = 1;
 
@@ -2330,7 +2344,10 @@ void HuboVPBody::getEquationsOfMotion(vpWorld *world, Eigen::MatrixXd &M, Eigen:
 
 		getAllJointTorque(b_tmp);
 		hipTorque_tmp = Hip->GetForce();
-		for (int j = 0; j < 6; j++) M(j, i) = hipTorque_tmp[j] - b(j);
+		for (int j = 0; j < 3; j++)
+			M(j, i) = hipTorque_tmp[j+3] - b(j);
+		for (int j = 3; j < 6; j++)
+			M(j, i) = hipTorque_tmp[j-3] - b(j);
 		M.col(i).tail(n - 6) = b_tmp - b.tail(n - 6);
 	}
 

@@ -51,6 +51,8 @@ private slots:
 	void on_hSlider_6_valueChanged(int value);
 	void on_hSlider_7_valueChanged(int value);
 
+	void on_nStepBtn_clicked();
+
 private:
 	Ui::HuboInteractBalanceManage *ui;
 

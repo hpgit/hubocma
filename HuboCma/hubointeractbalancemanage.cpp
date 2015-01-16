@@ -20,6 +20,7 @@ HuboInteractBalanceManage::HuboInteractBalanceManage(QWidget *parent) :
 	ui->pushForceXText->setPlainText(QString("30"));
 	ui->pushForceYText->setPlainText(QString("0"));
 	ui->pushForceZText->setPlainText(QString("0"));
+	ui->nStepText->setPlainText(QString("10"));
 
 
 	kl=1;
@@ -231,4 +232,30 @@ void HuboInteractBalanceManage::on_hSlider_7_valueChanged(int value)
 	if(value == -300)
 		torqueWeight = 0;
 	ui->label_14->setText(QString::number(torqueWeight,'g',3));
+}
+
+void HuboInteractBalanceManage::on_nStepBtn_clicked()
+{
+	const double totalTime = viewer->refer->getTotalTime();
+	const int nStep = ui->nStepText->toPlainText().toInt();
+	for(int i=0; i<nStep; i++)
+	{
+		double time = fmod(simulTime, totalTime);
+
+		doingInOneStep(time);
+
+		if(pushTime > DBL_EPSILON)
+		{
+			viewer->hubo->huboVpBody->applyAddAllBodyForce(pushForce);
+			pushTime -= simulTimeStep;
+		}
+		else
+			viewer->glWidget->forceDrawOff();
+		viewer->hubo->stepAheadWithPenaltyForces();
+		simulTime += simulTimeStep;
+	}
+	//simulTime += renderTimeStep;
+
+	viewer->hubo->huboVpBody->applyAllJointValueVptoHubo();
+	viewer->glWidget->updateGL();
 }
